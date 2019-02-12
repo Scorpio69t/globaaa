@@ -1,0 +1,336 @@
+:- Stack (and assembly)
+
+	- MIPS
+
+:- Optimizations
+
+	- matrix stuff
+
+	- throughput on processors
+
+	- loop unrolling
+
+:- Memory
+
+	- malloc (using free list to get more memory)
+
+		- A program is essentially made up of text, data, and memory. The text is simply the executable
+		  program that'll be running, while the data (made up of 'data' and 'BSS') are initialized and 
+		  uninitialized global variables. In a program's address space there's also the stack (which starts
+		  at a higher memory address and grows down) and the heap, a chunk of dynamic memory that grows us.
+
+		- In the 33 malloc pset, you call a function sbrk(), which effectively changes the location of the 
+		  program break. When a program starts the program break points to the end of the data segment:
+
+
+						-------------
+						|	    |
+						|   stack   | (growns down)
+						|	    |
+						|	    |
+						-------------
+						|	    |
+						|	    |
+						|	    |
+						|	    |
+						|	    |
+						|	    |
+						|	    |
+						-------------
+						|	    |
+						|   heap    | (grows up)
+						|	    |
+						|	    |
+						-------------   <--- initial program break when heap = NULL 
+						|	    |
+						|   data    |
+						|	    |
+						|	    |
+						-------------
+						|	    |
+						|   text    |
+						|	    |
+						|	    |
+						-------------
+
+
+		  allocating more memory increases the address of the program break, effectively giving it more memory
+		  above the data segment. 
+
+	- mmap (share map + private map)
+
+
+:- Files
+
+	- file descriptors:
+
+		- 
+
+	- file systems (vfs + s5fs)
+
+	- file consistency after crashes
+
+	- caches (cache61):
+
+		- system calls are expensive (why? -- calls to read() and write() cause a trap to the kernel, 
+		  which takes time) (what's a trap to the kernel? I think it's the switching, inside a thread, 
+		  from the context of the user to the context of the operating system)
+
+		- The first part of the pset you're not even worried about caches. The original code
+		  reads and writes a single character at a time without any form of read-ahead, which
+		  means if you're reading a file 512 bytes large, you're going to need to make 512 read()
+		  system calls, which will slow things down drastically.
+
+		- For both reads and writes, you want to implement some for of batching, where you can 
+		  utilize a single system call to transfer large amounts of data. Reads are somewhat easier,
+		  since you can just read in a large chunk of data and serve it up to the user as needed.
+		  You can't really write out, ahead of time, chunks of data to a file. Instead, let's check
+		  to see how much we're trying to write out and batch writes based on this. 
+
+		- Caches first come into play dealing with readc() and writec() i.e. trying to read and write
+		  a single character at a time. Utilizing the file struc io61_file, we make a read ahead system
+		  call, storing the contents in the file's buffer. This allows us to limit system calls to every
+		  BLOCK bytes. Otherwise, we can simply index into the file's buffer to return a single character.
+
+		- Caches are important because they speed up File I/O; they come up a lot: VM, file systems,
+		  distributed systems, etc. Although they provide increased performance, they also tend to 
+		  make things harder. For example, let's say you're on a distributed file system such as NFSv2.
+		  There are multiple clients communicating with some server, and as a client accessing a server's
+		  file you want to utilize your cache to speed things up (changes you make to the server's file
+		  you want to store in your cache, and only make a single write back to the server once you're done).
+		  In this situtation, there has to be coordination between the server and the client s.t. if a 
+		  client is the only one reading or writing to a file it can use its cache all it wants. If another
+		  client tries to access the same file, however, the server needs to notify the first client that
+		  it can no longer use its cache, (since we don't want changes made to the file by the first user
+		  to remain in that user's cache and thus be unavailable to other users who believe they're accessing
+		  the most recent version of the file) forcing that client to write everything back to the server.
+		  This is just one example of how caches can increase the complexity of systems.
+
+		- There're a few more notes in 'cache61/notes'
+
+:- Concurrency
+
+	- basics
+
+		- You generally want to create threads, instead of processes, since it's less expensive. Threads share certain
+		  portions of the address space, so it's easier (and quicker) to initialize them. You create threads with:
+
+			- pthread_create(thread pointer, attr. struct, function to run, arg. to function)
+
+		Whenever you create a thread, you either want to detach it with pthread_detach() called from the main thread, or
+		pthread_join(). This'll make sure that any resources used by the thread are collected at the exit of the thread.
+
+		When the thread exits, you want to run pthread_exit() from the child thread. This status will be passed to 
+		pthread_join() so the parent thread can check the status of its child.
+
+			- see /home/dfarnha1/course/systems/cs033/notes/threads/threads_mm.c
+
+	- mutexes
+
+		- Mutexes allow multiple threads to access the same data structure safely. When using mutexes there's always the threat
+		  of deadlock. A good example of deadlock:
+
+				thread 1		thread 2
+
+				lock(&m1)		lock(&m2)			
+				lock(&m2)		lock(&m1)
+				...			...
+				...			...
+				...			...
+
+		If thread 1 comes through and locks m1, before it can grab m2 thread 2 might snatch it, meaning neither can progress.
+			
+		A fun variant of regular mutexes is the recursive mutex. In this case, a single thread can lock a mutex multiple times. Its
+		ownership count is incremented each time it locks the mutex. Another thread can take the mutex only when this count = 0.
+
+	- condition variables
+
+		- These are useful when trying to pause a thread atomically:
+
+		  	        pthread_cond_t s_cond = PTHREAD_COND_INITIALIZER;
+
+		  	    	pthread_mutex_lock(&s->mutex);
+				while(!guard) {
+					pthread_cond_wait(&s_cond, &s->mutex)
+				}
+				...
+				...
+				pthread_mutex_unlock(&s->mutex);
+
+		so I lock the mutex s->mutex and then check guard. If guard is false, I want to put the thread to sleep to wait until it's true.
+		I do this by enqueuing on the condition variable's queue and unlocking s->mutex within pthread_cond_wait(). This allows another thread
+		to grab the s mutex.
+
+		You make use of this since you can't put a thread to sleep with s->mutex locked or else nothing could run. Therefore, you
+		have to unlock the mutex before putting the thread to sleep. But let's say thread 1 is going to sleep, but right before it
+		does it gives up its mutex, then another thread jumps in, grabs the mutex, and calls wake_all before thread 1 actually sleeps.
+		In this case, the broadcast meant to wake up thread 1 occurs before thread 1 gets put to sleep, which will
+		leave thread 1 in perpetual hibernation. Condition variables solve this by putting the thread to sleep and releasing the matrix 
+		atomically.
+
+		pthread_cond_wait() places a thread on the conditional variable's wait queue then unlocks its mutex. The call to pthread_cond_broadcast() 
+		wakes up all threads in its queue. This takes a thread that's blocked and makes it runnable. The thread, therefore, needs to 
+		regain its mutex before it can continue running. When the broadcast call wakes up all the threads, they'll all essentially compete 
+		to grab the mutex so they can exit the condition variable. If a thread tries to grab a mutex that is currently owned, it'll be placed 
+		on that mutex's wait queue. It's dequeued when the thread holding the mutex calls pthread_mutex_unlock().
+
+
+		thread 1						thread 2
+		pthread_mutex_lock(&m)	// grabs hold of mutex		pthread_mutex_lock(&m)  // placed on mutex's queue
+		...							...  // starts running at (*)
+		...							...
+		(*) pthread_mutex_unlock(&m)  // dequeues threads       pthread_mutex_unlock(&m)
+
+
+	- uthreads:
+
+		- the foundation of this problem is that you have a single process (CPU), which you're moving user threads on and off of. the idea
+	  	of processes and the CPU can get a little bit confusing. I think, in general, a process is a more heavyweight version of a thread
+		with different memory properties. For example, multiple threads created within a single process share the virtual memory and state of
+		the parent process, whereas 2 processes aren't going to share any memory.
+
+		so, a thread has to run within a process, which runs on the CPU. with user threads switching on and off of a CPU, it makes sense
+		that you'd only need a single process in which these threads can run.
+
+		     - check procs. for more
+
+		- How do you block a thread? If I swap the context of a thread, I'm taking all its registers, stack, etc, off a CPU / out of a process
+		and replacing it with a different thread's context. Since the thread isn't loaded into a process on a CPU, it's 'blocked' from running. 
+
+		Let's say I'm in thread 1 and call uthread_yield(). This calls uthread_switch(), which takes the context of thread 1 out of the process
+		and replaces it with another thread's context. uthread_switch() is simply an infinite loop that looks through the run queue checking for
+		higher priority threads to start running. Once it finds one, it swaps the context of the current thread, the one that called uthread_yield(),
+		with the thread taken off the run queue. This places the new thread's stack, registers, etc on the CPU, allowing it to run. 
+
+		- as an aside, I remember one of the homeworks about setjmp() and longjmp(). setjmp() saves the current state of a thread, I believe, and returns 0.
+	        longjmp() switches context, similar to setcontext(). If longjmp() is jumping to a thread that called setjmp(), however, setjmp() will return a 
+		non-zero number. This works like:
+
+		    [0]
+			if(!setjmp(old->env))		/* returns 0 at initial call */
+			  longjmp(current->env)
+
+		    [1]
+			longjmp(old->env)		/* jumps back to setjmp() call, which'll return non-zero */
+
+
+		- In uthread.c we only have a single process, so we can only have a single thread running at a time. When we create a thread we simply
+		allocate a new stack, place the thread's context into this stack, set the thread's priority, and return. Once we create a new thread the thread
+		isn't running, but it is runnable.
+
+		When we run uthread_init(), this creates the first thread as well as sets up the reaper and run queues. When we create the first thread,
+		it takes the current thread and transforms it into a uthread. This means it will be schedulable. The first thread starts a timer, which'll be 
+		responsible for time slices. So as we create threads we make them runnable and place them in the run queue. If a thread's priority is set high, 
+		it immediately causes the current thread running to yield the processor. Otherwise, as a thread's time slice expires, it'll call yield, which 
+		in turn calls thread_switch(), swapping a new thread (if it has high enough priority) onto the CPU.
+
+		When we change the runq_table, which is a global data structure containing all the current threads, we want to protect against thread preemption. This is
+		important since if we're updating the links in the table in a particular thread and then this thread's time slice expires, if we were just to immediately
+		yield the processor it could leave the run queue in an inconsistent state. Therefore, we disable preemption while modifying the global run queue.
+
+		In the notes, we use getcontext and setcontext when swapping contexts off the processor. In this case, you need to be careful the order of the calls:
+
+			- check book
+
+	- mthreads:
+
+		- as it sounds, mthreads deals with multiple threads. imagine having multiple processors s.t. you can have multiple threads running concurrently.
+		in this assigment you have what are called lwps (light weight processes). normally, you'd have multiple threads within a single process and then
+		numerous processes that are being multiplexed across CPUs. this allows multiple threads to run concurrently. In this assignment, though, i think we're
+		using pthreads as (light weight) substitutes for processes and having mutiple uthreads per pthread.
+
+		- in terms of switching in and out of threads, there are two main functions: uthread_switch and lwp_switch:
+
+		     	[1] let's say a thread is running in some pthread then calls uthread_switch. this saves the thread's context and jumps into the context
+			of the current lwp it's in.
+
+			[2] inside the process it enqueues the current thread on some list (either the runq or a mutex queue), unlocks a mutex (it was locked
+			to ensure another process doesn't dequeue the thread from the runqueue before the current process is done with it), then enters a
+			loop checking for threads in the runqueue to run
+
+			[3] if there are no threads to run park the current process using a conditional variable. once a thread is enqueued on the runq, it'll
+			call release, which signals the condition variable to wake up a process.
+			
+	- procs
+
+		- I think of processes as being more heavyweight than threads i.e. it's easier to spool up a new thread than a new process. Furthermore, multiple
+		threads created in the same process share an address space, meaning thr[0] and thr[1], running concurrently, can access the same values by reading
+		and writing to shared memory. Processes, however, don't share an address space - two processes can't communicate by simply modifying a shared
+		address space.
+
+		- forking
+
+		- child processes
+
+		- etc
+
+	- database
+
+:- Security
+
+	- RSA, symmetric keys, etc
+
+	- setuid
+
+	- buffer Overflow
+
+	- ROP 
+
+	- chroot
+
+	- TOCTTOU (time of creation to time of use)
+
+	- RPC (somewhat useful for 166's dropbox)
+
+		- Arguments passed between the client and server are marshalled such that they're essentially packaged.
+		  This is important, since the server might be running different code than the client. So, let's say 
+		  the client sends what it believes is an int. If the size of this int is different than what the 
+		  server expects, this could cause problems. For example, perhaps the client machine believes an int
+		  is 64 bytes, while the server only allots 32 bytes for ints -- the value passed by the client will be
+		  misinterpreted by the server. Marshalling, then, puts all arguments to a function together in a way 
+		  that the server understands. Importantly, structures like strings and arrays, which are placed on the
+		  stack in C (pointers), are packaged and sent as arrays of values (since it's not possible for a server to 
+		  access the stack of the client sending the request).
+
+		- A big issue with all this is we want requests from the client to the server to run only once. If a 
+		  function is idempotent, this means that multiple calls produce the same overall result. Consider the 
+		  command "Move box to x-y coordinate (6, 7)" -- if you run this command multiple times, the end result
+		  should be the same: the box at coordinate (6,7). Not all requests are idempotent, however, so let's 
+		  say the client makes a request to the server, yet for whatever reason (some problem with the network)
+		  the client doesn't receive confirmation that the server handled its request. In this case, the client
+		  might try to make another call to the server, which could result in a function being called multiple 
+		  times.
+
+		- The solution to this is two fold. You can use TCP to ensure that requests and confirmations are being
+		  received. If there's something wrong with TCP, however, it's useful to keep around a cache that 
+		  records recent requests and responses -- this cache can be consulted to make sure, within a specified
+		  time period, duplicate requests are not executed.
+
+:- Distributed
+
+	- Chord
+
+		- In chord, you have a bunch of nodes with finger tables pointing to other nodes in the system. If the
+		  size of the finger table is log(n) | n = the total number of nodes, then searching the network becomes
+		  binary search, allowing you to traverse the network in a very short number of hops.
+
+		- The problem with chord, however, is it doesn't really take into account the topology of the network. along
+		  the path to find an object, you may need to jump to a node in Japan, then the US, then back to Japan -- so
+		  while the number of jumps is upper bounded by log(n), the actual distance covered could be disproportionately
+		  large.
+
+	- Tapestry
+
+		- In contrast, tapestry takes into account the topology of the network. This way, when searching for an object in
+		  the tapestry mesh, though you might need to contact more nodes than in chord, the distance traversed across the
+		  system should be less -- nodes in a finger table should be as close a possible to the current node; when populating
+		  a finger table, a node will ping other nodes, placing the closest in its finger table.
+
+	- Raft
+
+	        - With tapestry and chord, it seems like the only operations being performed are publishing (writing) and retrieving (reading).
+		  these are essentially idempotent operations -- reading multiple times or writing the same object multiple times shouldn't be
+		  any different than doing it a single time.
+
+		- What if, however, this wasn't the case, and the consistency of the system depended on the correct ordering and frequency
+		  of operations? I think this is where raft, and using consensus, comes into play.

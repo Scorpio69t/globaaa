@@ -1,0 +1,43 @@
+-
+
+	What Host B could do is spoof Host C's IP address. Since Host A's ARP table is empty, when Host A wants to send a packet to C at
+	IP address 192.168.1.4 it'll broadcast an ARP request to FF:FF:FF:FF:FF. IF B spoofs C's IP address, when B get's this broadcasted
+	ARP request it'll respond with its own MAC address, which could then be put in A's ARP table. A will now associated B's MAC address
+	with C's IP address and send future packets intended for C to B. (gratuitous ARP request)
+
+-
+
+	I learned in office hours that members of a subnet might broadcast an ARP request not only to resolve an IP address to a MAC address, 
+	like above, but let's say a new computer 'Z' enters a network; when it does this, no other hosts on the netork know its IP or MAC addresses. 
+	Instead of waiting for each host to broadcast a request, 'Z' might broadcast its information so everyone can update their ARP tables. 
+
+	Since Host B only wants to affect Host A without damaging the connections of the other hosts on the subnet, it might be able to make
+	use of this gratuitious ARP request, not broadcasted, but sent only to Host A. This directed request, only to A, will cause A to update
+	its ARP table, replacing C's information with B's.
+
+	https://www.quora.com/Can-I-have-two-IP-addresses-in-one-ARP-table
+	(I think I remember from office hours that you can't have the same IP address resolve to multiple MAC addresses)
+
+-
+
+	Instead of B simply spoofing C's IP address, if B also changed its MAC address to C's MAC address, then packets sent by A should go
+	to both B and C. (* this might work *)
+
+	What might also be the answer - check the sender and dest addresses, and forward to C.
+
+-
+
+	What I first thought of was perhaps Host B could forward packets from A to C and vice versa, acting as a kind of middle man keeping
+	track of packets passed between the two hosts. 
+
+	Perhaps, though, what B can do is change its MAC address to that of C. Now, when A tries to send packets to C it'll also send them to
+	B. B could also spoof A's IP address and try to trick C into updating its ARP table s.t. packets destined for A, from C, are instead
+	sent to B. The downside to this is similar to above: A won't get any return packets and so might realize something is wrong.
+	(* AGAIN, AASK ABOUT UPDATING BROADCAST ADDRESS; IT MIGHT AFFECT THIS *)
+
+-
+
+	(* since the IP is clearly not in the subnet, does host A immediately send the packet to the default gateway? *)
+
+	If the above is the case, perhaps B could spoof the IP address of the default gateway, since this is where host A will be sending the
+	packet.

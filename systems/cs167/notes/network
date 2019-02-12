@@ -1,0 +1,8 @@
+- time wait:
+
+	a client has to stick around for a period of time, even though it's 'closed' its connection to the server, so that if the
+	server doesn't receive an acknowledgement that the connection is closed when the two parties are terminating their connections,
+	the client can send again (otherwise, since you're using TCP, the server will keep trying until it gets acknowledgement from the
+	client that its received its packets)
+
+		- this is why sometimes, even after a connection is closed, you can't immediately reuse a port number (33 assignments)

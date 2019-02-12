@@ -1,0 +1,83 @@
+- RCE:
+
+	I want to be able to run other code at the permission level of the TA group. When I call 'cs666_handin', it'll elevate the user's
+	permission level and then execute another process by calling 'execve'. The key here is that a process run with 'execve'
+	will inherit the permissions of the calling process. Thus, if I can get 'cs666_handin' to run an executable I've written, I'll
+	be able to do anything on the system at the permission level of the TA group.
+
+	- the hardest part of this was organizing the go libraries since libraries 'os' and 'fmt' are restricted libraries that can't
+	  be imported. To get around this I copied packages to a new folder "src/tmp" that's along the GOPATH: "/home/alice/go".
+
+	  I also placed my "ivy" directory inside the "src" directory. When go looks to compile imported files, it'll go off of the
+	  'src' folder along the GOPATH. Since 'exec' and 'fmt' are in the 'tmp' folder, you import them with 'tmp/exec' and 'tmp/fmt', thus
+	  getting around the above restrictions. 
+
+	  ivy.go and main.go simply run and print out 'whoami', which returns an egid of 1003. This shows I can run any executable at elevated TA group 
+	  permissions. 
+
+	files: (in folder: /home/alice/go/src/ivy)
+
+		ivy.go
+		main.go
+		whoami
+		ivy
+
+	Simply hand them in and you'll see elevated permissions.
+
+- Metadata Exfiltration:
+
+	Whenever a user trys to hand in an assignment, the autograder will use the "tmp" folder. Since this folder is world readable, other users can
+	peak in and see when other students are submitting their homeworks. Furthermore, let's say I'm Bob and I see a file in the 'tmp' folder. If I 
+	"getfacl" on the file, I'll be able to see its owner, thus, knowing who has submitted 'ivy'. 
+
+- Possible attack vectors:
+
+  - PATH:
+
+	source: https://www.pentestpartners.com/blog/exploiting-suid-executables/
+
+	- let's say you have 2 binaries [1] and [2] s.t. [1] calls [2] and [1] is a setuid binary with elevated permissions. 
+	  If [2] is along your PATH, you can redefine that PATH with an updated [2] - when [1] calls PATH it'll use the PATH
+	  you've defined (since your local environment is editable by the user) and run [2], which you've changed. Thus, you can
+	  run code you've written [2] with elevated permissions coming from [1].
+
+  - Edit Bash Profile Variables:
+
+  - Race Condition
+
+	- There seems to be a race condition when files are being put in the tmp folder; see if you can exploit this.
+
+	- sequence of calls:
+
+		if you call ./handin with the name of the file:
+
+		  main.go:
+			(1) it's going to call autograde on the (assignment, userid, tar of the files)
+
+		  autograde.go:
+
+			(2) autograde creates a temporary directory: cs666_autograde
+		
+			(3) places the tar file into the temp directory
+
+			(4) changes into the temp directory
+
+			(5) it then calls the autograde script on the assignment NOT THE TAR
+
+		  autograde.sh:
+			
+			(6) cp the autograde stencils into cwd
+
+			(7) check the blacklist of imports
+
+				/* I can't check the files here, since tabin is write protected */
+
+			(8) where am I echo'ing the files from into GO_FILES?
+
+			(9) check if /temp/cs666_bin exists, if it does the copy file name, move another file you wrote
+			    into the temp directory with same name (and with malicious code i.e. libraries you shouldn't
+			    be using)
+
+  - Buffer Overflow
+
+	- Big question here is, which file has a buffer whose boundaries aren't checked?

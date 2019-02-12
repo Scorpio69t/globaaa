@@ -1,0 +1,18 @@
+Metadata Exfiltration:
+
+  attack:
+
+	So this attack isn't too difficult, I simply run:
+
+		strings cs666_handin
+
+	and then read the results. From this I can see that in the 'tabin' folder there's a bash
+	script named '/course/cs666/tabin/autograde.sh', which basically lets me know there's an
+	autograder running on all the handins. If you simply try to execute into the 'tabin' directory
+	you can't, thus, the existence of this bash script should be hidden from the user. Being
+	able to read the executable, however, gives me access to this info.
+
+  fix:
+
+	A good way to fix this would be to make cs666_handin not readable by users - this would prevent 
+	me from running strings on the file and then reading the output.

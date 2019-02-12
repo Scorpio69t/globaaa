@@ -1,0 +1,45 @@
+- CreateClient return?
+
+	: in client.go: CreateClient() it says it returns a pointer to a client, but simply returns. What exactly is this syntax?
+
+	: so, this works:
+
+		package main
+
+		import (
+			"fmt"
+		)
+
+		func main() {
+			fmt.Println("%d\n", *nothing()) /* prints 16 */
+		}
+
+		func nothing() (ptr *int64) {
+			var i int64
+			i = 16
+			ptr = &i
+			return
+		}
+
+	  what it looks like is happening here is I'm declaring a pointer 'ptr' in the function defintion.
+	  I'm then setting it equal to a variable. I would think this would throw an error, since the variable
+	  I'm declaring is a local variable on the stack; even if you set ptr = &i, after nothing() returns
+	  ptr should refer to garbage.
+
+	  go, though, I guess does some form of escape analysis, determining that the pointer 'ptr' references variable
+	  'i' and this pointer persists after the function returns. Because of this, I guess nothing() allocates 'i' 
+	  in the heap. (https://stackoverflow.com/questions/13715237/return-pointer-to-local-struct)
+
+- heartbeat?
+
+	: I had a problem with sending a heartbeat back and forth between the server and client in Whatsup. I'll come back to
+	  this after I work on miner a bit.
+
+- len(c.Nonces) == len(c.PoolConns)
+
+	: what does this mean? maybe if all pools have nonces, transmit this back over the channel to the client?
+
+- make another pool in client.go:mine()?
+
+	: if we already construct a mapping when we create the client, why do we do it again when we send a message to the 
+	  client to mine? maybe we're replacing all the values in the mapping with new ones from the pool

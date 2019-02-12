@@ -1,0 +1,162 @@
+-: chord
+
+	: if you're given a key, where should you put it? mod it by the size of the chord space and place it in the closest clockwise
+	  node
+
+	: finger tables - I think he said that the node you're on is stored in the node's finger table first, so you'll check this node then
+	  consult its finger table
+
+		: I missed this on the homework =(
+
+	: you want log(n) entries in your finger table (I think this is covered in the notes/lectures)
+
+		: the reasoning behind this is that if you go 1 more than log(n), you'll have made a complete circle back to the node
+		  you started from. if it was less than this, you wouldn't be able to cover half the address space.
+
+			:  size 16 ring, starting from node w/ ID 1:
+
+				: these are all the finger tables entries that you need
+
+					1 + 1 | Node
+					1 + 2 | Node
+					1 + 4 | Node
+					1 + 8 | Node
+
+				: if you were to add one more:
+					1 + 16 |-> then you've looped through the entire chord space, making it redundant
+
+-: tapestry
+
+	: how do things work in the notes? A routing table has a bunch of levels that are populated by nodes whose ID prefixs
+	  progressively match more of the target node's
+
+	: how do we add a node, n, to the tapestry mesh?
+
+		: 1) find a random, existing node G
+		: 2) starting at G, fill in the routing table row 0 of n
+		: 3) for the column with starting number of prefix, jump to that node
+		: 4) fill in the node's remaining routing table
+
+	: given a list of nodes, the root is the node closest in prefix. From the HW:
+
+		: 2130
+		: 3101
+		: 1000
+		: 0123
+		: 3101
+
+	: note, this is without surrogate routing:
+
+		0123 1000 2231 3333
+		 -   2130 2231   -
+		 -    -    -   2130
+		2130    -    -    -
+
+	X	: 0123 -> 0123 1000 2231 3333
+	3	: 3333 ->   -  3121   -  3333
+	31	: 3121 -> 3101 3111 3121   -
+	310	: 3101 ->   -  3101   -    -
+
+		0123 -> 3333 -> 3121 -> 3101 (which is the root of 3100)
+
+		: when trying to find the root of a node you do this kind of routing
+
+	: in the acknowledged multicast, you simply call multicast on all nodes that share the longest
+	  prefix with the new node?
+
+		: I think this is the case -> let's say you have node 3123 (root) and 3100 (new node).
+		  if you're inserting 3100, you only need to check nodes with prefix 31-- since only
+		  these could have holes at positions where 3100 could fit
+
+	: some possible errors:
+
+		1) we've added a node and changed root, but all requests still forward
+	           to the previous root.
+
+			fix: add route to new node; reroute
+
+		2) we show up at new root node but contents from previous node haven't been transferred
+		   yet
+
+			fix: reroute to previous root
+
+-: network congestion
+
+	: slow start - when the window is growing exponentially (quickly detect how much bandwidth exists)
+
+	: congestion avoidance - the linear part of the graph after the slow start. once the congestion window gets to the thresh,
+	  it proceeds linearly, increasing the congestion one at a time only
+
+	: flat when you aren't getting any responses
+
+	: steep decline is during timeout, after which you'll start up a slow start again
+
+-: attacks
+
+	: reflection, sand message back to person who sent it
+
+	: replay, send someone's message to someone else
+
+	: diffie hellman provides forward security.
+
+		: let's say you use asymmetric keys to distribute symmetric keys. if an attacker
+		  ever found out one of the users' private keys, then this exchange would be compromised.
+
+		  in diffie hellman, you never actually exchange keys, so even if an asymmetric key
+		  is compromised, messages between two users still can't be decrypted.
+
+-: 2015
+
+	1) pick some random node G
+	2) from the first level, choose the node that matches the first number in inserting node's ID
+	3) go to this new node and choose from level + 1 the node that matches the first two numbers
+	   in the inserting node's ID
+	4) continue, increasing the levels as you go, until you get to the last level of the routing
+	   table; this node is the root
+
+		- if there are no nodes that match the prefix, use surrogate routing, choosing the ID
+		  that most closely matches the ID of the node you're trying to insert
+
+	nodes: 4046, 4049, 0319, 2319
+
+	4006:	|-> 4046
+	4175:	|-> 4046
+	1999:	|-> 2319
+	2999:	|-> 2319
+	3116:	|-> 4046
+	3999:	|-> 4049
+
+	RTT is round trip time measurements. I would imagine tapestry would be able to use the topology
+	of the network as a benefit: place the root node closer to the nodes that are publishing and 
+	requesting certain objects.
+
+	Further, let's say both A and C publish the same content. On the path to the root of the object
+	they published, they leave bread crumbs that are cached. Now, let's say B requests the object
+	and comes across one of these breadcrumbs on its way to the object's root. This breadcrumb will
+	identify that both A and C have published the object s.t. B can simply go straight to A or C, 
+	instead of having to redirect to the root first.
+
+	- simple encryption either via asymmetric or symmetric keys
+
+	- since superfish has both the public and private key, when a message comes from a server to
+	  a client's browser, the browser can decrypt this message with the private key, insert ads,
+	  then re-encrypt it (or simply offer it up to the user with the ads now inserted). The connection
+	  between the server and the client is still encrypted, the message is just being edited now
+	  once it's reached the user.
+
+	  interesting, you have to trick the browser to get the padlock. To do this, you use the private
+	  key to sign a signature, saying the superfish server is essentially the site you think you're
+	  contacting. this provides the padlock
+
+	- consistent cut: if something is in the cut, when it was sent is also in the cut. (you don't
+	  have to include when it was received in the cut)
+
+		- only e (god trick question)
+
+		- yes
+
+-: raft
+
+	: an entry is only safe to be committed if at least one entry from the current leader has been replicated
+	  on a majority of followers. this ensures that a follower, with this entry, will be elected next leader,
+	  meaning all leaders will have consistent logs

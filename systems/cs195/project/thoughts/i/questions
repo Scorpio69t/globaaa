@@ -1,0 +1,25 @@
+-- you say there should be an equivalence relation between the worlds, but in many of the examples, like from 
+   the notes it's clear the relations between the worlds aren't transitive. Do the edges between worlds have to
+   be transitive?
+
+-- in the piazza post, the argument for not getting rid of certain worlds is that there isn't common knowledge
+   about the least number of people. but let's say there are 5 people with blue eyes; wouldn't there be common
+   knowledge that at least 3 people on the island have blue eyes? what's the definition of common knowledge here?
+
+-- Do we have to label all the people on the island? Why? How?
+
+-- General approach:
+
+		1) create a set of worlds of all possibilities
+
+		2) create relations between worlds where each edge represents the knowledge of a
+		   person in that world
+
+		3) have state transitions dependent on days, where on the n'th day you can parse the graph, 
+		   getting rid of all worlds w/ < n blue eyed people
+
+			3.1) have a predicate that basically checks if on the n'th day a person can look around
+			     and see n - 1 blue eyed people. if they do, they realize they also have blue eyes
+			     and can leave the island.
+
+

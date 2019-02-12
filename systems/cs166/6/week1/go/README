@@ -1,0 +1,45 @@
+ACE (place 'go' folder in alice's or bob's $HOME):
+
+  attack:
+
+        I want to be able to run other code at the permission level of the TA group. When I call 'cs666_handin', it'll elevate the user's
+        permission level and then execute another process by calling 'execve'. The key here is that a process run with 'execve'
+        will inherit the permissions of the calling process. Thus, if I can get 'cs666_handin' to run an executable I've written that makes
+	system calls, I'll be able to do anything on the system at the permission level of the TA group.
+
+	This is complicated, though, because certain libraries are blacklisted, for example 'os' and 'fmt'. To get around this, I simply rename
+	these packages and import them as 'tmp/exec' ('exec' is a package in 'os') and 'tmp/fmt'. 
+
+	Probably the hardest part of this was organizing the go libraries and learning how to compile in the go environment. I essentially just
+	copied the 'exec' and 'fmt' libraries into a new folder "src/tmp" that's along the GOPATH: "/home/alice/go".
+
+        I then placed my 'ivy' directory inside the 'src' directory. When go looks to compile imported files, it'll look in the 'src'
+        folder along the GOPATH. Since 'exec' and 'fmt' are in the 'tmp' folder, you import them with 'tmp/exec' and 'tmp/fmt', thus
+        getting around any blacklisting.
+
+        ivy.go and main.go simply make a system call to run 'whoami' and print out the result, which should return an egid of 1003. This shows I 
+	can run, and make system calls, at elevated TA group permissions.
+
+	With the go env setup like above, simply install inside the 'ivy' directory with 'go install ivy', then copy the ivy executable from the bin
+	along my GOPATH into the 'ivy' directory. 'ivy' should now contain:
+
+		whoami
+		main.go
+		ivy.go
+		ivy
+
+	Calling cs666_handin on this directory will print out your elevated permissions.
+
+  fix: 
+
+	I think there are a couple of fixes to this:
+
+		1) instead of simply blacklisting 'os' and 'fmt', you could use regex to blacklist any string that contains these libraries;
+		   that would effectively block my attack above
+
+		2) use a whitelist, only allowing certain libraries (although this doesn't seem like the best idea)
+
+		3) I don't think this would be the easiest, but I think the cleanest way would be to use wrappers s.t. any functions executed from
+		   the 'os' and 'fmt' libraries would first have their permissions restored to the calling user's, and then have the permissions
+		   restored to the group's when done. This way, a user can use the 'os' and 'fmt' libraries, they'll just behave corresponding to 
+		   the user's permission level.  

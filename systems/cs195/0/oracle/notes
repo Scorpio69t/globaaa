@@ -1,0 +1,12 @@
+- what is a DAG
+
+	: DAG - directed acyclic graph. Directed means that every edge goes from one
+	  vertex to another. Acyclic in that you can't follow any set of directed
+	  edges from 'v' and end up back at 'v'
+
+- topological sort
+
+	: If a directed graph has a cycle it can't have a topological sorting.
+
+		- let's say {a -> b -> c -> a}. I can't choose any vertex since there's
+		  a vertex that comes before it.

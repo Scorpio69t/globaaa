@@ -1,0 +1,37 @@
+I placed a lot of the supplemental helper functions in common.c. To help keep track of
+connections {OPEN, WALL, UNINITIALIZED} I created a new enum to help organize things.
+Otherwise, the layout is pretty much what was described in the pset spec.
+
+The only place with deviations is in error checking. I tried to check a number of things,
+and these should all throw errors:
+
+	(1) ./generator is called with row or col less than 0
+	(2) ./solver is called with goal_col or goal_row greater than size of maze
+	(3) ./solver is called with size of maze less than 0, as in (1)
+	(4) ./solver is called with start row or col out of bounds
+	(5) general error checking opening files
+
+What I had trouble with, in terms of error checking, was checking to make sure the input
+maze is the same size as what the user says it is in the parameters to the function
+./solver. I tried a number of things, such as using FSEEK() to get the size of the incoming
+file to try and compare this with how many hex values you're expecting, but it was a bit
+too buggy so I left it out.
+
+In solver, if you try and get to a goal_col or goal_row outside the bounds of the maze,
+for example doing this:
+
+	./generator maze.txt 3 3	
+	./solver maze.txt 5 5 sol.txt 0 0 4 4
+
+where the goal_col and goal_row are within the bounds of the args to solver, 
+but are in actuality too large for the maze, this should print out "NO VALID PATHS".
+If you do something like this:
+
+	./generator maze.txt 4 4	
+	./solver maze.txt 3 3 sol.txt 0 0 2 2
+
+this should print either a path or no valid paths, depending on whether there's a path 
+from (0, 0) to (2, 2) within the given subset 3x3 maze.
+
+I also provided a little bash script to help test multiple types of maze generations and
+solutions along with side cases in the form of "run_tests.sh"

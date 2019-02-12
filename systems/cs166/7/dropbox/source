@@ -1,0 +1,32 @@
+-
+
+	1) make sure you have enough command line arguments:
+
+		- pass the server you're connecting to as cmd line argument
+
+	2) use rpc.NewServerRemote(os.Args[1]) to set up a connection to the server to run remote procedure calls
+
+	3)
+
+		        err = server.Call("mult", &retInt, 2, 4)
+		        if err != nil {
+                		fmt.Fprintf(os.Stderr, "error calling method mult: %v\n", err)
+		                return
+ 		        }
+		        fmt.Printf("mult(2, 4): %v\n", retInt)
+
+	  this is how you make remote calls: use server.Call(), passing in the name of the function, a pointer to a return value,
+	  and the arguments to the function.
+
+
+	4) the client runs RuCLI passing in the client struct, which holds all the functions you created
+
+	5) when RunCLI gets a command, like 'cd', it's going to call the client's 'List' function
+
+		- this list function will then dispatch and make a call to the server.
+
+		- ** I think what we want to do is make a global Session ID that is stored client side, 
+		  so when the client calls any function, this Session ID (that was updated when the
+	 	  user logged in) can be passed as a parameter to the server **
+
+		- when do I want to return internal types? how do I want to handle errors?

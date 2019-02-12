@@ -1,0 +1,17 @@
+-: proto buf: allows for language, platform agnostic stubs
+
+	- define services (which get compiled into an interface) and messages (which get compiled into structs)
+
+	- the interface should have both a client and server API
+
+	- I think what we do is create a set of client and server functions that make use of this interface. So,
+	  for example, in the interface we might have a JoinCaller function in both the client and server APIs.
+
+	  We might then write a client function "JoinRPC" that calls JoinCaller. JoinCaller will likely take a
+	  remote node where we're calling our function. The client calls cc.JoinCaller(), calling the function on
+	  some remote node cc.
+
+							in .pb.go
+		client calls JoinRPC -> JoinCaller (switches context invokes server method) -> JoinCaller (server method)
+
+	  we also need some function JoinCaller defined for the server to actually handle this request from the client.

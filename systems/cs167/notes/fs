@@ -1,0 +1,114 @@
+- s5fs:
+
+	file system setup:
+
+			   data
+			  i-list	^
+			superblock	|
+ 			 bootblock
+
+		- the superblock contains the heads of the free lists and the layout of the fs
+		  in memory
+
+		- the i-list is an array of i-nodes, which is very important since these i-nodes represent files.
+
+	diskmap: when you open a file, that file will get an index (inode number) into this i-list. that particular i-node
+		 will then contain information in its diskmap about the location of the data of the file.
+
+	  	 the first 10 indices into the diskmap, for example, are pointers to the file's data. The remaining 3 blocks
+	  	 contain indirect pointers, which allow for larger regions of memory. However, to access these pointers
+	  	 additional I/O operations must be performed to bring into primary memory blocks containing pointers to these
+	  	 regions. 
+	
+	free list: you essentially use a linked list to keep track of free blocks. So when allocating a file, I first find 
+	  	   a free inode in the list. When I then try to write out to this file, let's say at position 1 billion, 
+	 	   I'll find a block in the free list, have this point to another block (taken from the free list), do it
+	  	   again, and finally have this third block point to an actual disc block that i'll write out to. 
+
+	  	   In this case, I'm taking 4 blocks off the free list and putting them into the inode's diskmap. 
+
+	 	   the free list is set up s.t. the superblock contains 99 indices, which point to free disc blocks. The last 
+		   points to another block holding indices for 99 more free blocks, and so on. So if I'm trying to grab a free 
+		   block but there's nothing currently in the superblock, I'll load pointer [0] into primary storage, thus giving
+		   myself 99 more pointers to free blocks.
+
+		   - QUESTION: when I load a new block into primary memory since the super block didn't contain any more references
+			       to free blocks, do I update the superblock s.t. now the head of the free block is this new block I
+			       just loaded into primary memory? I believe this is true since the superblock contains the heads
+			       of the free lists.			
+
+		   when I try to insert a block into the free list, if one of the indices in the superblock is available I have it
+		   point to the free block. If nothing is available, I believe:
+
+		   - QUESTION: I write out the contents of the superblock free list to disc, replace it with the block I was trying
+			       to insert into the free list, and have the last pointer in this new block point to the region I just
+			       wrote out to disc. Disc blocs are 1k, though, and there are only 100 pointers used in the superblock
+			       to reference free blocks and the free list -- doesn't this waste memory?
+
+	directory: simple component name - inode number pairs:
+
+			problems: 1) linear search in the directory 2) since s5fs was so susceptible to crashes, if updating
+				  a directory resulted in modifying multiple blocks, it would zero out inodes instead of actually
+			 	  shrinking the size of the directory block 3) limitations on file name size
+
+
+- ffs:
+
+	- the problem with s5fs is that it isn't particulary fast. To increase performace you can do 2 things:
+
+		1) increase the amount of useful data transfered 
+
+			- I think you want to think of this in terms of buffering, it's going to be a lot
+			  faster if you take in lots of data in one operation vs. taking in the same amount
+			  of data in multiple operations.
+
+			- the problem with increasing the block size, though, is it leads to larger amounts of internal fragmentation. ffs tries
+	  		  to handle this through the use of 'fragments', small disc blocks that can be added to small files.
+
+			- if there's a lot of space grab fragments from the first available block. If there's not a lot of space, though,
+			  look for something closer to a best fit to help reduce the fragmentation.
+
+		2) reduce the amount of seek time
+
+			- I think the big idea here is to place similar files in the same cylinder group - so if you have a bunch of files
+			  in the same directory, place them in the same cylinder s.t. they are proximally closer.
+
+				- I think what actually happens is directory inodes and the inodes for the files in this directory are placed
+				  in the same cylinder group. The direct data is placed in this same group. Data requiring indirect blocks is 
+				  placed in other groups, 2 megabytes/group. Thus, you only need long seeks when accessing a sub directory or 
+				  every 2 MBs of (indirect) data.
+
+			- you can place files along a rotational track at offsets, too, s.t. if there're interrupts or something, the disc head
+			  (still advancing) will be in the correct position once it starts transferring data after the interrupt (block interleaving). 
+
+			- block clustering: seems that you only allocate blocks when there are multiple i.e. 8 --> this helps in terms of limiting
+					    I/O operations and grouping information together, but wouldn't this make data (held in primary memory)
+					    more susceptible to data loss?
+
+- log structured:
+
+	essentially, you just write out to the end of disc (so where ever the disc head currently is). There's essentially no latency, then, 
+	when you're writing out to disc.
+
+- extents: 
+
+	blocks of variable size
+
+- key things:
+
+	speed: different for reads and writes (look at log based file systems)
+	space efficiency
+	reliability in crash: i.e. how to keep the fs consistent
+		- order of updates & soft updates
+		
+- striping:
+
+	- having multiple disks means you can do things in parallel. 
+
+	- let's say the striping size is small: If we have a single thread (concurrency factor = 1) then we might be able to use parallelism
+	  to read a large region of memory concurrently. So if the striping size is 1k and we're reading 4k, we can spread this out over
+	  4 concurrent discs.
+
+	  If the striping size is large, say 4k, we couldn't break up the reads like above. However, this might be good if the concurrency
+	  factor is > 1; we could have 4 threads reading 4 stripes each of size 4k over 4 discs concurrently (so reading in 4 files at a time). 
+	  If the striping size was small, though, each disc head would have to seek multiple times (4 times), which would make it run considerably slower.

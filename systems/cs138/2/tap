@@ -1,0 +1,115 @@
+-: what is tapestry:
+
+	- tapestry is a mesh of nodes connected together. this is an improvement over the napster model of a distributed
+	  network i.e. one where you have some central servers all nodes contact.
+
+		- in the napster case, for example, if you want to download a song the request is routed to a central server.
+		  this server then responds with the location in the network of the node with the song. this introduces critical points
+		  of failure
+
+	- in tapestry, any node can be the root of a particular object (depending on the hash of the object). Once an object is requested, 
+	  that request is routed to a root node, which responds with the location of the object. In this way you avoid having to contact a
+	  single central server.
+
+	  this also makes the network crash resistant -- root nodes can be updated when one crashes, meaning the location of data isn't really 
+	  lost. By contrast, if a cluster of central servers goes down in the Napster model there's no real way for other in-network nodes to recover.
+
+-: findRoot:
+
+	- in order to find the location of an object, you first need to determine its root, since this node will contain the location of the
+	  object in the tapestry mesh. so, to find the root, take the hash of the object and iteratively contact nodes with progressively
+	  larger numbers of shared prefix digits, until reaching the node in the mesh that most closely matches that of the object's hash.
+
+	- key here is the RPC GetNextHop. Let's say I'm in node A and I'm trying to find the root of object O. Starting with some initial 
+	  RemoteNode 'start', I'll contact this node, trying to find the next hop node (start + 1) from where to continue my search. 
+
+	  from reading the piazza posts, it seems as though the algorithm goes:
+
+		1) starting from shared prefix, find the next node in the table that's better.
+			a) key, don't stop at yourself. if getnexthops returns the original node, that should
+			   mean there're no better nodes i.e. you're at the root (https://piazza.com/class/jc9twx8s4aq2je?cid=260)
+
+		2) search through the entire table, looking for a better node. I think this makes sense — you should eventually find
+		   something closer than the current node. If you do, hop to this node. I don't think you need to find the best node;
+		   finding one that is better is sufficient
+
+-: routing:
+
+	- adding:
+
+		- when adding a new node to a node's routing table, it seems:
+
+			1) it can only start to be present at the level of its shared prefix (https://piazza.com/class/jc9twx8s4aq2je?cid=197)
+
+			2) we only need to bump a single node from the table.
+
+		I think you do iterate over all levels (that share a prefix) when adding a node, but you should only (actually) displace the same 
+		node regardless of level.
+
+-: backpointers:
+
+	- I think these are simply references to all nodes that have a particular node in their routing table. A node, A, keeps track of this
+	  in case it leaves the tapestry mesh. if it does this, it'll contact all nodes that have A in their routing tables, informing them
+	  that it's leaving.
+
+-: routing:
+
+	- getnexthop:
+
+		- this is called when you're trying to find the root
+
+		- in lecture, there's some shared prefix length, and at each hop you consider only digits at n + 1
+		  positions. In this way, if there are a total of 40 digits, you'll only need mx 40 jumps
+
+		- in the actual assignment, however, this is slightly different:
+
+			- I'm at a node 2241 and I'm looking for the root of 2258. I think you'd start at shared
+			  prefix length (so 22), and from there look for the next node to jump to.
+
+			- so you start at sharedprefixlength and go from there?
+
+	- constructing an initial routing table:
+
+		- 
+
+	- in the paper it claims that the max number of hops it takes to find the root of an object's hash = the length of the hash. this makes sense
+	  if we're keeping track of our current level, but how does this work without the level?
+
+	- how do you add a node?
+
+		- when a new node enters the mesh, it:
+
+			1) finds its root. when you find the root of a node or object, you're trying to find the node whose hash
+			   most closely matches. I think my big question with this is, even without a partitioned network, how can 
+			   we be sure everything maps to the same root? If i try to access an object from a node separated topologically
+			   far from its root, i know not every node is going to be in the starting node's routing table. but, how can I 
+			   be sure that i'll eventually, through a number of hops, make it to the part of the network that knows the location
+			   of the object's root? is there any guarantee here? [i don't feel like I'm convinced -- maybe i should try
+			   to model this is alloy]
+
+				- prof. says this is ensured due to surrogate routing
+
+			2) after the node's root has been found, there may be references at the root that need to be transferred to the new node.
+			   the paper says that the need-to-know nodes are those nodes that share, along with the root node, a prefix of length n.
+
+			   i think this is because you may need to transfer from the current root node objects. so, you start at where they are
+			   similar, then progress up the levels of the routing table, moving any objects that now more closely resemble the new node
+			   from the old root. you don't need to start at nodes (n - 1), since you're sure these will more closely resemble the current
+			   root.
+
+				2.a) this transfer is handled by an acknowledged multicast. from the pseudocode:
+
+					- it gets all nodes from the current level (starting at n)
+					- for each node at this level, it recursively calls acknowledged multicast on the next level,
+					  adds the target node to its routing table, and transfers any necessary objects to it.
+					- return a list of nodes (i'm not sure what this does rn)
+	  
+-: bestchoice:
+
+	- consider a 3 bit number: 111. this number, unsigned, will represent 8 values: [0, 7]. I want to think about this general; if we have 
+	  two numbers 'a' and 'b' and a target number 't', 'a' will be closer to 't' if 'a' & 'b' > 't' and 'a' - 't' < 'b' - 't'. This generalizes
+	  to any two numbers that're both >= 't'. 
+
+	  what if 'a' and 'b' < 't'. in that case 'a' - 't' < 'b' - 't'; in unsigned ints with two's complement this should persist.
+
+	  what about the case where 'a' > 't' and 'b' < 't'; maybe in the case you need to have distinct cases

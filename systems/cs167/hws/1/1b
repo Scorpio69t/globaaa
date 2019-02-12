@@ -1,0 +1,24 @@
+
+	void start_thread(void* new_stack, thread_t* new_thread, start_routine_t start, void* arg) {
+
+	  // initial cut to initialize jmpbuf
+	  if(!setjmp(new_thread->jmpbuf)) {
+
+	    // copy the entirety of the present stack frame into the new stack; update esp
+	    new_thread->jumpbuf.esp = CopyFrame(new_thread->jumpbuf.esp, new_thread->jumpbuf.ebp, 4, new_stack);
+
+	    // update ebp w/ pointer arithmetic; fill bytes [24 -> 20] down from new_stack
+	    new_thread->jumpbuf.ebp = new_stack - 6;
+	  }
+	  else {
+
+	    /* call function; this will have a context that refers to new_stack, which will in 
+	     * turn hold what the arguments to start_thread() were before that function returned
+	     * to the caller */
+	    start(arg);
+
+	    // call exit with new thread's exit value
+	    pthread_exit(new_thread->ut_exit);
+	  }
+	}
+

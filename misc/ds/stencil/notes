@@ -1,0 +1,56 @@
+- when creating a table 'primary key' enforces 1) not NULL and 2) uniqueness
+
+- this works:
+
+				  select
+				    name
+				  from
+				    students
+				  where
+				    id
+				  in (select
+				        name
+				      from
+				        grades
+				      where
+        			        score >= 90)
+
+   as long as there's an id column in grades, the outer 'where' statement will return
+   true if id is in the 'bag' of values within grade's id column.
+
+   this should return the name of all students who scored >= 90.
+
+- in terms of execution order, it's better to select attributes from a table before applying
+  a condition
+    + I think this is why the usual order for queries is: select [columns] from [table] where [conditions]
+
+- if you have inner and outer queries, try to keep them uncorrelated; you don't want to have to run the
+  subquery for each row:
+
+				  select
+ 				    name
+				  from
+				    students as s
+				  where not exists (
+				    select
+				      *
+				    from
+				      grades as g
+				    where s.id = g.id)		/* this reference to s means this will return
+				    	       	 		   differently for each row */
+
+				  select
+				    name
+				  from
+				    students as s
+				  where s.id not in (		/* no reference to previous table in subquery --
+				    select   	    		   don't have to re-run these query for every row */
+				      student
+				    from
+				      grades)
+
+   In the above, since you're referenceing s.id in the subquery it'll be different for each row.
+   I think this means the subquery has to be run at least n times | n = # of rows of students
+				   
+
+  

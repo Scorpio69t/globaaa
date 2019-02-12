@@ -1,0 +1,96 @@
+- general overview:
+	- In this pset, you're trying to layer features onto free(), malloc(), realloc(), and calloc()
+	  to report statistics and help prevent common errors such as:
+
+		- integer overflow: malloc(2^32) on a 32 bit system would be analogous to malloc(0)
+				    which might not be what you want. 
+
+		- bounday write errors: 
+		
+					int* array = malloc(10 * sizeof(int));
+					*(array + 10) = 10;			// one too far
+
+		- double free:
+
+					void* tmp = malloc(10);
+					free(tmp);
+					free(tmp);
+
+		- invalid free:
+
+					int x = 10;
+					free(x);
+
+		- heavy hitters: track allocations that tend to allocate a lot of memory
+
+- struct m61_statistics current_stats
+	- I think this has to be an actual struct and not a pointer to a struct. Otherwise, 
+	  the actual struct doesn't exist so there's really no place to put the information.
+
+	- this will be a global variable
+
+- for heap_min and heap_max
+	- what makes this somewhat tricky is that malloc'd memory is not sequential. Therefore, 
+	  the strategy for keeping track of heap_min and heap_max is to, if those pointers are NULL,
+	  record whatever value is returned from base_malloc(). If they're not NULL, if ptr < heap_min
+	  update heap_min with ptr. Do the same with heap_max.
+
+- mallocs() and placement in the heap
+	- I think the biggest thing I learned is that you can't rely on mallocs() to be placed
+	  sequentially on the heap. So if I have two mallocs one right after the other, even if 
+	  the size of the first is 16 bytes I can't guarantee the second will be first + 16.
+
+	- when you malloc, then, malloc only a single region of memory with a little extra space
+	  to hold the payload and the metadata.
+
+- data structures for O(1) malloc() and free()
+	- each malloc has multiple pieces of metadata:
+			1) index into array (arena)
+			2) size (of the payload)
+			3) name of file allocation comes from
+			4) line number of allocation
+
+			(-) all of this followed by the actual size of the payload
+
+			5) a canary value (my name) to check for write-past-boundary errors
+
+	  so the overhead for each malloc is 6 * sizeof(size_t), which depending on the machine
+	  is either 64 or 128 bytes.
+
+	- I use the canary value at the end of the malloc'd blocks to check for [boundary write errors].
+	  I place values in an arena to make sure I don't [double free] or [invalid free] blocks that haven't 
+	  been malloc'd. 
+
+	- I wanted to make inserting into the arena as close to O(1) as possible. To do this, I have an array
+	  that'll dynamically resize itself as needed. I then also keep around a global counter for the size of
+	  the array. When I malloc something, I place a pointer to this new block into the array at position 'arena_size'.
+	  Since I'm constantly updating size, insertion should be O(1).
+
+	  This would cause size to grow very fast, then, proportional to the total number of allocations without
+	  being affected by the number of frees. To deal with this, maintain a free list. This list will contain
+	  blocks that contain information about indexes into arena that've been previously freed. This'll allow
+	  you to reuse indexes in the array to limit 'arena_size' from growing too quickly.
+
+	  When I free a block, I prepend it onto a linked list of free blocks. When I then try to add data into the
+	  arena, first check to see if you can reuse and index by popping off a block from the free list.
+
+	- when you malloc(), you set index of malloc = arena_size; you then
+	  insert this malloc'd block into the arena. The key here, though,
+	  is you're not going to iterate over the block of memory to find
+	  potential open slots - instead it's going to stay defragmented and 
+	  you're simply always going to add on to the end of the arena.
+
+	- this will be taken care of by free(). When you free a malloc, 
+	  you'll:
+			1) find it by its index
+			2) prepend its index onto a linked list
+
+	- now, whenever you look for a free memory slot, you first check  
+  	  to see if the linked list != NULL. If it does, you place the 
+	  memory at the end of the arena = arena_size.
+
+	- All operations should be O(1)
+	
+- heavy hitter
+
+	- use sampling to track a proportion of mallocs()

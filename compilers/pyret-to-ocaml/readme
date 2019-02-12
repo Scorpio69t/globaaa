@@ -1,0 +1,38 @@
+INTRODUCTION:
+
+  [goal]:
+
+	The goal is to construct a compiler translating Pyret to Ocaml to eventually use Bucklescript to compile Pyret down to Javascript. 
+	Further, we hope to make use of Ocaml's type system s.t. functions, even without annotations, that raise a run time type error in 
+	Pyret are caught by the Ocaml type system. 
+
+        A quick note about terminology: whenever I refer to an 'expression', I refer to a singular compilation unit, whereas 'stmts'
+        are blocks of expressions that each need to be compiled. This adheres to convention where expressions produce values while
+        statements perform some action. The group of expressions is a subset of statements.
+
+        The result of s-exp is a list of expressions; the structure isn't necessarily recursive, however. So, for example, if a
+        program has two functions f1 and f2, the resultant s-exp will be a sequential list: [f1; f2]. As such, compilation is frequently
+        mapped over the entries in the list and not called recursively called on some AST.
+
+TYPES:
+
+	A huge challenge is to handle pyret, a loosely typed language (i.e. one where you can, but don't have to, define a type for values)
+	and compile it to Ocaml, a strongly typed language. 
+
+  [unitype]:
+
+	You have to upcast everything to a unitype in order to handle operator disparity between the two languages. For example, in Pyret
+	you can use '+' between strings, ints, and lists. It's interesting in Ocaml you'll have a different operator for each type; for example
+	'+' for ints, '+.' for floats, and '@' for lists. I think this makes type inference easier:
+
+		let fun x -> x + x ;;
+
+	if '+' could take both ints and floats, for example, then this wouldn't be strictly typed; you'd have to change the language to return a 
+        union type (Int U Float). I think you could still unify this during compilation, but it'd increase the complexity of the built-in type
+        system.
+
+	Let's upcast everything to a unitype by wrapping it:
+
+		bool b   ->     B(b)
+		int i    ->	N(I(i))
+		float f  ->     N(F(f))

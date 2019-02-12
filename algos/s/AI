@@ -1,0 +1,19 @@
+Since AI changes:
+
+-: there are way too many patterns and clusters:
+
+	- with basic term priorities we get 74 patterns and 48 groups, which is a lot
+
+	- took interns almost an entire day to work on; Mario is CS50's first pset, so you can
+	  assume their level of comfort with the tool would be similar to a regular TF's
+
+	- basic problem is that there are 26 groups of size 2 and 11 groups of size 3 -> ~40 groups for ~90 submissions;
+	  I'm not sure if this could come up in a parameterized version of the fitness function, but to limit the number of
+	  small clusterings; it really isn't helpfl having that many small groupings
+
+	- the patterns, though, seem to look good. I'm not getting poor patterns like Seth was in BMI unless I do a mix of Lite 
+	  and Pro, in which case I get weird results: Mario-problem-1.png
+
+	- do we handle macros?: macros.png
+
+

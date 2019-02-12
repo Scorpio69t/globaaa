@@ -1,0 +1,54 @@
+current:
+ 
+	Currently, io61.c makes use of a single-slot direct mapped cache where you prefetch reads and buffer writes. Since system
+	calls are so expensive, for every read you want to bring in more data and hold it in the file's buffer. Future reads can then
+	be satisfied via the buffer instead of relying on additional system calls.
+
+	The way the stencil code was set up, calls to read() were satisfied through iterations using readc(), which is awful. Reading
+	more than a single byte at a time was good for speeding things up initially.
+
+	To handle reverse reads, you prefetch in a range around SEEK_CUR [-16K, 16K]. If you read in a reverse sequential order then 
+	this should decrease the # of system calls by a factor of 16K. 
+
+	My biggest problem came in the form or reordercat61, which reads random blocks and writes them out to their correct positions in the
+	out file. If we're buffering writes, though, let's say we fill up part of the buffer but then seek to a new position in the file. 
+	Since the buffer can't be the entire size of the file, you have to flush it, but you need to know the correct positions and sizes
+	of the writes in the buffer. This is where 'wbuf' comes into play. 
+
+	To minimize the running time, I tried to structure wbuf like a binary tree. For n items, then, the running time would be O(nlog[n]).
+	Unforunately, tests 17-18 still run fairly slow. Perhaps 'wbuf_flush' could be improved to coalesce blocks and therefore minimize 
+	system calls. 
+
+associative cache:
+
+	I think the goal is to 1) eventually use mmap() to map memory from the file into the processor's address space. I think the mmap()
+	system call might be faster than read(). I need to review mapping memory.
+
+	The big improvement will be an associative cache. Let's say I have a cache of 64 slots, each 1k in size and I'm trying to access
+	a 64K file via a strided-1024 (I read every 1024th byte) access pattern. In a single slot direct mapped cache prefetching 1k, you're 
+	going to get a cache miss on every read().
+
+	In the associative cache, you'll place the first cache line into the cache, then once you cycle through the 64K file once, the call to
+	read for the second byte in the first 1024 byte block will result in a cache hit since that cache line is still in the cache. Instead of 32K
+	system calls, then, you'd only have 32 with some additional complexity searching through the cache. 
+
+	The big thing is how you identify cache lines. On systems I'm sure memory address is used, but in io61.c I think what I can do is 
+	use the position in the file. So, let's say you make a read of 10 bytes from the beginning of the file. You buffer a cache line
+	and place it in the cache. You can use a macros: 
+
+			POS_TO_INDEX(x)	x / 1024 
+			POS_TO_OFFSET(x) x % 1024
+
+
+replacement policy:
+
+	LRU: Least recently used
+
+	LFU: Least frequently used
+
+locality:
+
+	temporal: Things you used recently you'll probably use again.
+
+	spatial: You're likely to use data that is spatially close to data you've already used i.e. if you've read page 10 of a book you're likely
+		 to read page 11 next.

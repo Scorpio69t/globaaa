@@ -1,0 +1,19 @@
+- So, this is probably not the best attempt for the last project. I tried to use all of the structs
+  and functions supplied. I added a couple things:
+
+	- remove_from_list: a function to find a client_t* node in the client list and refactor the pointers
+
+	- I also added a rw_lock to the defintion of node_t in db.h
+
+  aside from these minor changes, everything else should adhere to the basic outline.
+
+- I think, in general, it works. If I run the server with something like 
+  './client cslab3h 3355 scripts/test1.txt 10' this produces the correct output and in the correct 
+  order. Sometimes, if you run this multiple times with the same server, if you increase the occurences,
+  you still get the correct answer, the client, however, seems to hang at the very end. I think this
+  was mentioned on Piazza but I'm not sure if it's the same error.
+
+- I think the hardest part for me was canceling, detaching, and returning threads back to memory. Sometimes it
+  was hard to tell exactly what each function did, and if it was accomplishing what I thought it was. If I had more
+  time, I'd probably go back over this part of server.c and check the logic. db.c seems to work, but again, there 
+  could be logic mistakes I missed.

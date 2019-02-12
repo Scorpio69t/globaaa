@@ -1,0 +1,28 @@
+Metadata Exfiltration:
+
+  attack:
+
+	run the script:
+
+		show_proc.sh
+
+	this will essentially call the bash command 'ps' in a loop. This is useful since, for example, if you do this for a couple seconds and then
+	cancel the script, you should be able to see that at some point a process is created called: 'blacklist_impor', which leaks information that 
+	there's some list of black listed terms, most likely for 'imports'. Knowing this, then, would make it easier to craft an attack like the one 
+	from week 1, where I circumvent the black list of imported libraries.
+
+	Whenever a go file calls 'execve' or a new bash script is executed, a new process is created to handle the execution. What's useful is that
+	the name of the file running is included, along with other data such as the process' PID, when you call 'ps'. The name of the file executed 
+	when a new process is created, however, can leak data, like above.
+
+  fix:
+
+	What makes this hard to fix is that it's not a simple change (such as limiting read or write permissions). I think the best way to handle this
+	would be to:
+
+	  (1)	either rewrite the ps bash command s.t. it doesn't print out processes that have been blacklisted, such as those in the course/cs666
+		directory
+
+	  (2)   wrap processes that might leak particularly descriptive metadata in generic names. So, for example, instead of have a process named
+		'blacklist_impor', like above, change the name to something like 'fun_1' - you'd still be leaking data, but it wouldn't be nearly as 
+		harmful as it currently is.

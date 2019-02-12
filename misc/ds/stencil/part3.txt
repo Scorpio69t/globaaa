@@ -1,0 +1,37 @@
+/* original query */
+SELECT
+  ID,
+  name
+FROM
+  school_athletes AS athletes
+WHERE
+  school = 'Brown' and performance_score > (
+    SELECT
+      AVG(performance_score)
+    FROM
+      school_athletes
+    WHERE
+      team = athletes.team)
+; 
+
+select
+  athletes.id,
+  athletes.name
+from
+  school_athletes as athletes
+join
+  /* to make the above faster, make subquery uncorrelated to outer query */
+  (select
+     school_athletes.team,
+     avg(school_athletes.performance_score) as avg
+   from
+     school_athletes 
+   where
+     school_athletes.school = 'Brown'
+   group by
+     school_athletes.team) as subquery
+on
+  athletes.school = 'Brown'
+  and athletes.team = subquery.team
+  and athletes.performance_score > subquery.avg
+;

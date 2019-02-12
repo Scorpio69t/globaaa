@@ -1,0 +1,59 @@
+#!/usr/bin/python3
+
+# Include any import statements needed here
+import fileinput
+
+
+# Let's construct our initial set S
+def initial(g):
+  L = []    # vertices with incoming edges
+  S = []
+  for pair in g:
+    (u, v) = pair
+
+    if v in S:
+      S.remove(v)
+
+    L.append(v)
+    if u not in L and u not in S:
+      S.append(u)
+
+  return S
+
+
+def topsort(g):
+  """ The function that returns the topsorted version of the dag g
+  Inputs:
+      - g: The directed acyclic graph for this function to topsort
+  Outputs:
+      - The list that represents the topsorted ordering of vertices
+  """
+  L = []
+  S = initial(g)
+
+  while S:
+    u = S.pop(0)
+    L.append(u)
+
+    tmp = g[:]    # copy g; removing elements in place during loop is buggy
+    for pair in tmp:
+      (a, b) = pair
+
+      if a == u:
+        g.remove((a, b))
+
+        if not [tuple for tuple in g if tuple[1] == b]:
+          S.append(b)
+
+  return L
+
+
+# Calls your topsort function when the program is run. Also handles input and
+# output
+top = []
+for line in fileinput.input():
+  splt = line.split()
+  top.append((splt[0], splt[1]))
+
+for x in topsort(top):
+  print(x)

@@ -1,0 +1,80 @@
+l-: in puddle store, the mapping is in raft while everything else is in tapestry:
+	
+	- so tapestry will have indirect blocks -> inodes -> indirect blocks -> data blocks
+
+	- all the information about a file will be on the tapestry node (stored essentially on the client)
+
+	- the raft node will make sense of version control
+
+	- inodes, indirect blocks, and data blocks all have GUIDs (maybe we create these based off a hash of their contents?)
+	  the raft will have a mapping from Active GUIDS -> Version GUIDS
+
+		- let's say I create a file: I need to give it an inode, etc. Its state then gets stored in the raft server,
+		  which will keep track of the correct version of that particular file
+
+-: Namespace
+
+	-: find the root :: so let's say we are looking up a file on the tapestry network. We first find the root node, this makes
+	   sense in the tapestry network. Given the first part of a path find the root node and from here iteratively parse the
+	   path jumping to other nodes in the network that match the given path. 
+
+		- I think this, as described in the handout, really only applies to local file systems.
+
+-: CreateRPC:
+
+	-: let's say a user wants to:
+
+		1) Create a file		2) Create a directory		3) Open a connection to either
+
+	   we might have separate user defined functions for all of these: open(), mkdir(), etc, but these client facing functions would
+	   call only a single RPC:
+
+			- CreateRPC(filetype FileType): where FileType is whether you're creating a file or directory. 
+
+	- ReadBlockRPC
+
+		// create a new file
+		write(string parent, string file, create flag)
+
+			resolvePath:
+				Get Metadata -> readblock off tapestry, inside this block will be all the info it needs
+
+				UpdateRootRPC
+
+	- Raft a single number
+
+	- WriteBlockRPC(data) {inode number} :	always creates
+
+	- puddlestore.go: user called functions
+
+		- resolve_path: get's meta for root
+
+	- remote file:
+
+		logic between user functions and rpcs
+Notes:
+
+	1) RPC -- add errors
+	2)
+
+	   // Tapestry map[inode #] -> data blocks
+	3) call READBLOCKRPC(inode #) {raw data of block size}
+	   // Make a new inode for me
+	4) WRITEBLOCKRPC(data) { inode # }
+	5) DELETEBLOCKRPC(inode #) { removed from tapestry }
+	6) GETROOTRPC() { inode # of root }
+	7) WTIREROOTRPC(inode #) { return current root inode # }
+
+	'/'	-> home directory
+
+-:
+
+	- Changed puddlestore.go; needs a tapestry remote node and every tapestry node needs to
+	also be a corresponding client connection to the raft cluster. This should probably be set
+	up by the membership server
+
+	- need to get it compiling
+
+		: go install github.com/brown-csci1380/s18-dfarnha1-jbellavi/liteminer/cmd/liteminer-client
+
+	- need to talk about assumptions I'm making on the server side

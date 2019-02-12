@@ -1,0 +1,25 @@
+-: gossip
+
+	- can contact any random nodes, and these will multicast to a subset of the other remote clients
+	  on the network.
+
+		- it takes time for information to propagate across the network like this, but not every
+		  node has to make a complete multicast (saves in terms of effort, bandwidth, etc.)
+
+		- with this you can ensure causal ordering (ordering for a single client, not across multiple)
+		  -- you send vector clocks. If you get a request too far in the future, you wait until a 
+		  previous request gets propagated to you
+
+	- in terms of logs, parse logs after all RMs have executed a request -- it's accepted that this request
+	  took place so no real need to keep it around? I think you need to have other machinery to make sure
+	  the same requests aren't executed multiple times
+
+-: dfs
+
+	- client cache (avoiding network latency)		server cache (avoiding disk latency)
+
+	- consistency vs. performance: if all operations take place on the server you have strict consistency. If they
+	  all take place on the client then it's faster (don't have to handle network or disk latency), but if a crash
+	  happens before the client cache is saved on the server, all information is lost.
+
+	- more on DFS and NFS

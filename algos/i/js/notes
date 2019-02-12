@@ -1,0 +1,28 @@
+-: NBB:	the highest bid for a particular security
+
+-: NBO: the lowest offer for a particular security
+
+-: limit state:
+
+	- this'll occur when the NBO equals the lower price band or the NBB equals the upper price band.
+	  so, you have these bands for stocks, which represent bids that can be executed. If the NBO equals
+	  the lower price band without crossing a bid, it means the price of the stock has dropped dramatically --
+	  essentially the bids and offers have fallen outside the ranges of the price band, meaning there shouldn't
+	  be anything executable.
+
+	- overall, this simply represents that there has been substantial movement in a stock price representing volatility.
+	  when this happens, no new reference prices will be calculated, which means all bids/offers that are still outside
+	  the bands won't be executed. 
+
+		- if no trading occurs for more than 15 seconds, a 5-minute trading pause will be enacted. 
+
+	- I think of this simply as a buffer against knee-jerk reactions in the market, kind of how if the market has lost
+	  a large number of points in a single day it'll close early -- giving people more time prevents panic/hasty decisions
+	  that could negatively affect the market. 
+
+-: pro-forma reference prices
+
+	- the reference price for a stock will fluctuate over the day. Let's say, for example, after 5 minutes the reference
+	  price is $50.00 (based on 3 trades of $49, $50, $51). This reference price has to remain static for at least 30 seconds. 
+	  let's say in the upcoming minute there're 3 trades for $52. the new reference price will be $51 -- this differs from the
+	  original reference price > %1.

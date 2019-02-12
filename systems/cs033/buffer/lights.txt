@@ -1,0 +1,8 @@
+00 00 00 00 00 00 00 00 	/* fill in buffer space */
+00 00 00 00 00 00 00 00 	
+00 00 00 00 00 00 00 00 	/* continue filling... */
+00 00 00 00 00 00 00 00 	
+00 00 00 00 00 00 00 00 	/* continue filling... */
+00 00 00 00 00 00 00 00 	 
+00 00 00 00 00 00 00 00 	/* continue up to 56 bytes */
+3a 10 40 00 00 00 00 00 	/* put mem. location of light_off() in rtn adr */

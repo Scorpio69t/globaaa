@@ -1,0 +1,40 @@
+- attack:
+
+	To attack this protocol, I essentially just run sol.py which does a couple things:
+
+		1) It saves the initial IV and ciphertext from the key that is communicated from the
+		   router to the hub
+
+		2) Then, it just repeats the attack until it get the same IV, which is a random value, 
+		   and when it gets that IV, which is the same as the one from (1), it chooses "0000000000000000" as a
+		   message s.t. this message xor'd with "r" will simply return "r".
+
+		3) After this, you know what "r" is and can determine the key:
+
+				a. keycipher = key ^ r
+				b. keycipher ^ r = (key ^ r) ^ r)
+				c. key ^ (r ^ r)
+				d. key ^ 0
+				e. key
+
+- vulnerability:
+
+	A number of things made my attack possible: being able to sniff data, the low entropy of R, the particular
+	protocol between the router and hub. To prevent my kind of attack:
+
+		1) Make it harder to sniff data communicated between the router and hub
+
+		2) Make the function G(), which determines the randomness of R, harder to brute-force
+		   by increasing its entropy by increasing the # of possible values > 2^16
+
+		3) Not have the router send its key to the hub as an initial message
+
+- changes
+
+	Any of the above changes discussed in 'vulnerability' would make it much harder to perpetuate this kind of attack.
+
+	Similarly, perhaps what could be done is kind of like what was done in HW1: have the initial key verification be done
+	through some kind of public key encryption like RSA, and then once the key is verified pass the rest of the information
+	using the symmetric key. This would make the kind of attack above impossible. Also, increasing the entropy of "r" from G()
+	wouldn't prevent the above attack, but it would make a brute-force attack less feasible - making an attacker wait hours or
+	perhaps days for a suitable IV rather than just the minutes or so that I had to wait.

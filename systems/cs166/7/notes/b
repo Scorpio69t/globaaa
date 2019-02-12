@@ -1,0 +1,29 @@
+- 
+
+	I think the data link layer primarily identifies devices on a local area network. So, for example, let's say you're
+	sending data over the LAN. You're not going to use an IP address (since this is used to identify devices on the internet)
+	so instead MAC addresses for each device would identify them on the local network.
+
+-
+
+	Let's say Host A tries to send a packet to IP address: 128.148.32.12. 
+	
+		1) First thing to notice is that the destination of the packet is outside Host A's subnet, therefore Host A 
+		   is going to have to make use of its default gateway to communicate with other networks outside of its 
+		   local area. 
+
+		2) In order to locate the router at IP 192.168.1.1, and because Host A's ARP cache is empty, A will send out broadcast 
+		   address: FF:FF:FF:FF:FF:FF, which should return the MAC address of the router in Host A's subnet: 11:11:11:11:11
+		   (* QUESTION: does the host need to do this even if the switch knows the locations of all the MAC addresses? *)
+
+		3) Host A will send its packet to the router at MAC address 11:11:11:11:11. The router, whose ARP cache is also
+		   empty, will try to identify a subnet to forward packet 128.148.32.12 to by sending out broadcast address FF:FF:FF:FF:FF:FF.
+		   Since none of the subnets connected to the router are of the form 128.148.32.*, it'll forward the packet along to the
+		   internet IP: 138:16:118:162.
+		   (* QUESTION: do routers also make use of ARP broadcasts? *)
+
+		4) The packet will travel among routers until one finally knows the correct network to forward it to. In 
+		   the case above, 128.148.32.12 refers to 'cs.brown.edu'. When I try to connect to that IP via a browser it bounces 
+		   back with an empty response, which makes me think that IP address might be related to SSH'ing into Brown's CS 
+		   network.
+		   (* QUESTION: try visiting this IP on a machine attached to the network *)

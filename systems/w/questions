@@ -1,0 +1,19 @@
+procs:
+	
+	1)	can I call do_waitpid, looping over the init process' child list, in kmain's initproc_run?
+
+	2)	let's say I cancel a thread before it starts to run. will this come into effect after it is dequeued
+		from the kt_runq but before it is actually run or is this considered something along the lines of deferred
+		cancellation? In this case, should I only check if a thread has been cancelled when it wakes up i.e. switches
+		back into sched_switch()? I don't understand how it would work in the former case since we wouldn't actually
+		be in the thread's context to call something like kthread_exit().
+
+VFS:
+
+	1) why are my files from last semester crashing at apic_init()?
+
+	2) why does having COMPLETED() in dir_namev() and lookup() change the string buffer passed in?
+	   what should the type of name be so that the memory isn't overwritten? (I think this is what's
+	   happening)
+
+	3) crashes when cat'ing zero?

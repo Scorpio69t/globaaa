@@ -1,0 +1,149 @@
+sources: https://www.owasp.org
+
+Exploit (1):
+
+	One of the first exploits I was able to discover was a (1) SQL Injection attack. Even
+	though we all have our own usernames and passwords, if on the login you type some SQL 
+	like this for the username:
+
+		admin" OR 1 = 1; --
+
+	this'll trick the "SELECT" statement used in validating someone's login credentials into 
+	returning true, which in this case allows us to log in as Roberto.
+
+Fix:
+
+	The easiest fix for something like this is to properly sanitize user input into the 
+	SQL table using something like prepared statements. You also could, depending on the
+ 	table, create a whitelist of acceptable inputs that effectively invalidates anything
+	that might be considered code, however, in our case sanitization through prepared
+	statements would fix the above exploit.
+
+
+Exploit (2):
+
+	Let's say I'm logged in as me on the site. What I can do is go to someone else's profile,
+	logged in as me, and comment under their profile inserting some JS, performing a (2) Stored XSS
+	attack. So, for example, let's say I comment under Roberto's page:
+
+		<script> alert(document.cookie); </script>
+
+	this'll embed javascript onto the page s.t. whenever anyone visits they'll get an alert
+	telling them their PHPSESSID.
+
+	What you could do, though, is instead of having the js create an alert informing users of
+	their session cookie, you could have the JS send the user's PHPSESSID to some malicious
+	user who could then use it to login. 
+
+Fix:
+
+	Similar to above, the easiet way to prevent against this is to 1) be careful where you allow
+	users to input data, and 2) properly sanitize user input. So, for example, if you sanitized input
+	s.t. all {"<", ">", "/", ";"} were treated as text and not possibly code, then the above javascript
+	would be rendered as benign text.
+
+
+Exploit (3):
+
+	Similar to XSS, I noticed when logged in as Roberto that some GET requests can have lasting effects
+	to the state of data on the server. For example, let's say I return once again to Roberto's profile,
+	logged in as Daven, and leave a message like this:
+
+		<a href='http://165.225.139.138/list-asgn.php?delete=2'>check out my site!</a>
+
+	this will perform a (3) CSRF attack -- the link will look innocuous, but if Roberto clicked it,
+	since he's already logged in with his PHPSESSID this will effectively delete assignment 2 from his
+	list of assignments, something he probably didn't want to do.
+
+Fix:
+
+	An easy way to help minimize the effectiveness of this attack would be to prevent any XSS by escaping characters.
+	For example, if XSS was disabled and I wasn't able to write html into Roberto's comment section, my innocuous looking
+	'check out my site' link would instead look like 'http://165.225.139.138/list-asgn.php?delete=2', which would have to
+	be copy and pasted in as a URL, something much less likely for someone to do.
+
+	Another possible fix would be to require a hidden CSRF token to be included whenever changing state of data on the 
+	server. Now, if Roberto clicked the above link, the GET request would be missing this hidden CSRF token, would fail
+	to validate and do nothing.
+
+
+Exploit (4):
+
+	Let' say using exploit (2) XSS I was able to aquire the PHPSESSID of another user. I could then perform a (4) cookie
+	injection attack, whereby I replace the PHPSESSID parameter with someone else's cookie to trick the 
+	website into thinking I'm someone I'm not. So, for example, if you open two versions of the Foo website in incognito
+	windows (to make sure they don't share the same cookies) and then, using Burp Suite, edit the parameters and
+	use one user's PHPSESSID in a different browser, you can effectively masquerade as another user.
+
+Fix:
+
+	I think the best way to prevent something like this from happening would be to protect the PHPSESSID of users. This would
+	include blocking attacks like (2), but would also include encrypting the requests and responses sent back and forth between
+	the server and client. Since it's possible to sniff traffic, you'd want to encrypt these communications to make
+	sure people can't recover a plaintext cookie they can then easily inject into another request.
+
+
+Exploit (5):
+
+	As dfarnha1, I have access to multiple pages on Foo's site. For example, I can view my handins to particular assignments
+	by clicking 'view handin' from my list of grades. However, there's not proper (5) path sanitization, which allows me to
+	bypass restricted paths. For example, editing the path to my handin I can access all handins from all users by visiting
+
+		165.225.139.138/handins
+
+	effectively giving me admin access to this directory of submissions.
+
+Fix:
+
+	An easy fix for this would be to store the users' handins, the data, in a database not a subfolder. Getting a handin
+	would then require a SQL command retrieving the handin for a particular user (based on their credentials), which, if
+	this command was correctly sanitized, would prevent one user from seeing another's handins.
+
+
+Exploit (5.5):
+
+	Similarly, if you go on the staff page of the site, even if you're not on staff, and inspect the elements you'll be
+	able to find javascript that is only executable if you're a staff member. If you inspect this javascript, you'll see a
+	php function 'delete-user' that's essentially a hidden function. Tinkering with calling this function, if you send a GET
+	request like this:
+
+		http://165.225.139.138/delete-user.php?id=7&continue=http://165.225.139.138/list-profiles.php?who=staff
+
+	you'd be able to delete users (both staff and students!) even if you're only a student. Unlike the example above where you're
+	accessing a directory you aren't supposed to, here you're calling a function that changes the state of the data on the server
+	you're not supposed to.
+
+Fix:
+
+	Quickly, if you didn't make calling this function a simple GET request where info is passed in the URL parameters or didn't make
+	this function visible in the javascript you could prevent this attack.
+
+
+Exploit (6):
+
+	And lastly, while in the handin section if a user tries to upload a file that isn't a .pdf the site returns an error
+	message, in the assignment section, if you're the instructor, although handins and solutions are expected
+	to be in .pdf format you can instead upload any kind of file. So, for example, you could upload a jpg as a handin (in
+	the assignment section), which can then be accessed when setting your profile picture. So:
+
+		1) upload a jpg, instead of a pdf, in the assignment section of handins
+		2) when changing profile picture, provide a URL to the jpg you just uploaded, for example:
+
+			handouts/cryptography/handout.pdf
+
+		3) this should effectively show you the jpg you uploaded
+
+	This seems like bad design, to check for the correct file type in one place and not the other. But more importantly, these
+	files are served up directly, so for example you can access the handout you just uploaded by going to:
+
+		http://165.225.139.138/handouts/cryptography/handout.pdf
+
+	I tried messing around with editing .pdf and jpg metadata/comments a little bit, because I think the vulnerability here
+	is that you might be able to embed malicious code, such as PHP, into one of these file types (specifically a jpg) and then, 
+	because the server serves up files directly, you could trick it into executing the code you wrote. This would classify as 
+	a (6) File Upload attack where you're able to get code you wrote executed by the server by uploading a file.
+
+Fix:
+
+	As mentioned in lecture, I think the best way to handle this would be to implement custom logic	in submit-asgn.php, prevent 
+	directly accessing the handouts directory, and also more strictly check file extension type.

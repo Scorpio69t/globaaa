@@ -1,0 +1,32 @@
+- The key to solving this is the intermediate state. What I do is iterate over possible IVs trying to 
+  produce an 'incorrect command' since this means the padding on the plaintext is correct. Since I know
+  the plaintext and the IV I chose, I can then, byte by byte, determine what the intermediate state is.
+
+  What took me a little while to understand is that, for a single block command like 'help', you can pass
+  in any ciphertext. This ciphertext will be decrypted to some intermediate state, it doesn't really matter 
+  what it is, and if you've determined what this state is from the above method, you can then vary the
+  IV to produce whatever plaintext output you want. 
+
+  Things get a bit more complicated when the number of blocks > 1. What I did in this case is work from 
+  the end of the message forward. So:
+
+		1) choose any initial ciphertext and determine what its intermediate state is
+		2) after you know this, you can choose the IV to give you your desired plaintext.
+		3) since you're going from the end of the message forward, the IV you chose is also
+		   the ciphertext of the previous block. 
+		4) pass this ciphertext (which was the IV you just found) through the decryption 
+		   block finding its intermediate state.
+		5) determine what IV you need to get your desired plaintext from this
+		   block, and essentially, continue this method till you run out of blocks.
+		6) after you run out of blocks, concat all the ciphertexts you've found and pass
+		   those, along with the last IV you found, to the server and it'll decrypt
+		   to the full plaintext you want.
+
+- You could do something very similar to above. Vary the IVs you pass to the server, slowly finding the 
+  intermediate state of the msg. If the message is only one block, XOR the intermediate state with the
+  IV that you've intercepted to get the message. 
+
+  If the message has > 1 block, then simply repeat the attack with the second block, and once you've found
+  the intermediate state, XOR this block with the first block's ciphertext (as opposed to the IV which you used previously).
+  Then repeat until you're out of blocks.
+	

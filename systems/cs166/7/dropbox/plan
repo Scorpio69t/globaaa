@@ -1,0 +1,40 @@
+- 
+
+	1) So let's say a user tries to login:
+
+		If the user isn't authenticated, it'll ask for the user to login or sign up.
+
+	2) Once the user is logged in, the server should update the user's record in user.db with
+	
+		- SID: a new session ID
+		- TIMEOUT: time of log in
+		- PWD: this'll be the basedir that was provided to the server
+
+	3) If the client runs "PWD", then, the server will simply query PWD in user.db and return this
+
+	4) If the client types "LIST", the file.db will look for all names in in the basename == user's PWD
+	   where the read permissions are set for the user
+
+		- what I might be able to do is not make the checksum the primary key, but instead some kind of
+		  counter the primary key. That way, I can have multiple entries for the same file with users'
+		  username or session ID stored in the read and write field
+
+	  now, when a user types LIST I query the database where basename == user's PWD and read == username;
+	  this'll return all files in the user's PWD that they have access to view:
+
+		- permissions in this instance, then, handled via the database
+
+			- need to restrict who can change permissions; handle all changes to the table via prepared statements
+
+- 
+
+	tomorrow:
+
+		start making classes and prepared statements for:
+
+			- CD
+			- LIST
+			- UPLOAD: 
+
+				- the server should make a privtate /uploads directory to stor files in
+		

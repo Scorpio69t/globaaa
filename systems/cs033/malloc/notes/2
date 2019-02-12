@@ -1,0 +1,54 @@
+- in the implicit linked list model, the fact that the blocks are aligned means the sizes will usually be a multiple of 8 or 16.
+  If this is the case, you can use the low order bit in the size header as a flag to signify whether a block has been freed or not.
+
+- implicit list: use two words, one at the beginning of the payload and one at the end of the payload to effectively create a doubly linked list.
+  Use this when coalescing free blocks to limit fragmentation.
+
+        - this is not often used in actual memory allocation since allocating blocks of memory is linear time.
+
+- explicit list: simply an explicit linked list. This linked list maintains a list of free blocks. Now, when you allocate memory, you only
+                  have to iterate over the # of blocks in the free list s.t. it is linear with respect to this length and not all blocks in
+                  memory (both free and allocated).
+
+- virtual memory:
+
+        - what is the motivation behind virtual memory?
+
+                - if I have a number of processes running on my computer, I essentially don't want one to be able to clobber the address space
+                  of another process by, say, calling malloc() a million times. Similarly, I want to prevent corruption of the OS in a similar
+                  fashion.
+
+                - I think the key to this is that you're utilizing the hierarchy of memory to maximize both speed and space. Cache memory is
+                  going to be the fastest, however, there's only so much of it. Each process is given an address space, however, it doesn't
+                  really have access to all of memory: memory is swapped in and out disk as if the process had access to the full address space.
+
+                - so VM gives you a continuous address space; it gives you a number of pages. There's then a memory map, or a page table, that
+                  helps in translation between the VM and the real address space.
+
+- fractal_forcked.c:
+
+        - the first thing you do is open a file:
+
+                - permissions:
+
+                        O_CREAT: allows you to create a file if it doesn't already exist
+                        O_APPEND: if you write multiple times to a file, it'll write to the end of the file
+                        O_RDWR: allow the file to be both read from and written to
+
+        - so now you have a file that's open. next, in the virtual address space of the calling process, create a new mapping
+          of that file's data. So you're mapping into the calling process' VM the data coming out of the fd you just opened.
+
+        - the key here are the flags; the flags must not conflict with the flags you opened the file with. mmap with the flags
+          PROT_READ | PROT_WRITE since you passed open() O_RDWR previously.
+
+        - MAP_ANONYMOUS: in mmapcopy, you don't need to do this since you open up a file with data in it - the mmap() is essentially
+                          backed up by a file. In fractal_forked, though, the data isn't backed up by a file; you're creating the data
+                          as you go s.t. you need to store it in the process' VM, which is what the flag ANONYMOUS does.
+
+        - MAP_SHARED: I'm not 100% sure all this does, but in general, if you have multiple processes or maps referring to the same space,
+                      you want it to be SHARED s.t. changes by one map are persistent across maps.
+
+
+
+
+

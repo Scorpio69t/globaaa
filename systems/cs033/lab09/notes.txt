@@ -1,0 +1,14 @@
+- mmap() creates a mapping onto a virtual address space.
+
+	- the only 2 difficult parameters to this function are the protections and
+	  the flags. The 'prot' refers to whether you can read, write, execute, or
+	  do nothing with this mapping. The protections for this mapping must NOT
+	  CONFLICT with the permissions you gave the file with you opened it.
+
+	- the flags can either be: MAP_SHARED or MAP_PRIVATE.
+
+		- maybe you have to make this shared, since what memcpy is doing is
+		  not necessarily copying bytes over but having dest refer to the same
+		  addresses as src.
+
+		- it might be useful to ask about this before turning in

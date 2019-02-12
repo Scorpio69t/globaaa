@@ -1,0 +1,55 @@
+- difference:
+
+	- system calls will first copy memory into the kernel's buffer and then into the user thread.
+
+	- mmap will map memory from disk into real memory, and then users can access directly from real memory. 
+
+		- does this mean that if two threads have the same mmap memory, they're both accessing the same
+		  real memory and thus changes in one thread would be reflected in the other? I think so.
+
+- memory management:
+
+	- each process has an address space where it references memory in pages. These pages (in virtual memory) map,
+	  via a page table, to page frames, which are actual memory on disk.
+
+	- the point of virtual memory is to:
+
+		1) protect processes from interfering with other processes and the kernel
+		2) allow processes to grow (and use more space) if necessary
+
+	- 1 for L1 -> 2 for L2 (pg. 291)
+
+- forward-mapped:
+
+	- the whole idea of virtual memory is that you have virtual addresses that map to actual addresses. Thus, you need to 
+	  translate between the two. If a virtual address space is 2^20 bytes, and each address is 4 bytes long, this means you'd 
+	  need a page table of 2^22 bytes to effectively map all virtual addresses to physical addresses.
+
+	  the concept behind foward mapped page tables is that you can minimize the amount of memory used by page tables. For instance,
+	  let's say the L1 page table is 10 bits (mapping 2^10 values), which accesses values in the L2 page table. Now, you only
+	  need (2* 2^10) = 2^11 bytes in physical memory to represent the L1 and L2 pages tables needed to translate between virtual
+	  and physical memory. Of course, you might need to bring in more L2 pages tables since the address space currently in the physical
+	  memory isn't very large, yet this can be done as needed.
+
+			    L1			    L2
+
+			1000100011	-> 	1111100000
+
+			1000100010	-> 	1111100000	/* different physical addresses; mapped differently from L1 */
+
+- shadow objects:
+
+	- when you 'fork' a process, it's address space is copied into the child's address space. A call to 'execv', however, replaces the
+	  contents of the address space with a new image from disk - effectively negating the work done copying from the parent to the child.
+
+		- solve this with lazy evaluation; only copy when you need to. Make the pages of the parent read only. If a modification occurs
+		  before the child calls 'execv', a page fault occurs where the page is copied and placed in the child's address space. The child
+		  will then use this copy in its execution. Its changes thus persist, but you only copy into the child's address space those pages
+		  that have been modified. 
+
+	- mappings:
+
+		- shared: if one process changes memory, all processes see that change.
+	
+		- private: if one process changes memory, that memory is copied into that particular process' address space.
+			   thus, only it will see its changes to memory.

@@ -1,0 +1,95 @@
+
+
+- 
+(DONE)	mm: pframe functions looks good
+
+-
+
+	s5fs.c: 
+
+(DONE)		s5fs_read_vnode: in this function, the inode is not linked with the vnode, so you're basically
+				 initializing the vnode to point to the inode
+
+(DONE)		s5fs_delete_vnode: I basically just NULL everything out that I set in read_vnode
+
+(DONE)		s5fs_query_vnode: see if you can delete the inode from disk, i.e. if the only link to it is the current
+				  vnode (which should be paged into memory), then when that vnode exits you can free up
+				  the vnode from disk
+
+(DONE)		s5fs_read & s5fs_write: these simply delegate to the s5fs_subr.c functions. They do, however, lock mutexes
+					before calling this functions. Should I be locking the mutex in all functions that
+					use a subr function? I might want to add more asserts to this
+
+
+
+	s5fs_subr.c:
+
+(QUESTION)	s5_link: why are you calling s5_find_dirent? I don't think I'm correctly handling linking a child to a directory
+			 where the directory already has a file of the same name as child.
+
+		return EEXIST (check vfs do link)
+
+
+(QUESTION)	how do you deal with mutexes in s5fs.c? vnode mutexes?
+
+(QUESTION)	how do I handle partial writes in write_file? Aren't I always allocating new blocks?
+
+			- I don't need to pframe_get() and then memset blocks if I'm simply jumping past them in write?
+						
+				- so, for example, if I'm writing at offset 10 in the indirect block, I don't need to check all indirect
+				  blocks before that and memset their contents to NULL, right?	
+
+
+				- if your'e writing past the largest size of the file
+
+(QUESTION)
+
+		looks ta VFS and man pages for appropriate error messages
+
+
+_init_call
+
+	-> 0xcfe996e8
+
+		-> func->if_func() (step into this)
+
+			-> step through
+
+	-> 0xcfe6800c
+
+
+---
+
+	pframe_get will call pframe_alloc which will allocate pages to the memory object passed in as argument -- therefore, if you 	
+	call pframe_get on a memobj, you have to call it ON THE SAME MEMOBJECT to get the page back
+
+	pages related to vnodes (inodes) are in the fs, while pages for files' data (related to blocks) are in the vnode
+
+---
+
+	1) I'm trying to make a directory named "dev" inside my root directory
+
+		- I allocate a new inode from the file-system
+
+		- I get a new vnode with the vn_vno = inode number
+
+	2) try to link "." s.t. it points back to itself
+
+	3) I want to write to the file (the inode)
+
+		- let's get a frame for the file
+
+	4) pframe_get -> pframe_alloc -> pframe_fill
+
+	5) s5fs_fillpage calls s5_seek_to_block
+
+		- so I'm trying to fill the page from the block on disk
+
+
+- 
+
+	writing longer (for cat hamlet)
+
+	refcount (it's odd that vfstest has such a weird name; maybe there's a problem writing)
+
+		- i've edited both kmain and vfstest; return to normal after refcounts are fixed

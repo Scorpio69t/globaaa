@@ -1,0 +1,57 @@
+-: Starting condition:
+
+	: 100 Blue eyed people; 100 Brown eyed people; 1 Guru
+
+	: Guru says she sees someone with Blue eyes. Who leaves and on what day?
+
+-: Answer:
+
+	: essentially a proof by induction -> let's consider the case where only one person on the
+	  island has blue eyes and when he looks around him he sees only Brown eyed people. Since he
+	  knows someone has to have blue eyes, he realizes it must be him and so he leaves on the first night.
+
+	: let's say there are 2 people on the island. I don't know the color of my own eyes and I see someone else
+	  with blue eyes so I don't leave. the other person sees and thinks the same thing. after a day goes by without anyone
+	  leaving, we both realize that there has to be > 1 person on the island with blue eyes and we must be one of those
+	  people. therefore both people with blue eyes leave on the second day.
+
+	: this case generalizes where the number of blue eyed people > 2
+	
+-: Model:
+
+	Run w/ x Blue Eyed peple and y Non Blue Eyed People:
+
+	Let' say there are 2 people with blue eyes and 2 without. When the Guru says he sees someone with blue eyes
+	for people w/ blue eyes there can be either 1 or 2 people; for people without blue eyes there can be 2-3
+	people.
+
+					{p1, p2, p3, p4} -> {brown, blue, brown, blue}
+
+initial:
+			{p1}			     {p2}			-- symmetric for other people
+		      /      \			   /      \
+	 {blue: p1, p2, p4} {blue: p2, p4}  {blue: p2, p4} {blue: p4}
+
+
+	if no one leaves the first day, you can get rid of all worlds with only 1 blue eyed person. I feel like we
+	need to redefine what blues and nonblues means in a world?
+
+	what's the predicate for leaving the world?
+
+		-- if someone knows on this day their eye color, they won't be in the
+		-- world on the next day
+		pred leaveWorld {
+			all w : worlds |
+				all b : blues |
+					all nb : nonblues | 
+						b.know implies b not in world[next]
+
+		}
+
+		-- on each day, the worlds have to be unique
+		pred uniqueWorlds {
+			-- how much more granular do I have to be? do I have to go through
+			-- each world's fields individually?
+			all w1, w2 : worlds |
+				w1 != w2
+		}

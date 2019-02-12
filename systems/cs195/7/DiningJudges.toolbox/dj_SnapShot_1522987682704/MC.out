@@ -1,0 +1,137 @@
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.12 of 29 January 2018
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with 2 workers on 4 cores with 588MB heap and 1322MB offheap memory (Linux 4.9.0-6-amd64 amd64, Oracle Corporation 1.8.0_162 x86_64).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file /gpfs/main/home/dfarnha1/course/systems/cs195/7/DiningJudges.toolbox/dj/MC.tla
+Parsing file /gpfs/main/home/dfarnha1/course/systems/cs195/7/DiningJudges.toolbox/dj/DiningJudges.tla
+Parsing file /gpfs/main/course/cs1950y/bin/tla-toolbox/plugins/org.lamport.tlatools_1.0.0.201801291236/tla2sany/StandardModules/TLC.tla
+Parsing file /gpfs/main/course/cs1950y/bin/tla-toolbox/plugins/org.lamport.tlatools_1.0.0.201801291236/tla2sany/StandardModules/Integers.tla
+Parsing file /gpfs/main/course/cs1950y/bin/tla-toolbox/plugins/org.lamport.tlatools_1.0.0.201801291236/tla2sany/StandardModules/Naturals.tla
+Parsing file /gpfs/main/course/cs1950y/bin/tla-toolbox/plugins/org.lamport.tlatools_1.0.0.201801291236/tla2sany/StandardModules/Sequences.tla
+Semantic processing of module Naturals
+Semantic processing of module Integers
+Semantic processing of module DiningJudges
+Semantic processing of module Sequences
+Semantic processing of module TLC
+Semantic processing of module MC
+@!@!@STARTMSG 2219:0 @!@!@
+SANY finished.
+@!@!@ENDMSG 2219 @!@!@
+@!@!@STARTMSG 2185:0 @!@!@
+Starting... (2018-04-06 00:07:55)
+@!@!@ENDMSG 2185 @!@!@
+@!@!@STARTMSG 2189:0 @!@!@
+Computing initial states...
+@!@!@ENDMSG 2189 @!@!@
+@!@!@STARTMSG 2190:0 @!@!@
+Finished computing initial states: 1 distinct state generated.
+@!@!@ENDMSG 2190 @!@!@
+@!@!@STARTMSG 2114:1 @!@!@
+Deadlock reached.
+@!@!@ENDMSG 2114 @!@!@
+@!@!@STARTMSG 2121:1 @!@!@
+The behavior up to this point is:
+@!@!@ENDMSG 2121 @!@!@
+@!@!@STARTMSG 2217:4 @!@!@
+1: <Initial predicate>
+/\ judgeState = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {} @@ 4 :> {})
+/\ chopState = ( 0 :> "available" @@
+  1 :> "available" @@
+  2 :> "available" @@
+  3 :> "available" @@
+  4 :> "available" )
+
+@!@!@ENDMSG 2217 @!@!@
+@!@!@STARTMSG 2217:4 @!@!@
+2: <TakeLeft line 44, col 9 to line 47, col 93 of module DiningJudges>
+/\ judgeState = (0 :> {0} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {} @@ 4 :> {})
+/\ chopState = ( 0 :> "taken" @@
+  1 :> "available" @@
+  2 :> "available" @@
+  3 :> "available" @@
+  4 :> "available" )
+
+@!@!@ENDMSG 2217 @!@!@
+@!@!@STARTMSG 2217:4 @!@!@
+3: <TakeLeft line 44, col 9 to line 47, col 93 of module DiningJudges>
+/\ judgeState = (0 :> {0} @@ 1 :> {1} @@ 2 :> {} @@ 3 :> {} @@ 4 :> {})
+/\ chopState = ( 0 :> "taken" @@
+  1 :> "taken" @@
+  2 :> "available" @@
+  3 :> "available" @@
+  4 :> "available" )
+
+@!@!@ENDMSG 2217 @!@!@
+@!@!@STARTMSG 2217:4 @!@!@
+4: <TakeLeft line 44, col 9 to line 47, col 93 of module DiningJudges>
+/\ judgeState = (0 :> {0} @@ 1 :> {1} @@ 2 :> {2} @@ 3 :> {} @@ 4 :> {})
+/\ chopState = ( 0 :> "taken" @@
+  1 :> "taken" @@
+  2 :> "taken" @@
+  3 :> "available" @@
+  4 :> "available" )
+
+@!@!@ENDMSG 2217 @!@!@
+@!@!@STARTMSG 2217:4 @!@!@
+5: <TakeLeft line 44, col 9 to line 47, col 93 of module DiningJudges>
+/\ judgeState = (0 :> {0} @@ 1 :> {1} @@ 2 :> {2} @@ 3 :> {3} @@ 4 :> {})
+/\ chopState = ( 0 :> "taken" @@
+  1 :> "taken" @@
+  2 :> "taken" @@
+  3 :> "taken" @@
+  4 :> "available" )
+
+@!@!@ENDMSG 2217 @!@!@
+@!@!@STARTMSG 2217:4 @!@!@
+6: <TakeLeft line 44, col 9 to line 47, col 93 of module DiningJudges>
+/\ judgeState = (0 :> {0} @@ 1 :> {1} @@ 2 :> {2} @@ 3 :> {3} @@ 4 :> {4})
+/\ chopState = (0 :> "taken" @@ 1 :> "taken" @@ 2 :> "taken" @@ 3 :> "taken" @@ 4 :> "taken")
+
+@!@!@ENDMSG 2217 @!@!@
+@!@!@STARTMSG 2201:0 @!@!@
+The coverage statistics at 2018-04-06 00:07:56
+@!@!@ENDMSG 2201 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 46, col 12 to line 46, col 74 of module DiningJudges: 373
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 47, col 12 to line 47, col 93 of module DiningJudges: 373
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 54, col 12 to line 54, col 75 of module DiningJudges: 373
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 55, col 12 to line 55, col 94 of module DiningJudges: 373
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 61, col 12 to line 61, col 54 of module DiningJudges: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 62, col 12 to line 62, col 78 of module DiningJudges: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 63, col 12 to line 63, col 79 of module DiningJudges: 0
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2202:0 @!@!@
+End of statistics.
+@!@!@ENDMSG 2202 @!@!@
+@!@!@STARTMSG 2200:0 @!@!@
+Progress(6) at 2018-04-06 00:07:56: 747 states generated (113,181 s/min), 234 distinct states found (35,454 ds/min), 53 states left on queue.
+@!@!@ENDMSG 2200 @!@!@
+@!@!@STARTMSG 2199:0 @!@!@
+747 states generated, 234 distinct states found, 53 states left on queue.
+@!@!@ENDMSG 2199 @!@!@
+@!@!@STARTMSG 2194:0 @!@!@
+The depth of the complete state graph search is 6.
+@!@!@ENDMSG 2194 @!@!@
+@!@!@STARTMSG 2268:0 @!@!@
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 10 and the 95th percentile is 4).
+@!@!@ENDMSG 2268 @!@!@
+@!@!@STARTMSG 2186:0 @!@!@
+Finished in 1171ms at (2018-04-06 00:07:56)
+@!@!@ENDMSG 2186 @!@!@

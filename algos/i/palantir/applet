@@ -1,0 +1,55 @@
+- the question was: I'm trying to move something into a java applet but I can't do it. if I give it the path it works, though. help.
+
+	: first question: has anything changed on your system recently? His response was "like what?"
+	  to which I responded "like a change in firewall". He responded "no", but this was on the right path.
+	  
+	  it turned out that an administrator had emailed the previous week and had everyone change to root status,
+	  which apparently prohibited the dragging and dropping of icons into the applet. Be more inquisitive.
+
+	: it's good to first determine the scope of the problem. if one person is having trouble using something on
+	  their system, try to figure out the extent of the problem: on the user level? the local level? system level? higher?
+
+	: he liked it when I asked if a coworker could come over, log on, and drag and drop/ you could drag and drop on
+	  a coworker's computer.
+
+		: what does this tell you? if a coworker comes over and can drag and drop items on your computer, that points
+		  to a user issue : -> something with your user credentials differs from that of your coworker's. if their
+		  credentials don't work either, then it's a problem with the system. 
+
+			- difference between user in the applet and system user **
+
+-: Outline
+
+	0) Always ask for error messages, logs, etc.
+
+	1) Has anything changed with the system recently that you can think of? Firewall? An Update? A message from a system's admin?
+	   A change in user credentials or policy? has anything changed from the time you were last able to use the system to now?
+
+	2) Determine the scope of the problem:
+
+		- can a coworker come over, log onto the applet and see if it works? can you log onto a coworker's computer and see
+		   if it works? the former points to a user problem. the latter points to a local (computer) problem.
+
+			- if it's a user problem, it seems like it has to be something related to permissions/credentials
+			- a computer problem points to a configuration issue.
+
+	3) Once you've determined the scope of the problem, try to come up with an exhaustive list of things that might go wrong at that
+	   level and eliminate them one by one.
+
+-: client - server based:
+
+	- can't connect; error can't connect to dispatch server (gives IP address)
+
+	- have been able to connect before; last time last week:
+
+		- software upgrade over the weekend; upgrade server
+
+		- run into same issue 10.0.100.0:3833
+
+		- dispatch server list
+		- port = "3833"
+		- password = "palantir's own authentication"
+		- additional manual stuff; done some manual stuff
+
+		- walk use through what they're doing; special about this particular machine? every time you ask a question
+		  rule something out but don't revisit. 

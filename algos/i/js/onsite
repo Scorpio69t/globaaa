@@ -1,0 +1,53 @@
+-:
+	solution:
+
+		take 2 groups of 3 balls and weigh them:
+
+			if they weigh the same, take a group of 4 balls and weigh these against 4 balls from the
+			initial 2 groups. if they weigh the same, easy to find faulty ball in last 2
+
+			
+
+
+take another three and weigh those against an initial group. 
+
+				if this third groups's weight equals the first group's, the faulty ball is in 
+				the final group. from this 4th group, take 2 balls and and weigh them with
+				any of the original 2 groups.
+
+	clue is that it's kind of binary search ->
+
+		take 2 groups of 4, weigh them.
+
+			1) if they equal eachother, the weighted ball must be in the other group of 4
+
+			2) if they don't equal each other, measure against the other group of 4 to determine
+			   the group containing the weighted ball. this should also tell you whether the ball is 
+			   lighter or heavier
+
+		start with 2 groups of 4:
+
+			if they're equal, it's in the 3rd group
+
+				take 2 balls from the initial 2 -> and 2 from new group
+
+					1) if they match, take one from last group -- should be able to tell if it's lighter
+					   or heavier
+
+					2) if they don't match, it's in that group of 2
+
+			if they don't equal, take 2 balls from the third group and 2 from each of the two groups:
+
+				if they match
+
+			3 and 3; if they equal, take another 3, if they equal you know it's in the 4th 3: take 2 balls from this and 
+			add them to the first 3 and 3, should be able to tell by which way the graph goes if a ball is heavier or lighter
+			if no movement, it's the last ball
+
+			3 and 3; if they aren't equal, take another 3 to find which triple is off. once you have this triple do the same as
+			above: take 2 balls from the faulty group of 3 and weigh it with the group of 3 you know. if these groups of 4
+			are off you know the faulty ball.
+
+	5 and 5 -- if they're equal, it's easy
+
+	if they aren't equal take 3 from each group and reweigh. if they're equal

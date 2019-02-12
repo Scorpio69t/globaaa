@@ -1,0 +1,81 @@
+- Goal
+
+	: you have a pool of miners that're trying to determine the value [0, n] that, when concatenated
+	  to a string 'm' and hashed, provides the smallest return value. 
+
+	: since you're dealing with a hash, which is a one way function, the only way to determine the
+	  correct value 'n' is to sequentially go through all of them, concatenating each with 'm', hashing
+	  the result, and then checking the return value.
+
+	: for a single computer this is a very time intensive task. if you're a client using a pool of miners, 
+	  however, you can partition the n value into a number of shards and distribute them amongst the pool of miners.
+	  Each miner can then search through n/k values, return their smallest hash value, and then the smallest 
+	  value from all miners determines the nonce
+
+	: I think the sequence is you have a client that connects to a pool and that pool has a bunch of
+	  miners connected to it that do the calculations
+
+- Code
+
+	: liteminer-client.go : this provides a command line interface for a client to use this pool of miners.
+
+		: (1) after setting up a bunch of flags to parse the command line input, it sets up an ishell 
+		  which I'm assuming is just a virtual shell.
+
+		: (2) it next calls liteminer.CreateClient():
+
+			- you pass an address to CreateClient, this starts to fill the client struct
+			  with a number of mappings (address -> MiningConn, address -> int, etc) and
+			  then connects the client to the target address.
+
+			- it says it returns a pointer to a client, but it doesn't seem to return anything?
+
+	: client.go 
+
+		: what is a client struct? it has: 
+
+			1) a map from addr -> MiningConn for pools the client is connected to
+			2) addr -> nonces; nonces returned from particular pools
+			3) send results of transaction	/* this is a channel */
+			4) mutex
+
+		: a client then connects to a list of pool address. For each address you give it, it loops
+		  in Connect, connecting the client with the pool (via ClientConnect) and then adding the pool's
+		  address to a mapping in the client (addr -> conn)
+
+		: in ClientConnect it dials the pool, returning a connection to the pool. The client places
+		  this in their struct so they have a connection for the address
+
+		: after the client connects to the pool, it calls go c.processPool(conn), which starts a new thread/process
+		  to handle that particular pool's connection in the client
+
+		: processPool waits for messages from the pool:
+
+			EOF: lost connection to the pool. In this case remove the pool from the client struct. 
+			     (locking mutex first) you want to lock the mutex in this case since you don't want
+			     another thread to try to access the global struct while you're modifying it
+
+			BusyPool: Pool is trying to disconnect from the client?
+
+			ProofOfWork: updates a field in the client struct: c.Nones[addr] -> some nonce
+
+			Default: some error
+
+		: mine: when in the command line interface, typing mine should cause the client to try to mine 
+		  from its pool
+
+			: in mine(), you send a TransactionMsg(string, uint64) | string is the address of the miner you're 
+			  connecting to.
+
+	: pool.go
+
+	: miner.go
+
+- Install
+
+	: go install github.com/brown-csci1380/s18-dfarnha1-jbellavi/liteminer/cmd/liteminer-client
+	  etc...
+
+- TODO
+
+	: I think all of the TODO in proto is just generating a message; these messages are sent in a different function

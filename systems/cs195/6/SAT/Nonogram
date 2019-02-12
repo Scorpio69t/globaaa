@@ -1,0 +1,184 @@
+#!/usr/bin/env python3
+
+import sys
+import subprocess
+
+def read_input():
+    # Reads a nonogram from stdin and returns an internal representation of it
+    row_col_strs = sys.stdin.read().split('\n')
+    row_rules = []
+    col_rules = []
+    for rule in row_col_strs[0].split():
+        row_rules.append(rule)
+    for rule in row_col_strs[1].split():
+        col_rules.append(rule)
+    # <add to internal representation>
+    return [row_rules, col_rules]
+
+
+def format_output(ans):
+    # ans is a 2D representation of the solution consisting of '*' and '-'
+    for i in range(len(ans)):
+        for j in range(len(ans[0])):
+            print(ans[i][j], end='')
+        print('')
+
+
+def encode(puzzle):
+    # return an encoding of the puzzle to pass into the SAT solver
+    row_rules, col_rules = puzzle
+
+    # let's first find the dimensions of the nonogram
+    rows = len(row_rules)
+    cols = len(col_rules)
+
+    # the first starting variable
+    start = rows * cols + 1
+    formula = ''
+
+    # let's first add rules for rows
+    for i in range(0, rows):
+        # store start variables
+        visited = []
+        for j in range(1, cols + 1):
+            # there's not enough columns for row_rules[i] consecutive squares
+            if cols + 1 - j < int(row_rules[i]):
+                break
+            else:
+		# add row_rules[i] consecutive squares starting at j
+                for k in range(1, cols + 1):
+                    if k < j or k >= j + int(row_rules[i]):
+                        formula = formula + '-'+str(start) + " " + '-'+str(i * cols + k) +"\n"
+                    else:
+                        formula = formula + '-'+str(start) + " " + str(i * cols + k) + "\n"
+
+                visited.append(start)
+                start = start + 1
+
+        # one start variable implies none of the others/row
+        for j in range(0, len(visited)):
+            for k in range(0, len(visited)):
+                if k == j:
+                    continue
+                formula = formula + "-"+str(visited[j]) + " " + "-"+str(visited[k]) + "\n"
+
+        # there has to be one start variable
+        clause = ''
+        for j in range(0, len(visited)):
+            clause = clause + str(visited[j]) + " "
+        formula = formula + clause
+        formula = formula[:-1]
+        formula = formula + "\n"
+
+    # let's now add rules for columns
+    for j in range(1, cols + 1):
+        visited = []
+        for i in range(0, rows):
+            if rows - i < int(col_rules[j - 1]):
+                break
+            else:
+                for k in range(0, rows):
+                    if k < i or k >= i + int(col_rules[j - 1]):
+                        formula = formula + '-'+str(start) + " " + '-'+str(k * cols + j) +"\n"
+                    else:
+                        formula = formula + '-'+str(start) + " " + str(k * cols + j) +"\n"
+
+                visited.append(start)
+                start = start + 1
+
+        # one start variable implies none of the others/row
+        for j in range(0, len(visited)):
+            for k in range(0, len(visited)):
+                if k == j:
+                    continue
+                formula = formula + "-"+str(visited[j]) + " " + "-"+str(visited[k]) + "\n"
+
+        # there has to be one start variable
+        clause = ""
+        for j in range(0, len(visited)):
+            clause = clause + str(visited[j]) + " "
+        formula = formula + clause
+        formula = formula[:-1]
+        formula = formula + "\n"
+
+    return formula[:-1]
+
+def decode(puzzle, assignments):
+    # return a 2D array representation of the solution consisting
+    # of '*' and '-', given the original puzzle and the SAT solver's
+    # variable assignments
+    row_rules, col_rules = puzzle
+
+    count = 1
+    result = []
+    row = []
+    for key in assignments.keys():
+        # we've gotten to start variables
+        if count > len(row_rules):
+            break
+
+        if key > count * len(col_rules):
+            result.append(row)
+            row = []
+            count = count + 1
+
+        sign = assignments[key]
+
+        if sign:
+            row.append('*')
+        else:
+            row.append('-')
+
+    return result
+
+def run_solver(encoded_puzzle):
+    # Runs the specified SAT solver against a puzzle encoded as a formula
+    solver = subprocess.Popen([sys.argv[1]], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    solver.stdin.write(encoded_puzzle.encode('utf-8'))
+    solver.stdin.close()
+    if solver.wait() != 0:
+        print('SAT solver failed: ' + solver.stderr.read().decode('utf-8'))
+    line = solver.stdout.readline().decode('utf-8').strip()
+    if line == 'unsat':
+        return None
+
+    assignments = {}
+
+    if len(line) != 0:
+        for true_lit in line.split(' '):
+            assignments[int(true_lit.strip())] = True
+
+    line = solver.stdout.readline().decode('utf-8').strip()
+    if len(line) != 0:
+        for false_lit in line.split(' '):
+            assignments[abs(int(false_lit.strip()))] = False
+
+    return assignments
+
+
+# Reads from stdin and prints a solution (if one exists) to stdout.
+ # Expects two lines of input. The first contains the number of filled
+ # boxes for each row.  The second contains the number of filled boxes for
+ # each column.  For example, the input:
+ # 3 1
+ # 1 2 1
+ # Should give:
+ # ***
+ # -*-
+if __name__=='__main__':
+    if len(sys.argv) != 2:
+        print('Usage: {} <path to SAT solver>'.format(sys.argv[0]))
+        sys.exit(1)
+
+    puzzle = read_input()
+    encoded = encode(puzzle)
+
+    ans = run_solver(encoded)
+    if ans is None:
+        print()
+        print('unsat')
+        sys.exit(0)
+
+    print()
+    format_output(decode(puzzle, ans))
+    print()

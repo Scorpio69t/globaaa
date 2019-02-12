@@ -1,0 +1,22 @@
+We used the design in our design document except for some parts as suggested by the 
+TA. For sharing, please see our comments in shares.go and fd.go. We changed 
+our database structures as outlined there, providing ample comments throughout
+all the code. 
+
+After we were able to successfully abstract the file system, we tested our implementation
+by working and testing edge cases in the environment, as well as adding a number of debugging 
+information to the server, which would run and give us output during execution.
+
+We had a little trouble with the very last thing we implemented. We were able to 
+implement sharing and deduplication (CS162), but were still having a few bugs when
+it came to shared users writing back to shared files - it's a known bug =( 
+
+Just as a note, I've fixed all the problems above -- it should run perfectly now lol.
+
+To run, use the address of one of the CIT machines:
+
+	./server / mslab4b-l:1234		/* "/" base directory; "1234" port number */
+
+	./client mslab4b-l:1234
+
+	

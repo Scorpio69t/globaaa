@@ -1,0 +1,16 @@
+#!/usr/bin/python3
+
+import subprocess
+
+# create a new process
+process = subprocess.Popen(["/usr/bin/tsort"], stdin=subprocess.PIPE,
+stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+# let's create a string and pass it to the process
+in_str = "1 2\n3 4\n"
+in_data = in_str.encode("utf-8")
+(out_data, err_data) = process.communicate(in_data)
+out_str = out_data.decode("utf-8")
+err_str = err_data.decode("utf-8")
+
+print(out_str)

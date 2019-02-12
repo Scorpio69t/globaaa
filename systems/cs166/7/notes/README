@@ -1,0 +1,101 @@
+High level goals:
+
+	I think the main high level goals are to:
+
+		1) protect the integrity of users' files (think of this an ensuring write-protection).
+
+			- what this means, concretely, is to prevent other users or errors server side to cause files to
+			  be corrupted or lost.
+
+		2) provide adequate authentication security i.e. make it difficult for attackers to log in as other users,
+		   steal their session IDs, etc.
+
+		3) similar to (2), you want to protect the privacy other users' files (read protection).  
+
+			- in addition to protecting against malicious users gaining access to others' files, you'd also want to
+			  make sure there are no errors server side where the incorrect file could be served to a user.
+
+		4) keep track of chains of permissions.
+
+			- For example, let's say file A is owned by user A, who then shares read permissions with user B. In this
+			  case, you wouldn't necessarily want user B to be able to share file A with another user C, or worse, 
+			  be able to give read/edit permissions to a different user.
+
+Sessions:
+
+	- how do sessions work in PHP?
+
+		- In PHP there's a global variable: $_SESSION, which is an associative array that keeps track of information pertinent
+		  to a particular user. 
+
+		  When a client logs on to a server, the server create a unique session ID for that user, storing that ID client side in
+		  the form of a cookie. Everytime the client makes a request to the server, their session ID is included in the form of
+		  the cookie - the server can then lookup specific data for the user in it's table of session IDs and serve up content
+		  customized for the user.
+
+Access:
+
+	- when a user first tries to log in, they should provide a user ID and password. A hash + per-user salt should be stored in a database
+	  that's checked during authentication.
+
+		- you need to hash the passwords since it's never a good idea to store passwords in plain text
+		- per-user salts will help protect against rainbow table attacks (http://kestas.kuliukas.com/RainbowTables/), where an attacker 
+		  might be able to look at a table of encrypted passwords and either:
+
+			1) through frequency guess a particular password i.e. a lot of users might choose "password" as their password,
+			   and so the frequency of a particular hashed value in the table might give a clue that a particular user's 
+			   password is "password"
+
+			2) know mulitple users' passwords from being able to crack one - if multiple user's choose the same password,
+			   without unique salts their encrypted hashes would be the same.
+
+	- once a user logs in, they should be given a session ID to uniquely identify them throughout their session
+
+		- this session ID should be encrypted using some symmetric key (or RSA?) shared between the client and the server.
+		  Perhaps use RSA key exchange during authentication to set up a symmetric key.
+
+			- this is important since we saw during the flag project that sending cookies in plaintext between a client and
+			  server opens up multiple attack vectors where attackers can either sniff or edit cookies to masquerade as other
+			  users.
+
+		- key to this, as well, is the fact that API calls won't require users to provide their session ID - it'll be very much like
+		  web cookies; the encrypted session IDs will be passed implicitly by the user client to the server
+
+			- in terms of the setup, I think this'll make editing session IDs much more difficult - it would essentially require
+			  an attacker to edit the binary client executable
+
+			- all API calls will require a session ID to be included, and this session ID will only be available client side once
+			  a user has logged in. 
+
+	- session IDs should be stored, along with the user's login credentials, in some user database (encrypted).
+
+		- if we're using a SQL database, we need to make sure to escape all user input into the database using prepared statements.
+
+		- these session IDs should expire after a user has logged out or logged in twice (run the executable multiple times before exiting)
+
+		- perhaps, there could be some time limit where, if a user makes an API call with a session ID that's just expired, a new session ID
+		  is generated (every 10 minutes, 15 minutes, etc?)
+
+	- most of my concerns regarding logging in as another user or forging someone else's cookie have already been covered above.
+
+Sharing:
+
+	There are different ways to share files:
+
+		1) require user authentication to view files
+
+			- if user A shares 'file 1' with user B, make an entry into user B's file table specifying B's access to 'file 1'.
+			  this makes it easy to keep track of which files are available to specific users and to update users' permissions
+			  if, for example, A shared 'file 1' with B, but later revoked that access.
+
+		2) use random strings as identifiers of files, predicated on the fact it would be cryptographically infeasible
+		   to guess a random identifier
+
+			- I believe this is how facebook makes photos 'private' and how google makes docs viewable to other people
+
+			- this doesn't allow for the kind of granularity method (1) provides, however, it's much more simple. Consider
+			  the case were a single user shares a file (read only) with a million users. Using method (1), you'd need to 
+			  edit the entries of a million users in the file database. Instead, what might be a better approach is to only
+			  edit the file table when granting a user read/write permissions
+
+				- maybe there's a way to user cookies to keep track of how a file should be shared?

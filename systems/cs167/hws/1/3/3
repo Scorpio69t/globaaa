@@ -1,0 +1,19 @@
+- From what I can tell, the big difference between Ctrl-Z and Ctrl-Y is that while
+  Ctrl-Z takes immediate effect, Ctrl-Y has to be wait to be read before stopping the
+  application. 
+
+  This would make it seem that when the line discipline receives a Ctrl-Z, it immediately
+  interprets this as a SIGTSTP. It, therefore, doesn't queue this on either the partial 
+  line queue or the completed-line queue, but rather immediately redirects the signal
+  up to the application to be handled. The application then handles this interrupt in
+  the kernel stack of whatever thread is currrently running in the application.
+
+  Ctrl-Y seems to behave a bit differently. As delayed suspension, I'm pretty sure it only
+  takes effect once its been read. If this is the case, it'll be a part of both the partial
+  line queue and the completed line queue, since the application only reads from the 
+  completed line queue. 
+
+  So, essentially, Ctrl-Y gets placed on the partial line. Once a newline is entered, 
+  it gets moved to the completed line queue where it is ready to be read by the application.
+  Once the application reads it, this causes an interrupt within the application in 
+  whichever thread's kernel stack actually read and processed the character.

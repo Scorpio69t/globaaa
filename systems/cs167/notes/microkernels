@@ -1,0 +1,10 @@
+- why?: 
+
+	- I think the idea behind a microkernel is to run a bare-bones kernel s.t. most things can run in 
+	  user land (the file system, for example)
+	
+		- protects against problematic OS code?
+
+	- essentially everything is handled through ports and 'send rights' and 'receive rights'.
+
+		- need to read book on this

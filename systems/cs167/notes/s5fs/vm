@@ -1,0 +1,96 @@
+[virtual memory]
+
+- the goal of virtual memory is to provide an abstraction between memory references by a user
+  and actual memory on disk.
+
+  For example, let's say we have an address space with 3 processes running concurrently (P1, P2, P3):
+  Let's say, however, P1 and P3 end, and a fourth process, P4, needs memory, but its memory requirement is greater
+  than the contiguous memory available.  
+
+	
+			---------------								---------------
+			|	      |	 							|	      |
+			|	      |	 							|	      |
+			|	      |	 							|	      |
+			|     P1      |	 							|     P4?     |
+			|	      |	 							|	      |
+			|	      |	 							|	      |
+			---------------								---------------
+			|	      |	 							|	      |
+			|	      |	 							|	      |
+			|	      |	 			 -->				|	      |
+			|     P2      |	 							|     P2      |
+			|	      |	 							|	      |
+			|	      |	 							|	      |
+			---------------								---------------
+			|	      |	 							|	      |
+			|	      |	 							|	      |
+			|	      |	 							|	      |
+			|     P3      |	 							|     P4?     |
+			|	      |	 							|	      |
+			|	      |	 							|	      |
+			---------------								---------------
+
+
+  In this case, you want to provide the user with the illusion of continuous memory, even though the location of the file on disk
+  might be scattered. 
+
+	- better, even, if you compile a program and then objdump -d the executable, you see references to memory; i.e. where to jump to access
+	  a function, etc. If you're dealing with actual memory, what's to ensure that the memory addresses set up when a program was compiled
+	  and linked are not being used by a different process?
+
+	  virtual memory takes these memory addresses and maps them into real memory. The real memory might be different each time the process
+	  runs; the virtual memory addresses reference different (available) real memory, mapped via a page table.
+
+- Virtual memory gives the illusion of a much larger address space, while simultaneously protecting each process' address space. For example, 
+  since I have the illusion of a contiguous address space, I can reference any memory address (up to 4G assuming a 32bit address space) while the 
+  actual memory might be spread out over memory, switching in and out from disk, etc.
+
+  If I try to access memory not available in a page table, I'll get a page fault. If no page frames are free and available, this should throw an
+  error, thus preventing processes from accessing memory outside their space.
+
+[sequence]	
+
+  - when a process is created, part of the overhead of that creation is loading into primary memory (RAM) page tables for that process. Let's assume
+    you're working with a 32 bit address space s.t. addresses are 4 bytes long. If a page table needs to hold 2^20 addresses, this means the page table  
+    takes up 4MB of space (on older systems, this is not an insignificant #)
+
+  - think about compiling code down to its assembly, there's going to be numerous stores and loads of variables when the available register space isn't
+    enough. If I try to 'store' something in memory, but I have no page frames available to me (the process), this'll trap to the OS, which'll bring
+    in page frames my pages can map to. 
+
+		- this is talked about a little below, but the above sounds like on-demand paging, which isn't the most efficient.
+		  usually, you'll pre-fetch a number of page frames from primary memory.
+
+  - essentially, you're working within a virtual address space and editing the contents of RAM (primary memory). Let's say, however, you haven't referenced
+    a page frame in a long time and other processes need primary memory. In this case, the page frame's contents might be written out to disk so that
+    the primary memory can be returned to the pool of memory available for allocation as page frames.
+
+[optimizations]
+
+  - a big question, then, is how do you know which page frames to bring into memory. If a page frame is in memory, the translation between virtual
+    memory and real memory is super quick. If, however, you have to trap to the OS to get a new page frame, this'll take time:
+
+	- a frequently used algorithm for this is LRU: Least Recently Used.
+
+		In general, this is implemented with a clock algorithm, whereby two hands of a clock iterate over the page frames currently in use.
+		The first hand sets the page frame's reference bit to 0, while the second hand checks the reference bit and removes the page frame 
+		(i.e. removes it from real memory and, I'm assuming, writes it back out to disk) if its reference bit is still 0.
+
+		The idea is that if a page is frequently used, its reference bit will be set to 1 in the time interval between when it is visited 
+		by the first hand and the second hand. If its not referenced in this interval, it hasn't been recently used and can therefore be
+		swapped out (returned to the pool of free space).
+
+		(QUESTION: when a page frame is brought into memory, does this mean its allocated from RAM or brought in via disk?)
+
+[terms]
+
+	page: this is just a block of virtual memory; it can be of size 4k, 8k, etc
+
+	page frame: this is actual memory; virtual memory pages map to page frames
+
+	pagetable: this is essentially just an array that translates from virtual page addresses to real pages addresses
+
+		an address in virtual memory will contain 1) the virtual page number and 2) an offset. To find the page in real memory, the virtual
+		address is looked up in the page table. If an actual page is found, you move 'offset' bytes within that page to get to the
+		specific memory address you're looking for.

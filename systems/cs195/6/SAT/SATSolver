@@ -1,0 +1,189 @@
+#!/usr/bin/python2
+import sys
+from sets import Set
+
+both = "BOTH"
+pos = "POSITIVE"
+neg = "NEGATIVE"
+
+class literal():
+	def __init__(self, sign, variable):
+		self.positive = sign
+		self.variable = variable
+
+def read_input():
+	input_str = sys.stdin.read()
+	clause_strs = input_str.split('\n') if input_str else []
+	# return a set of literals
+	vars = Set()
+	# return a list of dicts
+	formula = []
+	for s in clause_strs:
+		clause = {}
+		if s == "":
+			formula.append(clause)
+		else:
+			literals = s.split()
+			for lit in literals:
+				sign = (lit[0] != '-')
+				variable = lit.strip('-')
+				vars.add(variable)
+				sign = pos if sign else neg
+				if variable in clause and clause[variable] != sign:
+					clause[variable] = both
+				else:
+					clause[variable] = sign
+
+			if len(clause) != 0:
+				formula.append(clause)
+
+	return formula, vars
+
+def negate(sign):
+	if sign == pos:
+		return neg
+	if sign == neg:
+		return pos
+	return both
+
+# should run in O(n^2)
+def propagate_units(formula):
+	units = []
+	copy = formula[:]
+	for clause in formula:
+		keys = clause.keys()
+		# same key, same sign in clause
+		if len(clause) == 1:
+			[key] = clause.keys()
+			if clause[key] != both:
+				sign = clause[key]
+				units.append((key, sign))
+
+	for unit in units:
+		for clause in formula:
+			for key in clause.keys():
+				sign = clause[key]
+				if unit[0] == key and (unit[1] == sign or sign == both):
+					if clause in copy:
+						copy.remove(clause)
+
+	for unit in units:
+		for clause in formula:
+			for key in clause.keys():
+				sign = clause[key]
+				if unit[0] == key and unit[1] != sign:
+					if clause in copy:
+						index = copy.index(clause)
+						if key in copy[index]:
+							del copy[index][key]
+		copy.append({unit[0]: unit[1]})
+
+	return copy
+
+def pure_elim(formula):
+	copy = formula[:]
+	items = []
+	visited = {}
+	for clause in copy:
+		keys = clause.keys()
+		for key in keys:
+			if key in visited:
+				continue
+			items.append((key, clause[key]))
+			visited[key] = True
+			for search in copy:
+				if key in search and clause[key] == search[key]:
+					continue
+				elif key not in search:
+					continue
+				# literal is not pure
+				else:
+					if items:
+						items.pop()
+
+	# remove pure literals in items from formula
+	for item in items:
+		for clause in formula:
+			if item[0] in clause and clause in copy:
+				copy.remove(clause)
+		copy.append({item[0]: item[1]})
+
+	return copy
+
+def pick_variable(formula, vars):
+	for clause in formula:
+		if len(clause) == 1:
+			[key] = clause.keys()
+			if key in vars:
+				vars.remove(key)
+
+	if len(vars) != 0:
+		return vars.pop()
+	else:
+		return {}
+
+def solve(formula, vars):
+	# make a true shallow copy of the formula
+	copy = formula[:]
+	for i in range(0, len(formula)):
+		copy[i] = formula[i].copy()
+
+	copy = pure_elim(propagate_units(copy))
+
+	# if formula contains empty clause, return
+	if {} in copy:
+		return copy
+
+	tmp = vars.copy()
+	count = 0
+	for clause in copy:
+		if len(clause) == 1:
+			count = count + 1
+
+			[key] = clause.keys()
+			if key in tmp:
+				tmp.remove(key)
+
+	# all clauses unit clauses and all variables accounted for
+	if count == len(vars) and len(tmp) == 0:
+		return copy
+
+	x = pick_variable(copy, vars.copy())
+
+	if x == {}:
+		return copy + [{}]
+
+	result = solve(copy + [{x: pos}], vars)
+	if {} not in result:
+		return result
+	else:
+		return solve(copy + [{x: neg}], vars)
+
+def key(key):
+	return int(key)
+
+def format_output(formula):
+	if formula == []:
+		pass
+	elif {} in formula:
+		print("unsat")
+		return
+
+	true_l = []
+	false_l = []
+
+	# should be a list of unit literals
+	for clause in formula:
+		for var, sign in clause.items():
+			if sign == pos:
+				true_l.append(var)
+			else:
+				false_l.append('-'+var)
+
+	print(' '.join(sorted(true_l, key=key)))
+	print(' '.join(sorted(false_l, key=key)))
+
+if __name__=="__main__":
+	formula, vars = read_input()
+	formula = solve(formula, vars)
+	format_output(formula)

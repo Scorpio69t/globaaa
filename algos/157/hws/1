@@ -1,0 +1,140 @@
+1)
+  1. 
+
+     We can solve the problem where, given two sequences A and B we're trying to find the length of the largest 
+     subsequence of A in B, recurisvely. If structured recursively there'll be three cases that create a tree where 
+     the path from the root of the tree to each leaf exhaustively compares every possible subsequence from A with those
+     from B. We then return the subsequence of greatest length.
+
+     The three cases would be, given two sequences w1 and w2 along with indices into those sequences i, j, respectively:
+
+		1) check to see if w1[i] == w2[j], if it does add one, else zero. recur on positions (i + 1) and (j + 1).
+		   if we start at position i equals 0 and j equals 0, then incrementing both i and j effectively creates a 
+		   symmetrical, smaller version of the problem to recur on.
+
+		2) recur on positions i + 1 and j
+
+		3) recur on positions i and j + 1
+
+      Since we can picture this algorithm graphically as a tree | each node has three branches, it'll grow exponentionally: O(3^n)
+      where n, in this case, is the min(len(w1), len(w2)).
+		
+  2.
+
+      Given a function 'find_seq' that takes two sequences w1 and w2 along with indices into those sequences i, j, respectively, and
+      runs left to right along the sequences:
+
+			{	0		if i = 0
+				0		if j = 0				
+      find_seq(i, j) =	  max{
+				(w1[i] == w2[j]) + find_seq(i - 1, j - 1),
+				find_seq(i - 1, j),
+				find_seq(i, j - 1)
+			  }
+			}  
+
+      a dynamic programming approach would use essentially the same recurrence relation, except instead of calls to find_seq it 
+      would update entries in some n*m table, T.
+
+  3.
+
+      The size of the table would be (n * m) | n is the len(w1) and m is the len(w2)
+
+  4.
+
+      Each entry in the table represents the max length of the subsequence that can be created from w1_i and w2_j | 
+      i and j represent the current position in the table for each sequence.
+
+      Since the recurrence relation deals with i and j values { (i, j + 1), (i + 1, j), (i + 1, j + 1) } you can think of it
+      traversing the table diagonally from left to right. This means you need to fill the table left to right horizontally top
+      to bottom or vertically up to down from left to right.
+
+
+  5.
+
+      see sheet
+
+  6. 
+      
+      we will prove by induction on variables i and j, traversed in table T in the order up to down, left to right, that our algorithm
+      correctly computes the longest subsequence that can be created from two sequences. As a base case for induction we'll note that when 
+      either sequence is empty (i.e. has length 0), the longest subsequence will also be zero.
+
+      Given two arbitrary sequences A and B and an arbitrary i and j, which represent positions in the table, we wish to show that any
+      position [i, j] in the table correctly computes the longest subsequence that can be created from subsequences A_i and B_j.
+
+      Consider an optimal solution to our problem and consider the last decision made in this optimal solution. There are 3 cases:
+
+
+		// TODO
+
+		case 1: given indexes i, j into sequences A, B, respectively, the longest subsequence came from 
+			subsequences A(i-1) and B(j-1).
+
+			By the inductive hypothesis, T[i-1, j-1] is the current longest subsequence from A and B. If we
+			find that another character from A and B match, we add 1 to the value T[i-1, j-1], thus giving 
+			a new longest subsequence. If the character doesn't match, we continue by looking at the next characters
+			in A and B.
+
+		case 2: the longest subsequence came from subsequences A_(i) and B_(j-1)
+
+			By the inductive hypothesis, the subsequence at table entry T[i, j-1] is the longest
+			subsequence possible between A and B.
+
+		case 3: the largest subsequence came from subsequences A_(i-1) and B_j
+
+			By the inductive hypothesis, the subsequence at table entry T[i-1, j] is the longest
+			subsequence possible between A and B.
+
+2)
+
+  1. 
+
+      (1) a 
+      (5) bcacb
+      (5) bcacb
+      (3) ala 
+      (1) t { any single character string from this sequence will do } 
+
+  2. 
+
+      Fill out the table top to bottom, left to right. I think the recurrence relation for this is the exact same as in problem
+      1 except in this case w2 = rev(w1).
+
+			{	0		if i = 0
+				0		if j = 0				
+      palin(i, j) =	  max{
+				(w1[i] == w2[j]) + palin(i - 1, j - 1),
+				palin(i - 1, j),
+				palin(i, j - 1)
+			  }
+			}  
+
+4)
+
+  1). Let's create an n * m array where n is len(all characters) and m = 16, which is the number of characters allowed on a line. 
+
+
+	what would the recurrence relation be for this:
+
+		
+				
+		T(i, j) = {
+
+
+3)
+
+	Given a tree of nodes in which each node stores data as a key, we will show by induction on the 
+	depth of the tree, k, that if a certain key is stored in some node in the tree, then a DFS algorithm 
+	starting at the root of the tree will find such a node.
+
+	As a base case, consider a tree of a single node i.e. depth 0. When this node is passed into the DFS 
+	algorithm, the algorithm will compare the data stored within it to the key. The algorithm will return 
+	the node if they match and nothing otherwise.
+
+	Our inductive hypothesis assumes that for all trees of depth i | 0 <= i <= k the DFS algorithm will
+	either return a node if it exists, or nothing. 
+
+	Thus, let's now show that, given a tree of depth i+1 our claim holds; i.e. DFS will find a
+
+	Let's consider a set T of trees 

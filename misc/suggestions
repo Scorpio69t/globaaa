@@ -1,0 +1,14 @@
+- be more granular in highlighting patterns
+
+	: so, for example, I want to find all patterns like:
+
+		bmi = float(input("Enter your BMI: "))
+
+	  so basically I want to know all submissions that simply ask for the user's BMI.
+	  However, I think this instead matches on float(input()) or rather, singular float(input())
+	  patterns
+
+- why does it sometimes move the placement of groups? For example, if I add feedback for a particular group,
+  it moves that group to the top? Why not always order it based on size of group?
+
+- can I easily tell it to learn two patterns simultaneously?

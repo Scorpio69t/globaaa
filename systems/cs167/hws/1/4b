@@ -1,0 +1,8 @@
+- What I think you can do, then, is to use the request flag to request thread switch handlers to be placed
+  on the thread's kernel stack instead of on the shared process' stack. When you switch back and forth between
+  threads, you're switching between the stacks of the threads with other interrupt handlers being placed on
+  the process' stack.
+
+  Taking the example from above, thread [1] switches to [2]. A couple interrupts are placed on the process'
+  stack before switching back to [1]. If [1] were to add interrupt handlers to the process' stack, they
+  would correctly be pushed on top of the handlers already pushed on the stack by [2].

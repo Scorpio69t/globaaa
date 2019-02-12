@@ -1,0 +1,60 @@
+Sense: using AI to cluster open ended STEM assignments
+
+What are the takeaways: 
+
+	1) it provides insights into the data helping you, as an instructor, make the course content
+	   clearer and pinpointing areas where students might not be quite catching on
+
+	2) provides personalized feedback, on things like design, to help students learn more effectively
+
+Because we're able to quickly pattern match and create clusters of the data, we not only highlight information
+in the data that might've previously been opaque, we speed up the entire process and bring automation and a mechanism
+for scaling.
+
+1) Let's first move our problem sets and create a new assignment
+
+2) And what do we immediately see? We see that there are two groups, one
+   of which, Y, represents uncompilable submissions. Of course, a simple code correctness
+   program provided to students before submitting would do the same, but we can delve 
+   a bit deeper.
+
+3) Introduce a pattern; something all problem sets should have. For this, choose inputs.
+
+	: After we introduce a pattern, let's regroup.
+
+	: What do we see when we regroup? We see that Sense is granular enough to determine
+	  multiple input statements.
+
+		: Even this insight is useful - in terms of design, especially in a beginner programming
+		  course, it's clearly suboptimal to reuse the same code multiple times when you don't
+		  have to. For an instructor, this might be something, in terms of creating modular code, that 
+		  needs to be reviewed.
+
+	: Let's say we get tired of adding patterns ourselves, there's still lots to glean from these submissions,
+	  so let's use pro:
+
+4) Run Pro
+
+5) Add more patterns to input type, each time trying to move to existing groups
+
+	: start at left and keep adding patterns (should take a handful)
+
+	: if I look at the completed demo, it's focused on not reusing code unnecessarily and effectively
+	  using a conditional to output toe correct statement
+
+	: what do we see -- eventually it's clear that group 2 never does any conversion, they simply ask for the 
+	  user's BMI and print it out.
+
+	  What we learn from this is that this subset of students simply didn't understand the 
+	  assignment. This is an error in the content or the spec of the assignment, something that
+	  can easily be remedied. And, in fact, we provide a means to prevent this kind of misunderstanding
+	  or confusion when a student is doing the assignment.
+
+	: What if you were a student rushing to get an assignment done -> create feedback / hints
+
+	: show responsive assignments (take a responsive that doesn't exist, by constructing it from two disjoint assignments)
+
+6) Can add goups together to create fewer groups
+
+	: Instead of having to go through every assignment, you can add patterns and regroup, being confident that the
+	  more patterns you add the fewer outliers there'll be.

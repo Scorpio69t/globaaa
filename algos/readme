@@ -1,0 +1,56 @@
+- dynamic programming : longest common subsequence
+
+	: let's say we're trying to find the longest common substring between two strings A and B. if we
+	  simply defined a recursive algorithm it might look like:
+
+						0			if i == len(A) or j = len(B) 
+					 1 + T(A, B, i + 1, j + 1)	if A[i] == B[j]
+		T(A, B, i, j) =   max {  T(A, B, i, j + 1)						}
+					 T(A, B, i + 1, j)
+
+		see /home/dfarnha1/course/algos/157/review/recursivesubstring.py
+	
+	: a recursive definition is likely to have an exponential running time. this'll be ~ 2^n | n = min(len(a), len(b)).
+	  my reasoning is that in the worst case, you'll branch twice in the recursion, but this'll be limited to the length
+	  of the shortest word, since after that you'll just return 0.
+
+	: instead of the above recursive implementation, let's use table lookups in a dynamic implementation.
+	  the size of the table will be (len(a) + 1) * (len(b) + 1). in the base case, we'll fill row 0 and column 0
+	  with zeros. this relates to the fact that if either substring is the empty string the longest common substring
+	  is 0.
+
+		T[len(a) + 1][len(b) + 1]	/* initialize table */
+
+		/* let's fill out table left-to-right, top-to-bottom */
+		for (int i = 1; i <= alen; i++) {
+			for(int j = 1; j <= blen; j++) {
+				if (a[i - 1] == b[j - 1]) {
+					table[i][j] = max(1 + table[i-1][j-1], table[i][j-1], table[i-1][j]);
+				} else {
+					table[i][j] = max(table[i-1][j-1], table[i][j-1], table[i-1][j]);
+				}
+			}
+		}
+
+		see /home/dfarnha1/course/algos/157/review/dynamicsubstring.c
+
+	: each entry in index table[i][j] represents the max length of the subsequence between strings a[:i] and b[:j]
+
+- : edit distance
+
+	: see /home/dfarnha1/course/algos/i/b/14.py
+
+- : knapsack problem
+
+	: see /home/dfarnha1/course/algos/i/b/15.py
+
+- : divide and conquer
+
+- : greedy algorithms
+
+	: when to use them and when not to -- the example comes up trying to solve a greedy problem
+	  as a dp knapsack problem
+
+- : constant time array initialization
+
+- : hash functions

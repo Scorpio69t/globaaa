@@ -1,0 +1,74 @@
+- Syntax
+
+	: sig Name {}				/* uppercase name; nothing in brackets denotes it has no fields */
+	: sig Book {addr: Name -> Addr}		/* the signature for book has an addr field that maps Names to Addrs */
+
+	: pred show(b : Book) {
+		#b.addr > 1			/* b.addr are associations, so show books where the # of associations > 1 */
+		#Name.(b.addr) > 1		/* # of addresses in our address book > 1 */
+	  }
+
+
+	/* this is interesting, it's showing the transition from one book to another */
+	: pred add(b, b' : Book, n : Name, a : Addr) {
+		b'.addr = b.addr + n -> a
+	  }
+
+	: the '.' operator doesn't mean object lookup, but rather 'join'. So if I have relations R and S, R.S means:
+
+			xRy --> ySz		/* meaning the composition of these relations takes a value x -> z */
+
+	  in light of this, then, something like n.(b.addr) | n : Name means we're taking n to a name, and then b.addr
+	  is a relation that takes a name to an address within the book.
+
+	  from pg. 19: x.r is a navigation from object x through one application of relation r. x.^r, on the other hand,
+	  is a navigation from object x through one or more applications of r
+
+	: what does this mean:
+
+		assert delUndoesAdd {
+			all b, b', b'' : Book, n : Name, a : Addr |
+				no n.(b.addr) and
+					add [b, b', n, a] and del [b', b'', n] imples b.addr = b''.addr
+
+		}
+
+	  it's an assert statement, meaning there's no address for name 'n', and if we add (n -> a) in book b, getting
+	  book b', and then delete this name from book b' getting b'', b = b''
+
+- 2/5
+
+	: pred noSelfLoopsA {
+		// These are all the same
+		all c : City | c->c not in roads	/* is like using ',' for tuples; makes an ordered pair */
+		all c : City | c not in c.roads		/* I like this one */
+		no c : City | c in c.roads
+	  }
+
+	: pred noSelfLoopsB {
+		no (iden & roads)		/* says there should be nothing in the set of self loops present in the roads set */
+	  }
+
+	: in this case, iden represents binary relations between the same thing, i.e. c -> c
+
+	: pred toPvd[c : City] {
+		Pvd in c.roads		/* equivalent */
+		c->Pvd in roads		/* equivalent */
+	  }
+
+	: what does '.' actually do in alloy? roads.Pvd in the example returns Wor; So let's say we have R.S, or rather
+
+			roads:
+				P -> B
+				B -> W
+				B -> P
+				W -> B
+				W -> P
+
+			roads.Pvd evaluates to: {B, W} // find intersection between leftmost column of S and rightmost column of R
+			and snip out intersecting column (point of contact).
+
+	: roads			(city to city in one hop)
+	: roads.roads		(city to city in two hops)
+	: roads.roads.roads	(etc...)
+	: Pvd in c.^roads	-> all 

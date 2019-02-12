@@ -1,0 +1,80 @@
+- : security
+
+	: different kinds of keys: symmetric & asymmetric
+
+		: a symmetric key is one like a physical key for a lock. in order to open the door,
+		  every resident has the same key.
+
+		: asymmetric key is something like what is used in RSA. In RSA I generate a public and
+		  private key. all entities that want to send me something use the public key to encrypt it.
+		  to actually decrypt the message, though, you need the private key. so you can distribute
+		  numerous public keys that everyone knows about, but as long as you keep your private
+		  key secret messages should remain trusted.
+
+			: properties of modular arithmetic
+
+			: how do signatures work? The encryption might go both ways. If multiple parties
+			  are sending me encrypted messages using my public key, only I'll be able to
+			  decrypt them with my private key. If I take a message and encrypt it with my
+			  private key (which only I have), then only my using my public key will people be
+			  able to see what I signed. 
+
+			  to ensure that it's actually me, I encrypt with my private key s.t. only by using
+			  my public key will people be able to see the contents.
+
+	: hybrid method
+
+		: one way to get the best of both worlds: 1) use asymmetric keys to trade symmetric keys 2)
+		  use these symmetric keys for further communication
+
+			: this allows you to securely distribute symmetric keys while also providing the
+			  speed that comes from using symmetric keys, which are generally faster than asymmetric
+			  keys
+
+- : signatures:
+
+	: how can I tell if who I think I'm talking to is really who they say they are? for example, if I get a public key
+	  from who I think is website A, it could be from a man in the middle. all data that I encrypt with that key can
+	  then be decrypted using the man in the middle's private key, re-encrypted, and forwarded to the website without
+	  anyone knowing there's been a security breach.
+
+	  there has to be some ways to confirm that indeed this public key is from website A.
+
+	: what we have are certification authorities that vouch for keys. if a CA is large it's public key will be well known. if
+	  I want to trust the public key from website A, the CA will sign a message with its private key verifying the public
+	  key of website A. when I decrypt this message with the CA's public key, I get confirmation of website A's public key
+	  and can then be secure that any messages I encrypt with this key will only be decryptable by the intended target website A.
+
+	: interesting -> DNS holds certificates s.t. when I look to resolve a domain name, I only trust the IP address returned
+	  if I also trust the DNS server's certificates
+
+	: verification with symmetric keys
+
+		: if users A and B have a shared key, let B send A a random number. A encrypts this and send it back to B. B can then 
+		  decrypt this message and if it matches the number B sent, he can be assured he's talk to A, since only A has the
+		  correct, symmetric key.
+
+- : replays
+
+	: I think replays are essentially when you don't try to determine the contents of a message, but simply
+	  send it again. this would be problematic if user 1 sends a login message to a server to gain access and
+	  an attacker copies this message and sends it again, potentially getting the same access as user 1
+
+		- : prevention
+
+			: timestamp messages
+
+	: reflection -> during symmetric key verification, let's say user B sends a random number to A. A encrypts and sends it
+	  back to B. Let's say an attacker were to send B the same random number B sent to A. B would encrypt it and sent it back
+	  to the attacker, trying to verify its identity, but remember this is exactly what B is requiring of A. The attacker could
+	  then try to respond as A using B's response.
+
+	: solution: if A sends B a random number, B encrypts it, along with their own random number, and sends it to A. So now
+	  B isn't sending their random number in the clear. When A gets this they decrypt it and send back to B their random 
+	  number slightly modified (pass it through a function). This proves that A was actually able to decrypt the message.
+
+		: I actually don't think this protects against a man-in-the-middle attack
+
+- : key distribution service
+
+- : Diffie-Hellman

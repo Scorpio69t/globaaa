@@ -1,0 +1,28 @@
+-: Sense is a tool provider; the MOOC is the tool consumer
+
+-: Hidden code we run in CodeBoard's sandbox
+
+	- is this code we've put there? is this with help from Christian?
+
+	- how do we correlate anonymous variables in the Codeboard sandbox with
+	  identifiers from the tool consumer (MOOC)?
+
+-: What's the sequence of actions? Imagine I'm a student, what is the sequence of actions i
+   have to take?
+
+	1) i write my code in codeboard and press submit
+
+	2) this generates an anonymous id in the codeboard sandbox
+		- no, they get an anonymous id from the tool consumer. codeboard then uses
+		  this id locally
+
+	3) codeboard can forward the submission, along with this id, to Sense. we can
+	   thus correlate user submissions to the tool consumer with submissions to RA
+
+	4) what is the copy / paste method? how does a student know their own anonymous id?
+	   is it not returned to the user from the tool consumer?
+
+-: In the email about linking a Sense project with codeboard, you say you copy the 
+   LTI key and secret, pasting it into codeboard's LTI settings. Is this necessary?
+   Are these public/private keys specific to user or assignment? Do users have to do this
+   multiple times?

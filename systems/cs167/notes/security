@@ -1,0 +1,61 @@
+- changing paths:
+
+	- gave an example of updating bash commands. If you're $PATH variable points to an incorrect path,
+	  or the order is such that it first references a /bin other than /bin/bash, you can relace bash
+	  commands with potentially harmful ones.
+
+- Race conditions with setuid programs:
+
+	- this is an example of a TOCTTOU problem, where there's a difference in the time of checking something
+	   versus when you use it:
+
+		- let's say you run a setuid program that increases the euid of the user to that of root.
+
+				prog A							prog B
+
+			1) check/open file w/ WRITE			1) update file to point to password file
+
+			2) if it does, write to it
+
+		- if you run these at the same time, they might interact s.t. after prog A checks if the file exists, 
+		  but before it writes to it, we change the file to point to the /etc/password file
+
+		- if we get the timing just right, then, since we're running a setuid executable and thus have the permissions
+		  of root, we'll be able to edit the password file and create users.
+
+	- in order to prevent this, do something like this:
+
+		uid_t caller = getuid();	/* get the uid of the caller */
+		uid_t my_id = geteuid();	/* this should be root in a setuid */
+
+		seteuid(caller);		/* change the euid back to the caller's */
+
+		1) check/open file w/ WRITE	/* you wouldn't be able to open /etc/passwords to write since you
+						 * don't have root now */
+
+		seteuid(my_id);			/* change back to root */
+
+		2) write to file
+
+	- another possible fix to this:
+
+		- instead of opening the file in the program, have the user pass the file in via STDIN; this should guarantee that
+		  the user has access privileges to the file. Then the user sends along the file descriptor they just opened.
+		
+			- there's no longer time between calling access() and open() - the user passes in the opened file
+
+- chroot
+
+- ACLs (Access Control Lists) and impersonation tokens
+
+	_ I think the way things are handled, is that you have (1) principals and (2) subjects. (1) principals are like users 'tom'
+	  while subjects might be the processes a user runs. So, a file might have a permissions 'access-control list', which
+	  specifies what principals have access; Tom: RW, Daven: R, etc ...
+
+- MAC
+
+	- Bell / Lapadula: 	no read up / no write down (confidentiality) -- writing down could possibly leak sensitive information
+
+	- Biba:			no write up / no read down (integrity) -- you don't want people lower to possibly corrup higher level thinking
+
+- SELinux example

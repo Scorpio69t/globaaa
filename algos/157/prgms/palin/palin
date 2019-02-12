@@ -1,0 +1,54 @@
+the goal is simply to examime the difference between recursive calls and dynamic programming. palin.my
+is a recursive implementation of finding the largest palindrome in a string. in order to turn this into
+a dynamic implementation, let's use the same recurrence relation:
+
+			0				if j < i
+			1				if j = i
+			2				if j = i + 1
+
+	T(n) = max	2 + T(i + 1, j - 1)		if S[i] == S[j] 
+			T(i + 1, j - 1)			if S[i] != S[j]
+			T(i + 1, j)
+			T(i, j - 1)
+
+this uses 3 recursive calls, so its running time will be O(3^n) | n is the length of the string. If we use dynamic
+programming, however, we can turn this into a O(n^2) algorithm.
+
+Given a word, say 'hello', let's construct an NxN matrix as such:
+
+		            j
+	    1       2       3       4       5
+	    h       e       l       l       0
+      1	h
+      2	e
+   i  3	l
+      4	l
+      5	o
+
+and let's fill the matrix from left to right, bottom to top. We want to do this since if we're using a table, our recurrence
+relation depends on (i + 1, j - 1) which references a lower row and a column to the left.
+
+Let's fill the matrix according to our recurrence:
+
+	    1       2       3       4       5
+	    h       e       l       l       0
+      1	h   1       2       2       2      [2]
+      2	e   0       1       2       2       2 
+      3	l   0       0       1       2       2
+      4	l   0       0       0       1       2
+      5	o   0       0       0       0       1
+
+let's try another example, remembering to fill from left to right, bottom to top:
+
+			j
+	    1       2       3       4        
+	    t	    o	    m	    o	    
+      1	t   1       1       2      [3]   ^                                        
+      2	o   0       1       2       3    |                                             
+   i  3	m   0       0       1       2   fill                  
+      4	o   0       0       0       1  
+
+		     fill ->
+
+each cell, then, contains the longest palindrome from a particular sequence of characters. the longest palindrome from the
+entire string is at location T[0, n]

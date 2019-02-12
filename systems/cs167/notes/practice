@@ -1,0 +1,127 @@
+1) 
+	so what's the setup:
+
+		you have 2 user threads: [1] reading in from the user, placing characters into the OS's kernel buffer, [2]
+					 taking characters from the kernel's buffer and printing them out to the terminal.
+
+		the kernel's buffer that you're using is synchronized using semaphores s.t. [1] won't write to the buffer
+		if it's full, and [2] won't take characters from the buffer if it's empty.
+
+	the question, then, is what kind of situation could result in a deadlock?
+
+	I think the problem with this is that you're possibly blocking a thread in an interrupt. So, let's say I'm executing
+	on thread [1]'s stack. Once I invoke the interrupt handler to put characters into the kernel's buffer, if this buffer is 
+	full I might be blocking (while in the thread's kernel stack):
+
+		(*): this was a question I had earlier; I think this might relate to the fact if a thread blocks in an interrupt,
+		     it might be relying on further execution of the thread to wake up, which wouldn't be possible [INTERRUPTS]
+	
+	[ANSWER]: Let's say you're trying to put something in ther kernel's buffer but it's full - the producer thread will then
+		  block. The consumer thread then starts running, but before it can take something from the queue you enter input;
+		  this triggers an interrupt, putting the consumer to sleep. The producer, though, is already asleep, resulting 
+		  in deadlock.
+
+		  What's important to take away from this: an interrupt is going to immediately cause a switch away from the user's
+		  stack -- it'll start running on the thread's kernel stack. If a thread can block in an interrupt, like what's happening
+		  above, it's possible to get these kinds of deadlocks (switching from the user stack to the kernel stack won't allow the
+		  thread to continue running).
+
+2)
+	when you have a preemptible kernel, this means a thread running in the kernel can be made to yield the processor due to a clock
+	interrupt. So, to protect against this happening, make sure the thread can't be preempted by another kernel thread while in this thread:
+
+		void pthread_cond_wait(pthread_cond_t *cv, pthread_mutex_t *m) {
+			 mask_clock_interrupts();
+			 pthread_mutex_unlock(m);
+			 enqueue(cv->wait_queue, CurrentThread);
+			 /* undo the clock interrupt after we've switched out of the context of the current thread;
+			  * remember, when we were masking preemption that was per LWP */
+ 			 thread_switch();
+			 phtread_mutex_lock(m);
+			 unmask_clock_interrupts();
+		}
+
+	if we now have multiple processors on the system, this means we need to lock the condition variable's mutex as well since
+	multiple threads might call pthread_cond_wait at the same time. In the code they use a spinlock since it's much less expensive
+	than putting the thread to sleep:
+		
+                void pthread_cond_wait(pthread_cond_t *cv, pthread_mutex_t *m) {
+                         mask_clock_interrupts();
+			 spin_lock(&cv->spinlock);
+                         pthread_mutex_unlock(m);
+                         enqueue(cv->wait_queue, CurrentThread);
+                         /* undo the clock interrupt after we've switched out of the context of the current thread;
+                          * remember, when we were masking preemption that was per LWP */
+                         thread_switch(&cv->spinlock);
+                         phtread_mutex_lock(m);
+                         unmask_clock_interrupts();
+                }
+	
+
+3)
+
+	The problem with this is that, let's say an interactive thread wakes up, begins to run, but then its time-slice ends. It'll now
+	be moved to the back of the queue and it'll have to wait for all the other threads before it can run. On a system with a fair load
+	of threads, this could cause interactive threads to have to wait for a noticeable (and thererfore, long) amount of time.
+
+	Have different queues with different priorities. For example, you could do something like what was discussed in the book. Have a queue
+	for interactive threads and a different queue for non-interactive threads, and always check the former queue first.
+
+	If we have a single run queue that all the threads are being placed into, this is going to be a bottleneck.
+
+	As previously mentioned, what we might be able to do is have a pair of interactive - non-interactive run queues per processor. A processor
+	first tries to handle its own threads (those its queues) yet, if there are none, it'll take a thread from another processor's queue.
+
+4)
+
+	striping: In general, the higher the concurrency factor the larger you want the stripe blocks to be. Let's say you have 4 hard drives
+		  and you're trying to read from 4 files, but the stripes are small. If this is the case, each hard drive is going to have to make
+		  numerous seeks to position the head in the correct position to begin reading in. If the stripe size is big, though, it might simply
+		  be able to place each head in the correct position and then read all 4 files in parallel.
+
+		  If the concurrency factor is low, so let's say we only have 1 thread trying to read in a file, this'll be good if the stripe size is
+		  small: we can read in the file all at once using the 4 hard drives and different positions of the heads. 
+
+	raid 0: no parity or redundance s.t. if there's an error in one of the drives, everything fails
+
+	raid 1: makes use of mirroring; so when you're writing data out you write it out to both hard drives, but when you're reading you can read from 
+		either hard drive
+
+	raid 2: bit interleaving and ECC
+
+	raid 3: byte level striping with a parity disk
+
+	raid 4: block level striping with a parity disk
+
+	raid 5: block level striping with distributed parity
+
+		- now, there is no longer a bottleneck with one of the disk blocks dedicated to maintaining the parity. raid 5 is bad at small writes, however,
+		  since the parity distribution across the blocks must be updated for the small writes.
+
+		- parity: essentially you can think of it like an XOR operations s.t. you XOR 2 blocks and get a third quantity (the parity). You can then
+			  recover any of the information from the blocks by XOR'ing the parity with the remaining block.
+
+	- we can make use of the larger disk space
+	
+	- I think the key here is that the block size is the same as the sector size. If the block size > sector size, then to write out a block we might be
+	  able to make use of parallelism for each request: write a single block out across sectors in multiple disks or read from multiple sectors in multiple
+	  disks.
+
+1)
+
+	you want enough LWPs to at least make use of all the available processors. So, for example, if you have 4 processors but only 2 LWPs,
+	you aren't going to be able to, say, run 4 threads in parallel (when you could).
+
+	this is the idea of deadlock (a pipe) - similar to the consumer-producer problem from the other problem set. (key here is that pipe is a 
+	SYSTEM CALL; i.e. it isn't a user level process, so the user thread won't block, but rather the LWP will block)
+
+	
+2) 
+
+	In this case, I'm pretty sure you only need to mask off interrupts (since the kernel is non preemptible, you don't have to worry about clock
+	interrupts)
+
+	If the kernel is now preemptible, you should mask clock interrupts s.t. one kernel thread isn't preempted by another during the middle of
+	an operation. 
+
+	

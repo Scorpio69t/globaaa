@@ -1,0 +1,31 @@
+- x86:
+
+	In x86 architecture, for each thread there's a user stack and a kernel stack. So let's say I'm writing 
+	a function that calls write(), which is a system call. This write() function, which is in userland, will 
+	cause a trap into the kernel. A trap in this context is simply a switch of the stacks - so you were running 
+	on the user's stack, but when you trap into the kernel you're now running on the kernel's stack.
+
+		- QUESTION: are these two stack spaces exclusive or do the kernel and user share the same space,
+			    but this space is used differently whether the kernel or the user is running?
+
+	Let's say an interrupt occurs; so the thread is running normally and then some external interrupt happens. 
+	In order to handle this interrupt, there has to be an interrupt handler, but where does this handler 
+	exist? The interrupt handler is code already written, but more importantly, which STACK should the interrupt
+	handler use?
+
+	If the handler uses the thread's kernel stack, then the thread can't continue executing as it might pollute
+	the stack (thread's kernel stack, I believe). The interrupt shouldn't block, however, as it might be depending 
+	on another interrupt from the thread.
+
+		- QUESTION: Tom mentions that an interrupt running on a thread's kernel stack shouldn't block since
+			    it might be waiting on the interrupted thread, but the interrupted thread isn't running
+			    since that might pollute its stack. How could the interrupt depend on the interrupted 
+			    thread (since it's not running)?
+
+		  [ANSWER]: I think that whis refers to is the fact the interrupted thread might get more interrupts
+			    that it might need to handle; if it's blocking, though, it wouldn't be able to do this.
+
+	
+- Interrupts and Signals (p. 177):
+
+

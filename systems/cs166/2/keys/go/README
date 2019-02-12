@@ -1,0 +1,14 @@
+- The key behind the attack is to try and find the intermediate key between encrypting with k1 and k2.
+  What I basically do, then, is encrypt the message, m, with all keys [0, 2^24 - 1] and store the ciphertexts
+  along with the keys that produced them in a map. 
+
+  I then do something similar, decrypting c where c = k2(k1(m)) with all keys [0, 2^24 - 1], each time checking
+  to see if any output matches one of the ciphertexts already in the map. If this is the case, this means I 
+  know the intermediate ciphertext as well as the keys s.t. k1(m) -> intermediate key -> k2(intermediate key) -> c.
+
+- What essentially made this possible was encrypting twice with keys of 2^24 possible values. This is not the
+  same as encrypting with a single key of 2^48 values, as shown above.
+
+- What could be done, then, is change the encryption to something with 2^48 values. Such a change would make the
+  above attack obsolete while also making any kind of brute-force attack much more costly. Using keys with even
+  more values would be even better.

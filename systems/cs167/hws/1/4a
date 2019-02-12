@@ -1,0 +1,6 @@
+- I think the big problem here is that since all interrupts are handled on the same stack things can easily 
+  get clobbered. For example, let's say thread [1] gets an interrupt and switches to thread [2]. This interrupt
+  in the VAX architecture is handled on the process' stack. Let's say thread [2] get's a couple of interrupts and 
+  then a thread switch signal, switching back to thread [1]. Since this is all happening on the same stack, 
+  any interrupts [1] gets could corrupt the stack from thread [2], overwriting what was previously pushed.
+

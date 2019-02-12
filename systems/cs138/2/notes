@@ -1,0 +1,75 @@
+- finding a root node
+
+	: in order to find a root node, start at the leftmost value of the node you're inserting
+	  and compare this value to other nodes in the network. If no values are the same, check value + 1
+	  and so on until you get a set of node. Continue down all the digits finding the node whose
+	  value is the closest to the one you're trying to insert.
+
+	: for example, let's say we want to find the root for an object with hash: 60f4 where the nodes
+	  already in the network are: 583f, 70d1, 70f5, and 70fa.
+
+		1: {70d1, 70f5, 70fa}
+		2: {70d1, 70f5, 70fa}
+		3: {70f5, 70fa}
+		4: {70f5}		-> the root
+
+- routing tables
+
+	: routing tables essentially just have rows that match the prefix for a node; it contains rows that match
+	  progressively larger numbers of prefix digits. 
+
+	: roots are super important - each node in the tapestry network is associated with a particular root
+	  node. When an object is published by a node, it registers the key for the object with the root. If
+	  a client is looking for an object, it hashes its search. The root then identifies the node holding
+	  the obejct s.t. the client can request the object from the node that published the object on the
+	  network.
+
+- routing
+
+	: I'm not sure, but every node has a routing table that represents it's neighbors. when comparing the digits, 
+	  we keep jumping to the next nodes' routing tables. This is right - we're keeping around some sense of state
+	  when we make the jumps s.t. if I'm on the 5th jump, I'm looking in row 5 (of the 5th node along the route)
+	  for a prefix that matches the target node.
+
+- adding nodes
+
+	: let's say we have a node n that we want to add to the network:
+
+		: first, we need to find the root of the new node. Why? The root in this case, I believe,
+		  is the node in the system that most closesly resembles n's prefix. Therefore, everything is
+		  getting routed to this root rn.
+
+		: for the node that we're inserting, start at any particular node and add it's 0th row into n's
+		  table. 
+
+		: then, follow the route to the root, adding entries as you go.
+
+		: all nodes should have backpointers, so once you get to the root, you know all the nodes that
+		  would redirect to it. 
+
+			: update these nodes' routing tables with the node you added
+
+			: I think you'd use something like a multicast to do this
+- backpointers
+
+	: When you add a node to the tapestry mesh, you go all the way down to the node's root. you then need
+	  to update the mesh to contain the node you just added. I think the first set of need to know nodes 
+	  are those nodes in the root's routing table that have the longest prefix with the recently added node.
+
+	  Why does this make sense? I think it makes sense since all the nodes at this level are along a route
+	  where the newly added node could be. You therefore might potentially need to add this node to all
+	  of these need-to-know nodes' routing tables.
+
+		1) add new node, follow it all the way down to its root
+		2) from the root, call acknowledged multicast on all nodes in levels >= n | n is the shared prefix
+		3) when each of these nodes gets a call, it recursively cally acknowledged mulitcast on levels n + 1
+
+			-	targets = routingtable.get(level)	/* get all nodes on the current level */
+			-	for target in targets:
+					results.append(target.AddNodeMulticast(newnode, level + 1))	/* check each node in targets' next level */
+			-	self.addRoute(newnode)
+			-	merge and return
+
+- replication
+
+	:	TODO

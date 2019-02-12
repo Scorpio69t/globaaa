@@ -1,0 +1,93 @@
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.12 of 29 January 2018
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with 2 workers on 4 cores with 588MB heap and 1322MB offheap memory (Linux 4.9.0-6-amd64 amd64, Oracle Corporation 1.8.0_162 x86_64).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file /gpfs/main/home/dfarnha1/course/systems/cs195/7/DiningJudges.toolbox/dj/MC.tla
+Parsing file /gpfs/main/home/dfarnha1/course/systems/cs195/7/DiningJudges.toolbox/dj/DiningJudges.tla
+Parsing file /gpfs/main/course/cs1950y/bin/tla-toolbox/plugins/org.lamport.tlatools_1.0.0.201801291236/tla2sany/StandardModules/TLC.tla
+Parsing file /gpfs/main/course/cs1950y/bin/tla-toolbox/plugins/org.lamport.tlatools_1.0.0.201801291236/tla2sany/StandardModules/Integers.tla
+Parsing file /gpfs/main/course/cs1950y/bin/tla-toolbox/plugins/org.lamport.tlatools_1.0.0.201801291236/tla2sany/StandardModules/Naturals.tla
+Parsing file /gpfs/main/course/cs1950y/bin/tla-toolbox/plugins/org.lamport.tlatools_1.0.0.201801291236/tla2sany/StandardModules/Sequences.tla
+Semantic processing of module Naturals
+Semantic processing of module Integers
+Semantic processing of module DiningJudges
+Semantic processing of module Sequences
+Semantic processing of module TLC
+Semantic processing of module MC
+@!@!@STARTMSG 2219:0 @!@!@
+SANY finished.
+@!@!@ENDMSG 2219 @!@!@
+@!@!@STARTMSG 2185:0 @!@!@
+Starting... (2018-04-05 23:45:35)
+@!@!@ENDMSG 2185 @!@!@
+@!@!@STARTMSG 2189:0 @!@!@
+Computing initial states...
+@!@!@ENDMSG 2189 @!@!@
+@!@!@STARTMSG 2190:0 @!@!@
+Finished computing initial states: 1 distinct state generated.
+@!@!@ENDMSG 2190 @!@!@
+@!@!@STARTMSG 1000:1 @!@!@
+TLC threw an unexpected exception.
+This was probably caused by an error in the spec or model.
+See the User Output or TLC Console for clues to what happened.
+The exception was a java.lang.RuntimeException
+: @!@!@STARTMSG 2280:0 @!@!@
+In evaluation, the identifier chopState is either undefined or not an operator.
+line 54, col 12 to line 54, col 20 of module DiningJudges
+@!@!@ENDMSG 2280 @!@!@
+@!@!@ENDMSG 1000 @!@!@
+@!@!@STARTMSG 2121:1 @!@!@
+The behavior up to this point is:
+@!@!@ENDMSG 2121 @!@!@
+@!@!@STARTMSG 2217:4 @!@!@
+1: <Initial predicate>
+/\ judgeState = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {} @@ 4 :> {})
+/\ chopState = ( 0 :> "available" @@
+  1 :> "available" @@
+  2 :> "available" @@
+  3 :> "available" @@
+  4 :> "available" )
+
+@!@!@ENDMSG 2217 @!@!@
+@!@!@STARTMSG 2103:1 @!@!@
+The error occurred when TLC was evaluating the nested
+expressions at the following positions:
+0. Line 52, column 9 to line 55, column 68 in DiningJudges
+1. Line 52, column 12 to line 52, column 55 in DiningJudges
+2. Line 53, column 12 to line 53, column 51 in DiningJudges
+3. Line 54, column 12 to line 54, column 52 in DiningJudges
+4. Line 54, column 12 to line 54, column 42 in DiningJudges
+5. Line 54, column 12 to line 54, column 41 in DiningJudges
+6. Line 54, column 12 to line 54, column 20 in DiningJudges
+
+
+@!@!@ENDMSG 2103 @!@!@
+@!@!@STARTMSG 2201:0 @!@!@
+The coverage statistics at 2018-04-05 23:45:36
+@!@!@ENDMSG 2201 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 46, col 12 to line 46, col 74 of module DiningJudges: 9
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2221:0 @!@!@
+  line 47, col 12 to line 47, col 93 of module DiningJudges: 9
+@!@!@ENDMSG 2221 @!@!@
+@!@!@STARTMSG 2202:0 @!@!@
+End of statistics.
+@!@!@ENDMSG 2202 @!@!@
+@!@!@STARTMSG 2200:0 @!@!@
+Progress(3) at 2018-04-05 23:45:36: 10 states generated (1,699 s/min), 10 distinct states found (1,699 ds/min), 8 states left on queue.
+@!@!@ENDMSG 2200 @!@!@
+@!@!@STARTMSG 2199:0 @!@!@
+10 states generated, 10 distinct states found, 8 states left on queue.
+@!@!@ENDMSG 2199 @!@!@
+@!@!@STARTMSG 2194:0 @!@!@
+The depth of the complete state graph search is 3.
+@!@!@ENDMSG 2194 @!@!@
+@!@!@STARTMSG 2186:0 @!@!@
+Finished in 850ms at (2018-04-05 23:45:36)
+@!@!@ENDMSG 2186 @!@!@

@@ -1,0 +1,39 @@
+ACE (THIS CLEANS UP AFTER ITSELF):
+
+  NOTE: To run:
+
+		./race.sh
+
+	this works for me most of the time, but sometimes has to be run a couple times to make use of the race condition. 
+
+  attack:
+
+	This attack makes use of a race condition that occurs in autograde.sh and the permissions on /tmp. What's key here 
+	is that autograde.sh first checks if any of the go files submitted have any of the blacklisted libraries. If they 
+	don't, it places them in a temp directory, compiles, and checks them. 
+
+	What race.sh does, then, is it first submits a viable ivy submission (i.e. one without blacklisted libraries). This 
+	will pass the check on line 29. Next, autograde.sh will create a temp directory. My script checks for when this temp 
+	directory is created (since this is after the black listed libraries are checked in the go files), and once this 
+	directory exists, it pauses the autograde.sh process, replaces the files in the temp directory with code that shouldn't 
+	be there, and then resumes the process. 
+
+	Similar to my ACE exploit in week 1, if you were to run ./race.sh, before exiting it'll print out the elevated permissions
+	of the user running the script s.t. any executable 'ivy' would run with the effective group permissions of the TA group.
+
+	This attack also cleans up after itself: it'll remove its temp autograde directory from the /tmp directory without affecting
+	the metadata of the other files. One thing that might happen: if I remove an autograde directory from another user when they're
+	in the middle of using it, it might cause problems with their submission. However, even in this case there shouldn't be 
+	anything in the temp directory to signify that my script is to blame (there'll be no directory left behind from running my
+	script). This particular bug would only happen infrequently (if I were to run my script at the exact same time someone else
+	had created a tmp directory and was using it to hold the contents of their submission). Regardless, there should be no evidence
+	left behind that I'm running arbitrary code.
+
+  fix:
+
+	(1) key to my exploit is the fact that I can edit the contents on the /tmp directory. If this directory's permissions
+	    were instead protected, I wouldn't be able to edit the contents. More concretely, let's say users weren't granted 
+	    write permissions to the /tmp directory. This would allow users to still look in the directory, however, I wouldn't
+	    be able to replace the contents of the /tmp directory with my attack (I wouldn't be able to create or move files
+	    via commands in my race.sh). One could go even further and make /tmp read, write, and execute protected from normal 
+	    users, thus completely hiding its contents.

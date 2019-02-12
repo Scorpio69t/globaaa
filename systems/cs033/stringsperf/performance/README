@@ -1,0 +1,46 @@
+poly:
+
+	So, when I first started I thought I would get savings in time by:
+
+		1) making sure it was algorithmically fast
+		2) decreasing the number of times I reference memory
+		3) using bitwise operators
+		4) and last, unrolling loops and eliminating dependencies to 
+		   help with pipelining.
+
+	For the poly function, it's basically O(n) and you can't really make it
+	algo faster. Similarly, you only reference each block of memory in a[] once, 
+	so you can't really optimized that, either. Lastly, since you're working
+	with doubles, they don't really allow bitwise operations like '<<', which you
+	might want to use in place of multiplication. So, the only real optimization
+	that came to mind was unrolling.
+
+	Thinking of a polynomial, instead of doing one term at a time, if you have a large
+	polynomial you can do multiple. And if a lot of these computation don't have dependencies, 
+	the CPU can pipeline and do multiple processes without having to wait for a particular one to finish.
+
+	This is exactly what I do. I unroll a number of times, with the default switch being:
+
+        		// unroll loop
+        		r3 = a[degree - 3];
+        		r4 = x * a[degree - 2];
+        		r5 = x * x * a[degree - 1];
+        		r6 = x * x * x * a[degree];
+
+        		// update result, multiplying result by x's consumed $
+        		y = x * x * x * x;
+        		r1 = r3 + r4 + r5 + r6;
+        		result = (y * result) + r1;
+
+	Savings in time comes from the fact variables r3, r4, r5, and r6 don't depend on eachother so the
+	CPU can easily pipeline these instructions. 
+
+	For very large polynomials, this'll work well. When you get down to smaller cases, I've used a switch
+	statement (since it can, in some cases, be faster than blocks of conditionals) to still pipeline, but
+	to deal with corner cases where degree < 3.
+
+	The only reason I stopped unrolling where I did was because it seemed I was already getting substantial
+	savings in time, while unrolling further would cause the switch statement to grow significantly. It's 
+	interesting that in some smaller cases, I sometimes beat poly_fast(), whereas when degree gets bigger 
+	I'm always slower - I take that to assume that poly_fast() unrolls further, and the overhead from this,
+	which is more apparent in smaller degree cases, is made up for in time savings as degree gets really big.

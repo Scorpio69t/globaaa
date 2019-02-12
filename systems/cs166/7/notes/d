@@ -1,0 +1,14 @@
+-
+
+	Usually when there is a DDoS attack there's a sudden, high number of requests coming in a short period of time. A couple ways
+	to potentially protect against this:
+
+		1) limit the # of expensive requests that can be initiated by IP addresses. So, the key here is to only allow IP 
+		   addresses to make a certain number of costly requests within a particular time frame under the assumption
+		   a normal user wouldn't make more requests than this. Beyond this threshold, discard additional requests.
+
+		2) keep track of the kinds of requests coming in to the server. So above, you were measuring the frequency of requests.
+		   Now, look at the kinds of requests coming from particular IPs. Even if a computer isn't making costly requests,
+		   if it makes 100s of the same request, this doesn't seem like normal user behavior and so it might be a bot
+		   you'd want to block.
+

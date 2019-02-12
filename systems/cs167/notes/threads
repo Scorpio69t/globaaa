@@ -1,0 +1,109 @@
+- The whole idea of switching threads relates to swapping contexts | a context = a thread's stack, registers, etc. 
+  If I replace the current context with another, I'm going to be running in a different memory space (stack) with a
+  different set of registers.
+
+- uthreads:
+
+	locking mutexes: 
+
+		- when you lock a mutex, essentially what you're doing is placing the current thread [0] onto the mutex's
+		  wait queue, then switching out of the thread. When you switch out of a thread, you're putting that 
+	 	  thread to sleep i.e. it isn't running anymore. 
+
+
+			/* this is a basic implementation on a single processor */	
+			if(mutex != NULL) {
+			  enqueue([0], mutex->wait_queue);
+			  thread_switch();
+			}
+			else {
+			  mutex->owner = [0];
+			  return;
+			}
+
+		  on multiple processors, the issue becomes there could be numerous processors trying to access this mutex
+		  at the same time. For example, let's say thread [0] running on processor (0) checks if the mutex equals NULL.
+		  It does, so it tries to update the mutex's owner. Simultaneously, though, [1] on (1) does this same check,
+		  finds the mutex NULL, and so also tries to acquire the mutex. Now there's a race condition about who gets the
+		  mutex (among other problems that might come about from either thread thinking they have the mutex when they
+		  really don't).
+
+		
+			lock(mutex->mutex);
+			if(mutex != NULL) {
+			  enqueue([0], mutex->wait_queue);
+			  thread_switch(mutex->mutex);		/* unlock the mutex in thread switch after the current
+								 * thread's stack has been swapped out */
+			}
+			else {
+			  mutex->owner = [0];
+			  unlock(mutex->mutex);
+			  return;
+			}
+
+		  locking the mutex's mutex makes the operation of locking atomic (to the system, all the operations occur at once)
+
+	cond_wait:
+
+		you use this a lot for something like the producer-consumer problem. in this problem, you want to consume when
+		there are things in an array, but not when the array is empty. The producer, on the other hand, wants to produce
+	  	when there is space in the array, but not when the array is full.
+
+		/* on a uniprocessor: should enter locked and leave locked */
+		cond_wait(cond, mut) {
+
+	          unlock(mut);
+
+		  /* if someone owns the condition variable, place the thread on the queue and switch out.
+		   * it's important to unlock the mutex so something else can run and wake up this thread */
+		  if(cond) {
+		    enqueue(cond->queue);
+		    thread_switch();
+		  }		
+
+		  lock(mut);
+		}
+
+		/* on a multiprocessor */
+		cond_wait(cond, mut) {
+
+		  if(cond) {
+		    enqueue(cond->queue);
+
+		    /* you pass the mutex to thread_switch when you're dealing with multiple processors since you only
+		     * want to unlock the mutex once you've completely switched out of the thread -- otherwise, another LWP
+		     * might pick up a thread from the run queue before it's switched off its current processor, thus
+		     * the same thread is running on two LWPs */
+		    thread_switch(mut);
+		  }
+
+		  lock(mut);
+		}
+
+- mthreads:
+
+	- uthread_switch:
+
+		In mthreads, thread_switch takes an additional parameter, most notably the thread's mutex. This is so that when you place
+		a thread on the global run_queue, no other process can take that thread off the queue and start running it until it's
+		switched out of its stack and unlocked its mutex.
+
+	- idle thread:
+
+		In mthreads, if there are no threads on the run queue, you want to place the pthread (which is emulating the processor)
+		to sleep. The way this is done is with a cond variable:
+
+
+			// whenever you switch into this, you'll always start here
+			getcontext(pthread);
+
+			loop (through the run queue) {
+
+			  if (thread in run queue) {
+			    take it off the queue and switch into it;
+			  }
+
+			  if (nothing in run queue) {
+			    park // (cond_wait)
+			  }
+			}

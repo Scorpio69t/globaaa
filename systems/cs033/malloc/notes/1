@@ -1,0 +1,86 @@
+- the block:
+
+        the struct contains :
+
+                - size_t size
+                - size_t payload[]
+
+        so this should have size at least 32 depending on the size of the machine.
+        The first 8 bytes will hold the size of the block. Next, payload[0] will point
+        to the next free block, payload[1] the previous free block, and b->payload[(b->size / WORD_SIZE) - 2]
+        another reference to size.
+
+        - so let's say I want to malloc 24 bytes, i.e. the size of the payload will be of
+          size 24.
+
+        - you want to increase the size of the memory by 24 + TAGS_SIZE. What's interesting
+          here, is after you do this, you'll essentially have a size_t referring to the size of the
+          block, and then a pointer to the payload, and then a little extra memory at the end
+          holding the size of the block again.
+
+                Needs to be aligned correctly: 8 + 24 + 8 = 40. I think you should align both the payload and
+                the block s.t. you get something like this:
+
+                ___________________________________________________________________________
+                |         |                                             |                 |
+                | 8 bytes |                     24 bytes                |  8 bytes        |
+                |  size   |                     payload                 |   size          |
+                |         |                                             |                 |
+                --------------------------------------------------------------------------
+
+                So this block will have a size of 40:
+
+                        b->size = 40
+                        b->payload points to the 24 bytes in the middle
+
+
+        - let's say you want to malloc of block of size 33:
+
+                - payload needs to be aligned correctly s.t.:
+
+                        align(33) = 40;
+
+                        on to this, add TAGS_SIZE = 56;
+
+                this'll be aligned correctly.
+
+        - when you free this, however, this is when you use the payload, which previously held useful
+          data, and replace it s.t. now payload[0] points to next, payload[1] points to previous, and
+          payload[2] holds another instance of size.
+
+- mm_init()
+
+        - so in this, you're setting the free list to NULL while also setting up a prologue and epilogue.
+
+        - I think these are simply bookends to keep track of the space; they'll always be allocated s.t.
+          even if all the memory in between them are free'd, they still mark the ends of the space.
+
+- mm_malloc()
+
+        - (1) when malloc'ing memory, first see if there are any blocks of adequate size in the free list
+                (-) if you find a block, pull it from the free list
+                (-) set it to allocated, and return a pointer to the payload
+                (-) you don't want to change the size, since the size of the block is the same, you're just using less
+                    of that available space for the payload
+
+        - (2) if there aren't, mem_sbrk() more memory and mark it as allocated.
+                (-) one thing to keep in mind is that when you're setting size, the size is the size of the payload + the block_t size.
+                    This makes sense, since you want to keep track of total amt of memory allocated, even if you're only returning a
+                    portion of it (the payload), which is what the user asked for.
+                (-) also, if you look at 'block_next()', its code is: ((char *)b + block_size(b))
+
+        - (3) update prologue
+
+- mm_free()
+
+        - (1) when you get a block to free, you're getting a pointer to the payload, so first you should find
+              the block that contains that payload.
+
+        - (2) then, set the size and mark the block as free. When you malloc, you might be also setting the end-tag
+              size, but that might get overwritten with data if it's laid out in memory like I think, so set the end-tag
+              size again.
+
+        - (3) you next want to check for contiguous blocks of memory. Here, you don't want to use block_next_free since this
+              free memory might not be contiguous with the memory you're free'ing. Instead, use block_next and block_previous:
+
+

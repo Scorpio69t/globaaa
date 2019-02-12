@@ -1,0 +1,130 @@
+overview:
+
+  - The way I think things work on the system:
+
+		1) the vfs references files through vnodes (virtual nodes). So, if the OS wants to read from a file, it'll
+		   call the vnode's virtual function vfs_read_vnode().
+
+		   This virtual file system is placed on top of an actual file system. In vfs we used ramfs. In s5fs, we implement
+		   s5fs.
+
+		2) the file system is what is actually going to interact with the disk. In s5fs, you have a superblock which keeps track
+		   of important metadata concerning the system, inodes which represent files, and then data. I think this is how 
+		   data is actually kept on disk.
+
+		3) important in our implementation is the idea of pages. When you bring a page into memory from disk, you want to work
+		   on it since reading from disk is an expensive operation.
+
+		4) so, for example, when you're setting up the vnode to reference some inode on disk, you:
+
+			4.1) first read a page of memory in from disk. If the page is resident in memory, you're good to go. If it's
+			     not you need to bring it into memory.
+
+			4.2) this page is a superstructure: a page is (I THINK) 4096 bytes -- this might not be right: 
+
+				(* QUESTION: how big are pages? not pframe_ts, but the actual pages these reference in their paddr field? *)
+
+				- it really depends how many inodes are in each page; an inode_t is going to be fairly big:
+
+					- it containts a bunch of metadata + an array of direct blocks of size of size 4096 bytes
+
+			4.3) within that page (assuming it's big and it contains multiple inodes), you find the inode that is going to 
+			     correspond to the vnode you're working with.
+
+			4.4) you link the vnode with the inode s.t. whenever the OS makes calls to the virtual function, it in turn
+			     uses the actual file system's functions.
+
+  - what's the hierarchy of the structs? 
+
+		[vmarea_t; mmobj_t; pframe_t; inode_t; vnode_t; others?]
+
+s5fs:
+
+  - the file system is an abstraction below the layer of the virtual file system. So the idea is that the OS has a vfs (virtual file system)
+    that it uses to interact with the file system. Thus, the file system can change (in `vfs` we use ramfs, while in `s5fs` the vfs makes calls to
+    `s5fs`)
+
+    I think below this, then, is the actual disk the file system is manipulating. The file system, then, needs to know how to write out to disk, 
+    read from disk, etc. The file system knows how to interact with disk after you mount it (I THINK THIS IS RIGHT). When you mount the file system,
+    certain data structures such as the superblock are loaded into primary memory, where it can be referenced by the OS.
+
+s5fs structures:
+
+    - in s5fs, the three main structures used to manage files are: superblock, i-list, and data region.
+
+	- the superblock: describes the layout of the file system and keeps track of the heads of the free lists
+
+    		- s5_super_t: this is the struct holding a reference to the superblock
+		
+			- referenced in /include/fs/s5fs/s5fs.h
+
+		(* QUESTION: when it says the superblock describes the layout of the file system, what does this mean? Does
+			     this mean it keeps track of where inodes are on disk? Is this loaded into memory when the OS boots up? *)
+
+	- i-list: this is a list of inodes, each of which represents metadata for a particular file. All the below are in the inode_t 
+		  struct:
+
+		- s5_inode_t: inodes in s5fs
+
+		- s5_freesize: I think this is actually s5_un in the s5_inode_t struct. This is a union, where it either gives the
+			       size of the file or the number of the next inode in the free list.
+	
+		-  s5_direct_blocks[S5_NDIRECT_BLOCKS]: this is data that you can directly reference
+
+		-  s5_indirect_block: this is the number of another disk block that contains (block size / sizeof(int)) more blocks
+					      that can be used to store data.
+
+	- data region: this is where the actual data for files is kept
+
+project data structures:
+
+        pframe_t: portion of real memory that holds a page
+
+                - points to actual memory (this also contains some metadata about the page frame)
+
+        mmobj_t: refers to list of *in-memory pages* (page frames) of a particular object, such as a file.
+
+        vmarea_t: represents a region within an address space
+
+                - so if you map the text of a process into the address space, that region will be referred to by this object
+
+                So you map [pframe_t's] into [mmobj_t's], which contains a list of these frames. And then you map [mmobj_t's] into
+                [vmarea_t's]; so the vmarea_t will hold the list of all page frames, in-memory, or a particular object associated
+                with a region.
+
+                Inside vnode_t, there's a mmobj: this refers to the in memory page frames. If you're reading from a file (i.e. making a system call
+                to read), you want to check the vnode's mmobj. If, instead, you're checking if a file has been mapped, you check the mmobj in vmarea_t.
+
+                        - 2 different ways to reference memory
+
+                        - vmarea_t is in /include/vm/vmmap.h
+
+        vmmap_t: each process is mapped by this structure, and then the particular areas of the process are broken up into vmarea_t's
+
+useful project functions:
+
+        pframe_get(): get a particular page frame 'o' from a mmobj_t
+
+                - if page frame doesn't exist, call pframe_fill() to allocate new page frame
+
+        pframe_fill(): this'll eventually call s5fs_fillpage, which'll fill a pagebuf with data at some offset from a vnode
+
+                - (QUESTION: a vnode represents a file, so the above will fill a page of the vnode's file with data)
+
+        s5_seek_to_block(): I think this translates between the pages of data in the file to blocks on the file system
+
+misc:
+
+	- mm/pframe.c:pframe_get()
+	- mm/pframe.c:pframe_pin()
+	- mm/pframe.c:pframe_unpin()
+
+	- s5fs.c:s5fs_read_vnode():
+
+		- you're given a vnode, which represents the vfs' representation of a file. You want to convert this to an inode
+		  on the actual file system.
+
+		- if you call pframe_get() on the vnode, this'll return a [pframe_t]
+
+			- inside of the pframe_t struct, there's a field pf_addr, which is a void*. As a note, this is 
+			  a virtual address s.t. it needs to be translated to an actual address.

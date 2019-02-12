@@ -1,0 +1,15 @@
+-- problem in make_runnable and proc exiting; thr already on a wait channel is 
+   trying to be queued on another wait channel	(4/7/18)
+
+-- need to do proc code review and add tests
+
+	-- reviewed: proc_create, kthread_create, proc_cleanup, 
+
+	-- add a test where a process has multiple children; close parent s.t. children are reparented to init process. 
+	   this should break out of the loop in proc_cleanup()
+
+	-- test proc_kill and proc_kill_all
+
+-- it seems as though when the idle proc is still on the runq even after it's called do_waitpid. In 
+   switch, then, the idle process is being popped off the runq althought it shouldn't be there?
+

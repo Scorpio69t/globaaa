@@ -1,0 +1,69 @@
+-: problem
+
+	: let's say we have two servers: A and B. we write to A as the primary and it's contents
+	  are periodically updated on B by a heartbeat. if there is no heartbeat, then primary server
+	  status switches to B. 
+
+	  let's say the heartbeat from A to B is just slow, such that B takes up primary server status.
+	  B thinks A has crashed, but really the network is just slow. when B gets a heartbeat from A
+	  it might think to switch back to A, but A will do no crash recovery (copying contents from B
+	  back into its own logs) since it never actually crashed. this could lead to an inconsistent
+	  state between A and B.
+
+-: elections
+
+	: in an election, a node will vote for a leader if:
+
+		1) it hasn't already voted for itself or someone else
+		2) the term of the requester >= its own
+		3) the log of the requester is at least as complete as the voter's		
+
+	-: life of the leader:
+
+		: the leader gets messages from clients, appends the entry to its log, sends RPCs to 
+		  its followers, and once it has received responses from a majority of followers saying 
+		  they've committed the RPC to their log, it replies to the client. 
+
+		: making sure that a majority of followers commit the entry to their log ensures that
+		  when a new leader is elected, it has to come from the most up to date cluster.
+
+			- if a leader commits an entry, this means it's received confirmation from
+			  a majority of other servers that they've applied the action to their log. At this
+			  point the leader can respond to the client notifying it that the action has been 
+			  committed. 
+
+			- if the leader were to go offline here before it's responded to the client, a new leader
+			  (from the majority that applied the action to their logs) would come online. The client
+			  might make a repeated request, since the initial leader went offline before responding,
+			  but this request would have a unique identifier. This identifier should be in the
+			  new leader's log s.t. a response can be issued to the client without redoing the action.
+
+		  one can imagine a scenario where a leader crashes right after appending to its log and then
+		  comes back online. in this case, it is the only viable leader -- no other node will be 
+		  able to get a majority of votes since the node will have a more complete log
+
+			- this is incorrect; if the leader crashes, another node will become leader s.t.
+			  when the crashed node comes back online it'll have to be a follower.
+
+		: when a leader tries to append something to a follower's log, if the previous entry
+		  doesn't match that of the leader's, go back even farther until the index and entry of the
+		  leader and follower line up, then replicate the consistency of the leader in the follower.
+
+			- this should handle both when the logs of followers are incomplete and when they 
+			  are different from that of the leader
+
+				- when a leader assumes its term, it normalizes the logs of all its followers s.t.
+				  they all agree.
+
+-: logs
+
+	: it will commit to changes if:
+
+		1) majority of servers reply
+		2) at least one entry from the current term is committed before prior logs
+
+			- imagine a case where a leader is replicating previous commits to its followers and responding to
+			  clients that actions are being done. If this leader goes down and another leader comes up that perhaps
+			  doesn't have these log entries, it'll try to override the logs (that have been committed) when it tries
+			  to unify everything. This is very bad since it means you might be undoing stuff that you've reported 
+			  completed to the user.

@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<!-- saved from url=(0047)https://cs61.seas.harvard.edu/wiki/2016/Dmalloc -->
+<html lang="en" dir="ltr" class="client-js"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<title>2016/Dmalloc - CS61</title>
+<script>document.documentElement.className = document.documentElement.className.replace( /(^|\s)client-nojs(\s|$)/, "$1client-js$2" );</script>
+<script>(window.RLQ=window.RLQ||[]).push(function(){mw.config.set({"wgCanonicalNamespace":"","wgCanonicalSpecialPageName":false,"wgNamespaceNumber":0,"wgPageName":"2016/Dmalloc","wgTitle":"2016/Dmalloc","wgCurRevisionId":5413,"wgRevisionId":5413,"wgArticleId":752,"wgIsArticle":true,"wgIsRedirect":false,"wgAction":"view","wgUserName":null,"wgUserGroups":["*"],"wgCategories":[],"wgBreakFrames":false,"wgPageContentLanguage":"en","wgPageContentModel":"wikitext","wgSeparatorTransformTable":["",""],"wgDigitTransformTable":["",""],"wgDefaultDateFormat":"dmy","wgMonthNames":["","January","February","March","April","May","June","July","August","September","October","November","December"],"wgMonthNamesShort":["","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],"wgRelevantPageName":"2016/Dmalloc","wgRelevantArticleId":752,"wgRequestId":"296daacd5b633b3598c078ee","wgIsProbablyEditable":false,"wgRestrictionEdit":[],"wgRestrictionMove":[]});mw.loader.implement("user.options",function($,jQuery,require,module){mw.user.options.set({"variant":"en"});});mw.loader.implement("user.tokens",function ( $, jQuery, require, module ) {
+mw.user.tokens.set({"editToken":"+\\","patrolToken":"+\\","watchToken":"+\\","csrfToken":"+\\"});/*@nomin*/;
+
+});mw.loader.load(["mediawiki.page.startup","skins.vector.js"]);});</script>
+<link rel="stylesheet" href="./m61_files/load.php">
+<style>
+.mw-collapsible-toggle{float:right;-moz-user-select:none;-webkit-user-select:none;-ms-user-select:none;user-select:none}  .mw-content-ltr .mw-collapsible-toggle,.mw-content-rtl .mw-content-ltr .mw-collapsible-toggle{float:right} .mw-content-rtl .mw-collapsible-toggle,.mw-content-ltr .mw-content-rtl .mw-collapsible-toggle{float:left}.mw-customtoggle,.mw-collapsible-toggle{cursor:pointer} caption .mw-collapsible-toggle,.mw-content-ltr caption .mw-collapsible-toggle,.mw-content-rtl caption .mw-collapsible-toggle,.mw-content-rtl .mw-content-ltr caption .mw-collapsible-toggle,.mw-content-ltr .mw-content-rtl caption .mw-collapsible-toggle{float:none} li .mw-collapsible-toggle,.mw-content-ltr li .mw-collapsible-toggle,.mw-content-rtl li .mw-collapsible-toggle,.mw-content-rtl .mw-content-ltr li .mw-collapsible-toggle,.mw-content-ltr .mw-content-rtl li .mw-collapsible-toggle{float:none} .mw-collapsible-toggle-li{list-style:none}
+.suggestions{overflow:hidden;position:absolute;top:0;left:0;width:0;border:none;z-index:1099;padding:0;margin:-1px 0 0 0}.suggestions-special{position:relative;background-color:white;cursor:pointer;border:solid 1px #aaaaaa;padding:0;margin:0;margin-top:-2px;display:none;padding:0.25em 0.25em;line-height:1.25em}.suggestions-results{background-color:white;cursor:pointer;border:solid 1px #aaaaaa;padding:0;margin:0}.suggestions-result{color:black;margin:0;line-height:1.5em;padding:0.01em 0.25em;text-align:left; overflow:hidden;-o-text-overflow:ellipsis; text-overflow:ellipsis;white-space:nowrap}.suggestions-result-current{background-color:#4C59A6;color:white}.suggestions-special .special-label{color:gray;text-align:left}.suggestions-special .special-query{color:black;font-style:italic;text-align:left}.suggestions-special .special-hover{background-color:silver}.suggestions-result-current .special-label,.suggestions-result-current .special-query{color:white}.highlight{font-weight:bold}
+@media screen {
+	.tochidden,.toctoggle{-moz-user-select:none;-webkit-user-select:none;-ms-user-select:none;user-select:none}.toctoggle{font-size:94%}}
+@media print {
+	#toc.tochidden,.toctoggle{display:none}}
+body{font-family:helvetica,sans-serif,serif}h1,h2,h3{font-family:"chaparral-pro-caption",serif}h1.firstHeading{display:none}.hidden{display:none}table.simple > tbody > tr{vertical-align:baseline}table.simple > thead > tr{vertical-align:baseline}table.simple{border-spacing:0;border-collapse:collapse;empty-cells:show}table.simple > tbody > tr.k1 > td{background:#f1f8fc}table.simple > tbody > tr.k2 > td{background:#fcf1fb}table.colpad > tbody > tr > td:nth-child(n+2){padding-left:0.8em}table.colpad > tbody > tr > th:nth-child(n+2){padding-left:0.8em}table.col1rpad > tbody > tr > td:nth-child(1){padding-right:0.8em}table.col2rpad > tbody > tr > td:nth-child(2){padding-right:0.8em}td.sn{padding:3px 5px;text-align:right}table.spacey > tbody > tr > td{padding:1em 2em}table.spacey-indexed > tbody > tr > td{padding:1em 2em}table.spacey-indexed > tbody > tr > td:first-child{padding:5px 5px;text-align:right}table.col2code > tbody > tr > td:nth-child(2){font-family:"source-code-pro",monospace}table.col1nowrap > tbody > tr > td:first-child{white-space:nowrap}table.col1right > tbody > tr > td:nth-child(1){text-align:right}table.col2right > tbody > tr > td:nth-child(2){text-align:right}table.col3right > tbody > tr > td:nth-child(3){text-align:right}table.col4right > tbody > tr > td:nth-child(4){text-align:right}table.col5right > tbody > tr > td:nth-child(4){text-align:right}table.colright > tbody > tr > td{text-align:right}table.col1left > tbody > tr > td:nth-child(1){text-align:left}table.col1center > tbody > tr > td:nth-child(1){text-align:center}table.col2left > tbody > tr > td:nth-child(2),table.col2left > tbody > tr > th:nth-child(2){text-align:left}td.hpink{background:#ff80bb}td.hgreen{background:#aff0d6}td.hgray{background:#888888}div.solution,div.sol{background:#eef8ff;padding:2px 5px;border:1px solid #6666AA;margin-left:2em}td > div.solution,td > div.sol,th > div.solution,th > div.sol{margin-left:0}pre > span.sol{background:#eef8ff;padding:3px 3px;border:1px solid #6666AA;margin:2px -4px;display:block}div.nosolution div.solution,div.nosolution div.sol{display:none}div.solution table,div.sol table{background:inherit}div.highlight{background:#f8f8f8;padding:2px 5px;border:1px solid #666666;margin-left:2em}div.hnote{background:#fffff0;padding:2px 5px;border:1px solid #dddd66;margin-left:2em}div#bodyContent{font-size:12pt}pre,code{font-size:10.75pt;font-family:"source-code-pro",monospace}div.prelike{padding:0 1em;border:1px dashed #2f6fab;background-color:#f9f9f9}div.prelike > pre{padding:0;border:0 none}div.sol > pre,div.sol code{background:#f0f4fa}code.greysmallpad{display:inline-block;margin-left:1.5em;font-size:smaller;color:#555555}span.nb{display:inline-block;white-space:nowrap;text-indent:0}div.alphaol > ol,td.alphaol > ol{list-style-type:lower-alpha}div.Alphaol > ol,td.Alphaol > ol{list-style-type:upper-alpha}div.romanol > ol,td.romanol > ol{list-style-type:lower-roman}div.Romanol > ol,td.Romanol > ol{list-style-type:upper-roman}
+.postedit-container{margin:0 auto;position:fixed;top:0;height:0;left:50%;z-index:1000;font-size:13px}.postedit-container:hover{cursor:pointer}.postedit{position:relative;top:0.6em;left:-50%;padding:.6em 3.6em .6em 1.1em;line-height:1.5625em;color:#626465;background-color:#f4f4f4;border:1px solid #dcd9d9;text-shadow:0 0.0625em 0 rgba(255,255,255,0.5);border-radius:5px;box-shadow:0 2px 5px 0 #ccc;-webkit-transition:all 0.25s ease-in-out;-moz-transition:all 0.25s ease-in-out;-ms-transition:all 0.25s ease-in-out;-o-transition:all 0.25s ease-in-out;transition:all 0.25s ease-in-out}.skin-monobook .postedit{top:6em !important}.postedit-faded{opacity:0}.postedit-icon{padding-left:41px;  line-height:25px;background-repeat:no-repeat;background-position:8px 50%}.postedit-icon-checkmark{background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAB9ElEQVR4AZWRA3AYURQArxrVHtW2bdu2bdu2zdi2bdu2bWxs7zeehZaw4f70kbs+zI3e/nWK+RWx3aOFlrL56Sy5SxrruG69hlv6OyK+mz+8KDSXdXembj0ispT7tjs4ZTIbpYBvxGSGKzZTeFrb7W/meN002swFs0U8ttpHTkF2BvCqWQrW35929bTsKm5Zb+SEwWwcY8wAngB9m7Z+d+rIPZ/npdy12M5p47n8dXsCYAf0qPy06eGMdktuDu9Qf+JmKl3SWM91qzVcN9tAbEYkwMaq0tyb1m/To5kP170el/BK8/qa6sJr70ydf+T/Uu5ab+Oo/lS0AkUBpIFWlZ9WPhxpse/PHO7YbOOczjL0vZV2lNxPPtG73dYXM+xvm2znrOl83tidoqCwMBgYXsPFB0on5S6pr+eK5TKuW67lgvaKvF8mL1dtfTL32FHxRdyx3cQpg7m4x9sCXKkTIzA4LDH44zWdzaUf71hv5rTG4uyzcusybxSX7aThbMQ8XgCYAp3rzTTQOiIh9PNlzY3FSuZxrzjme1Y7uGS6kjsWO4jPjM4FVjRZsvD4kO9XtTZzQn82NyzWc0B7AmZh6gA/hOYSGhfw9YbOVnarj+S7800AL2BIsxUAbWNToj7bhBuQmZcOsFdoKUC74rGheCwXmqAIQTc9jQcrADIAAAAASUVORK5CYII=);background-image:url(/wiki/resources/src/mediawiki.action/images/green-checkmark.png?d94f1)!ie;background-position:left}.postedit-close{position:absolute;padding:0 .8em;right:0;top:0;font-size:1.25em;font-weight:bold;line-height:2.3em;color:black;text-shadow:0 0.0625em 0 white;text-decoration:none;opacity:0.2;filter:alpha(opacity=20)}.postedit-close:hover{color:black;text-decoration:none;opacity:0.4;filter:alpha(opacity=40)}</style><style>
+.suggestions a.mw-searchSuggest-link,.suggestions a.mw-searchSuggest-link:hover,.suggestions a.mw-searchSuggest-link:active,.suggestions a.mw-searchSuggest-link:focus{color:black;text-decoration:none}.suggestions-result-current a.mw-searchSuggest-link,.suggestions-result-current a.mw-searchSuggest-link:hover,.suggestions-result-current a.mw-searchSuggest-link:active,.suggestions-result-current a.mw-searchSuggest-link:focus{color:white}.suggestions a.mw-searchSuggest-link .special-query{ overflow:hidden;-o-text-overflow:ellipsis; text-overflow:ellipsis;white-space:nowrap}</style><meta name="ResourceLoaderDynamicStyles" content="">
+<link rel="stylesheet" href="./m61_files/load(1).php">
+<script async="" src="./m61_files/load(2).php"></script>
+<meta name="generator" content="MediaWiki 1.27.0">
+<link rel="shortcut icon" href="https://cs61.seas.harvard.edu/favicon.ico">
+<link rel="search" type="application/opensearchdescription+xml" href="https://cs61.seas.harvard.edu/wiki/opensearch_desc.php" title="CS61 (en)">
+<link rel="EditURI" type="application/rsd+xml" href="https://cs61.seas.harvard.edu/wiki/api.php?action=rsd">
+<link rel="alternate" type="application/atom+xml" title="CS61 Atom feed" href="https://cs61.seas.harvard.edu/wiki/index.php?title=Special:RecentChanges&amp;feed=atom">
+<script src="./m61_files/load(3).php"></script></head>
+<body class="mediawiki ltr sitedir-ltr ns-0 ns-subject page-2016_Dmalloc rootpage-2016_Dmalloc skin-vector action-view">
+		<div id="mw-page-base" class="noprint"></div>
+		<div id="mw-head-base" class="noprint"></div>
+		<div id="content" class="mw-body" role="main">
+			<a id="top"></a>
+
+						<div class="mw-indicators">
+</div>
+			<h1 id="firstHeading" class="firstHeading" lang="en">2016/Dmalloc</h1>
+									<div id="bodyContent" class="mw-body-content">
+									<div id="siteSub">From CS61</div>
+								<div id="contentSub"></div>
+												<div id="jump-to-nav" class="mw-jump">
+					Jump to:					<a href="https://cs61.seas.harvard.edu/wiki/2016/Dmalloc#mw-head">navigation</a>, 					<a href="https://cs61.seas.harvard.edu/wiki/2016/Dmalloc#p-search">search</a>
+				</div>
+				<div id="mw-content-text" lang="en" dir="ltr" class="mw-content-ltr"><center>
+<p><span style="color:#ad1b71; font-size:larger"><b>Computer Science 61 and E61</b></span><br>
+<span>Systems Programming and Machine Organization</span><br>
+<span>Fall 2016</span><br>
+</p>
+</center>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2><span class="toctoggle">&nbsp;[<a href="https://cs61.seas.harvard.edu/wiki/2016/Dmalloc#" id="togglelink">hide</a>]&nbsp;</span></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="https://cs61.seas.harvard.edu/wiki/2016/Dmalloc#Assignment_1:_Debugging_memory_allocator"><span class="tocnumber">1</span> <span class="toctext">Assignment 1: Debugging memory allocator</span></a>
+<ul>
+<li class="toclevel-2 tocsection-2"><a href="https://cs61.seas.harvard.edu/wiki/2016/Dmalloc#Goal"><span class="tocnumber">1.1</span> <span class="toctext">Goal</span></a></li>
+<li class="toclevel-2 tocsection-3"><a href="https://cs61.seas.harvard.edu/wiki/2016/Dmalloc#Task"><span class="tocnumber">1.2</span> <span class="toctext">Task</span></a></li>
+<li class="toclevel-2 tocsection-4"><a href="https://cs61.seas.harvard.edu/wiki/2016/Dmalloc#Getting_the_code"><span class="tocnumber">1.3</span> <span class="toctext">Getting the code</span></a></li>
+<li class="toclevel-2 tocsection-5"><a href="https://cs61.seas.harvard.edu/wiki/2016/Dmalloc#Context"><span class="tocnumber">1.4</span> <span class="toctext">Context</span></a></li>
+<li class="toclevel-2 tocsection-6"><a href="https://cs61.seas.harvard.edu/wiki/2016/Dmalloc#Assignment_overview"><span class="tocnumber">1.5</span> <span class="toctext">Assignment overview</span></a></li>
+<li class="toclevel-2 tocsection-7"><a href="https://cs61.seas.harvard.edu/wiki/2016/Dmalloc#Timing"><span class="tocnumber">1.6</span> <span class="toctext">Timing</span></a></li>
+<li class="toclevel-2 tocsection-8"><a href="https://cs61.seas.harvard.edu/wiki/2016/Dmalloc#A_note_on_undefined_behavior"><span class="tocnumber">1.7</span> <span class="toctext">A note on undefined behavior</span></a></li>
+<li class="toclevel-2 tocsection-9"><a href="https://cs61.seas.harvard.edu/wiki/2016/Dmalloc#Debugging_allocator_.2870.25.29"><span class="tocnumber">1.8</span> <span class="toctext">Debugging allocator (70%)</span></a>
+<ul>
+<li class="toclevel-3 tocsection-10"><a href="https://cs61.seas.harvard.edu/wiki/2016/Dmalloc#Statistics"><span class="tocnumber">1.8.1</span> <span class="toctext">Statistics</span></a></li>
+<li class="toclevel-3 tocsection-11"><a href="https://cs61.seas.harvard.edu/wiki/2016/Dmalloc#Secondary_allocation_functions.2C_integer_overflow_protection"><span class="tocnumber">1.8.2</span> <span class="toctext">Secondary allocation functions, integer overflow protection</span></a></li>
+<li class="toclevel-3 tocsection-12"><a href="https://cs61.seas.harvard.edu/wiki/2016/Dmalloc#Invalid_free_and_double-free_detection"><span class="tocnumber">1.8.3</span> <span class="toctext">Invalid free and double-free detection</span></a></li>
+<li class="toclevel-3 tocsection-13"><a href="https://cs61.seas.harvard.edu/wiki/2016/Dmalloc#Boundary_write_error_detection"><span class="tocnumber">1.8.4</span> <span class="toctext">Boundary write error detection</span></a></li>
+<li class="toclevel-3 tocsection-14"><a href="https://cs61.seas.harvard.edu/wiki/2016/Dmalloc#Memory_leak_reporting"><span class="tocnumber">1.8.5</span> <span class="toctext">Memory leak reporting</span></a></li>
+<li class="toclevel-3 tocsection-15"><a href="https://cs61.seas.harvard.edu/wiki/2016/Dmalloc#Advanced_reports_and_checking"><span class="tocnumber">1.8.6</span> <span class="toctext">Advanced reports and checking</span></a></li>
+</ul>
+</li>
+<li class="toclevel-2 tocsection-16"><a href="https://cs61.seas.harvard.edu/wiki/2016/Dmalloc#Style_.2810.25.29"><span class="tocnumber">1.9</span> <span class="toctext">Style (10%)</span></a></li>
+<li class="toclevel-2 tocsection-17"><a href="https://cs61.seas.harvard.edu/wiki/2016/Dmalloc#Heavy_hitter_reports_.2820.25.29"><span class="tocnumber">1.10</span> <span class="toctext">Heavy hitter reports (20%)</span></a></li>
+<li class="toclevel-2 tocsection-18"><a href="https://cs61.seas.harvard.edu/wiki/2016/Dmalloc#Extra_credit"><span class="tocnumber">1.11</span> <span class="toctext">Extra credit</span></a></li>
+<li class="toclevel-2 tocsection-19"><a href="https://cs61.seas.harvard.edu/wiki/2016/Dmalloc#Other_links"><span class="tocnumber">1.12</span> <span class="toctext">Other links</span></a></li>
+<li class="toclevel-2 tocsection-20"><a href="https://cs61.seas.harvard.edu/wiki/2016/Dmalloc#Turnin"><span class="tocnumber">1.13</span> <span class="toctext">Turnin</span></a></li>
+<li class="toclevel-2 tocsection-21"><a href="https://cs61.seas.harvard.edu/wiki/2016/Dmalloc#Notes"><span class="tocnumber">1.14</span> <span class="toctext">Notes</span></a></li>
+</ul>
+</li>
+</ul>
+</div>
+
+<h1><span class="mw-headline" id="Assignment_1:_Debugging_memory_allocator">Assignment 1: Debugging memory allocator</span></h1>
+<ul><li> Assigned Fri 9/2</li>
+<li> Intermediate checkin due Fri 9/9 at 11:59:59pm (see <a href="https://cs61.seas.harvard.edu/wiki/2016/Dmalloc#Timing">Timing</a>, below, for more; <b>every student should turn in an ungraded individual checkin</b>)</li>
+<li> Due Fri 9/16 at 11:59:59pm (Sat 9/17 at 11:59:59pm for extension students)</li>
+<li> <b>This assignment may be completed in pairs, although we encourage students to try the early parts individually.</b></li>
+<li> We recommend using a Linux virtual machine (the CS61 Appliance) for programming problem sets.  See the <a href="https://cs61.seas.harvard.edu/wiki/2016/Infrastructure" title="2016/Infrastructure">Infrastructure page</a> for instructions on installing a hypervisor and VM. While some assignments will require that you use the CS61 Appliance, you can likely do this problem set on a Mac OS X machine or Linux machine natively. (You must have development tools installed, e.g., Xcode, including  the “Command Line Tools” for OSX; gcc for Linux. On OSX, we recommend installing <a rel="nofollow" class="external text" href="http://brew.sh/">Homebrew</a> or <a rel="nofollow" class="external text" href="http://macports.org/">MacPorts</a> so you can easily add software as needed.)</li></ul>
+<h2><span class="mw-headline" id="Goal">Goal</span></h2>
+<p>C programmers (that would be us) allocate and free memory explicitly. This means we can write fast code for modern machines, because we have full control over memory. The bad news is that it's all too easy to write programs that crash due to memory problems. But wait:
+as systems programmers, we can <i>build tools</i> to help us debug memory allocation problems.
+For instance, in this assignment, you will transform a simple memory allocator (e.g., implementation of malloc and friends) into a <i>debugging memory allocator</i>.
+</p>
+<h2><span class="mw-headline" id="Task">Task</span></h2>
+<p>1. Transform the malloc library we give you into a debugging malloc library that:
+</p>
+<ul><li> tracks memory usage,</li>
+<li> catches common programming errors (e.g., use after free, double free),</li>
+<li> detects writing off the end of dynamically allocated memory (e.g., writing 65 bytes into a 64-byte piece of memory), and</li>
+<li> catches less common, somewhat devious, programming errors.</li></ul>
+<p>2. Augment your debugging malloc library with <i>heavy hitter reporting</i> that tells a programmer where most of the dynamically allocated memory is allocated.
+</p><p>The handout code for this assignment is in the <code>pset1</code> directory. This contains a skeleton memory allocator and many test programs. Your code will go in <code>m61.c</code>. Once you have created a working copy of the problem set code, run <code>make check</code> or <code>make check-all</code> to see how many tests your implementation passes (hint: before you've done anything, you will fail all the tests). <code>make check</code> stops at the first error; <code>make check-all</code> runs all tests.
+</p>
+<h2><span class="mw-headline" id="Getting_the_code">Getting the code</span></h2>
+<p><b>New for 2016.</b> We’re having enough trouble with code.seas.harvard.edu that we’re going to try releasing problem sets through <a rel="nofollow" class="external text" href="https://github.com/">GitHub</a> Classroom. Our GitHub organization is “cs61”.
+</p><p>Problem sets will be released using the <a rel="nofollow" class="external text" href="https://github.com/cs61/cs61-psets">cs61/cs61-psets</a> repository.
+</p><p>Please <b><a rel="nofollow" class="external text" href="https://classroom.github.com/group-assignment-invitations/09c688459986ea3fcfa4d552a0d8fb7b">click this link</a></b> to create <b>your own private clone</b> of the problem sets repository. You’ll clone that repository onto your computer, do work there, and then push your work upstream to the GitHub-hosted repository for us to grade.
+</p><p>Here’s how it should work.
+</p>
+<ol><li> Click the link.</li>
+<li> Log in to GitHub, or create an account.</li>
+<li> The link should automagically clone the repository. For instance, if your account name was <code>kohler-dumb</code>, you should get a repository called <code>cs61/cs61-f16-psets-kohler-dumb</code>.</li>
+<li> Use the “Clone or download” button to clone your repository.</li></ol>
+<p>Working with a partner? No problem. Find out their GitHub username, and then add them to your repository as a collaborator using Settings &gt; Collaborators &amp; teams.
+</p><p><b><a href="https://cs61.seas.harvard.edu/wiki/2016/Infrastructure" title="2016/Infrastructure">Infrastructure help</a></b>
+</p>
+<h2><span class="mw-headline" id="Context">Context</span></h2>
+<p>C memory allocation uses two basic functions, <b>malloc</b> and <b>free</b>.
+</p>
+<dl><dt><b>void* malloc(size_t size)</b></dt>
+<dd> Allocate <b>size</b> bytes of memory and returns a pointer to it. This memory is not initialized (it can contain anything). Returns <code>NULL</code> if the allocation failed (because <b>size</b> was too big, or memory is exhausted, or for whatever other reason).</dd>
+<dt><b>void free(void* ptr)</b></dt>
+<dd> Free a single block of memory previously allocated by <b>malloc</b>.</dd></dl>
+<p>The rules of <b>malloc</b> and <b>free</b> are simple: Allocate once, then free once.
+</p>
+<ul><li> Dynamically-allocated memory remains <b>active</b> until it explicitly freed with a call to <b>free</b>.</li>
+<li> A successful call to <b>malloc(sz)</b> returns a pointer <b>ptr</b> to “new” dynamically allocated memory. This means that the <b>sz</b> bytes of data starting at address <b>ptr</b> are <i>guaranteed</i> not to overlap with the program's code, its global variables, its stack variables, or with any other active dynamically allocated memory.</li>
+<li> The pointer argument in <b>free(ptr)</b> must either equal <code>NULL</code> or a pointer to <b>active dynamically-allocated memory</b>. In particular:
+<ul><li> It is not OK to call <code>free(ptr)</code> if <code>ptr</code> points to the program’s code, or into its global variables, or into the stack.</li>
+<li> It is not OK to call <code>free(ptr)</code> unless <code>ptr</code> was returned by a previous call to <code>malloc</code>.</li>
+<li> It is not OK to call <code>free(ptr)</code> if <code>ptr</code> is currently inactive (i.e., <code>free(ptr)</code> was previously called with the same pointer argument, and the <code>ptr</code> memory block was not reused by another <code>malloc()</code>).</li></ul></li></ul>
+<p>These errors are called <b>invalid frees</b>. The third error is also called a <b>double free</b>.
+</p><p>Some notes on boundary cases:
+</p>
+<ul><li> <code>malloc(0)</code> may return either <code>NULL</code> or a non-<code>NULL</code> pointer. If <code>ptr = malloc(0)</code> is not <code>NULL</code>, then <code>ptr</code> does not overlap with any other allocation and can be passed to <code>free()</code>.</li>
+<li> <code>free(NULL)</code> is allowed. It does nothing.</li>
+<li> <code>malloc(sz)</code> returns memory whose <i>alignment</i> works for any object. (We’ll discuss alignment in class; for a preview, see <i><a href="https://cs61.seas.harvard.edu/wiki/2016/Textbook" title="2016/Textbook">CS:APP3e</a></i> §3.9.3.) On 64-bit x86 machines, this means that the address value returned by <code>malloc()</code> must be evenly divisible by 16.  <b>You should do this too.</b></li></ul>
+<p>Two secondary memory allocation functions are also commonly used in C, <b>calloc</b> and <b>realloc</b>. The <b>calloc</b> function allocates memory and clears it to zero. The <b>realloc</b> function can allocate, free, or resize memory depending on its arguments. These functions work like this:
+</p>
+<pre> void* calloc(size_t nmemb, size_t sz) {
+     void* ptr = malloc(sz * nmemb);
+     if (ptr&nbsp;!= NULL)
+         memset(ptr, 0, sz * nmemb);     // clear memory to 0
+     return ptr;
+ }
+</pre>
+<pre> void* realloc(void* ptr, size_t sz) {
+     void* new_ptr = NULL;
+     if (sz&nbsp;!= 0)
+         new_ptr = malloc(sz);
+     if (ptr&nbsp;!= NULL &amp;&amp; new_ptr&nbsp;!= NULL) {
+         size_t old_sz = <b>size of memory block allocated at ptr</b>;
+         if (old_sz &lt; sz)
+             memcpy(new_ptr, ptr, old_sz);
+         else
+             memcpy(new_ptr, ptr, sz);
+     }
+     free(ptr);
+     return new_ptr;
+ }
+</pre>
+<p>(NB: There’s actually a bug in that implementation of <code>calloc</code>! One of our tests would find it.)
+</p><p>You will work on our replacements for these functions, which are called <b><code>m61_malloc</code></b>, <b><code>m61_free</code></b>, <b><code>m61_calloc</code></b>, and <b><code>m61_realloc</code></b>. Our versions of these functions simply call basic versions, <code>base_malloc</code> and <code>base_free</code>. Note that the <code>m61</code> functions take extra arguments that the system versions don’t, namely a filename and a line number. Our header file, <code>m61.h</code>, uses macros so that calls in the test programs supply these arguments automatically. You’ll use filenames and line numbers to track where memory was allocated and to report where errors occur.
+</p>
+<h2><span class="mw-headline" id="Assignment_overview">Assignment overview</span></h2>
+<p>Your debugging allocator must support the following functionality. Our handout code contains tests for all this functionality (though we may run other tests when grading).
+</p>
+<ol><li> <b>Overall statistics</b>—how many allocations/frees, how many bytes have been allocated/freed, etc.</li>
+<li> <b>Secondary allocation functions</b> (calloc and realloc) and integer overflow protection.</li>
+<li> <b>Invalid free detection.</b></li>
+<li> <b>Writing past the beginning/end of an allocation.</b></li>
+<li> <b>Reporting memory that has been allocated, but not freed.</b></li>
+<li> <b>Advanced reports and checking.</b></li></ol>
+<p>This functionality is ordered from easier to harder. We encourage each student to complete this work independently (coding without a partner). Our solution involves tens of lines of code (not hundreds), which is modest, but doing the work yourself will teach you a lot.
+</p><p>In addition to the debugging allocator, you must design and implement more useful functionality, namely <b>heavy hitter reports</b>. We want you to design your solution, implement it, and test it. We expect you to work with a partner.
+</p><p>The grading breakdown:
+</p>
+<ul><li> <b>70%</b> tested debugging allocator functionality (the test programs we hand out, plus others). If running <b>make check</b> reports <code>*** All tests succeeded!</code> you've probably got all these points.</li>
+<li> <b>10%</b> <a href="https://cs61.seas.harvard.edu/wiki/2016/Style" title="2016/Style">coding style</a>.</li>
+<li> <b>20%</b> design and implementation of heavy hitter reports.</li></ul>
+<h2><span class="mw-headline" id="Timing">Timing</span></h2>
+<p>This assignment serves several purposes for us and for you.
+</p>
+<ul><li> It gets you back into C programming, if you are a little rusty.</li>
+<li> It teaches you about byte wrangling, sizes, and the memory representations of information. This is great preparation for the rest of class.</li>
+<li> It introduces you to some common memory errors and shows how careful code can defend against them.</li>
+<li> You’ll learn how malloc works!</li>
+<li> It shows you some new algorithms.</li>
+<li> It will be fun!</li></ul>
+<p>We are instituting a <b>graduated submission process</b> to ensure that you get started on the assignment early. <b>Only the last submission will be graded</b>, but we may examine earlier submissions as well.
+</p>
+<ol><li> First, every <i>individual</i> student must commit and upload an initial checkin by Friday 9/9. <i>Try to do this work on your own.</i> Your <code>m61</code> should pass at least tests test001.c through test011.c.</li>
+<li> Second, every student or pair of students must commit and upload a final version, including heavy hitters, by Friday 9/16. <b>Only the grade from this version will count.</b></li></ol>
+<p>In both cases, extension students’ deadlines are 24 hours after college students’ deadlines. In a team of a college student and an extension student (which we allow), the extension deadline counts.
+</p><p><big><b><font color="red">It is important to get started early—this problem set is not trivial</font></b></big> even though you don’t have to write that much code to make it work.
+</p>
+<h2><span class="mw-headline" id="A_note_on_undefined_behavior">A note on undefined behavior</span></h2>
+<p>Debugging allocators have an unusual relationship with undefined behavior. As we tell you in class, undefined behavior is a major no-no, because any program that invokes undefined behavior <i>has no meaning</i>. As far as the C language standard is concerned, once undefined behavior occurs, a program may do absolutely anything, such as force demons to fly out of your nose. Many of our tests (such as 16–26) explicitly invoke undefined behavior, and thus have no meaning. Yet your code must produce specific warnings for these cases! What gives?
+</p><p>Well, helpful debuggers catch common bugs, and bugs with malloc and free are disturbingly common. For this reason, debugging allocators take certain undefined behaviors and <i>define them</i>. For instance, when a debugging allocator is in force, a program like <code>test018.c</code> with a simple double free has <i>defined</i> behavior, namely crashing with a specific error message.
+</p><p>When writing a debugging allocator, it’s important to understand the properties of the underlying allocator. We have provided you with a very simple base memory allocator in <code>basealloc.c</code>. This allocator has the following properties:
+</p>
+<ul><li> Memory is allocated with <code>base_malloc</code> and freed with <code>base_free</code>.</li>
+<li> Memory freed by <code>base_free</code> may be returned by a later <code>base_malloc</code>.</li>
+<li> <b>The base allocator never writes into allocated areas.</b> Specifically, <code>base_free</code> doesn’t write over memory or return memory to the operating system. (This simple constraint makes it much easier to write a debugging allocator with <code>base_malloc/free</code> than with C’s default <code>malloc/free</code>.)</li></ul>
+<p>Thus, the following program is well-defined:
+</p>
+<pre>int main(int argc, char* argv[]) {
+    int* x = base_malloc(sizeof(int));
+    *x = 10;
+    base_free(x);
+    assert(*x == 10); // will always succeed
+}
+</pre>
+<p>But many of the undefined-behavior rules are still in force: double-frees and invalid frees are truly undefined, and the following program has no meaning.
+</p>
+<pre>int main(int argc, char* argv[]) {
+    int* x = base_malloc(sizeof(int));
+    base_free(x);
+    base_free(x); // ERROR ERROR ERROR
+}
+</pre>
+<h2><span class="mw-headline" id="Debugging_allocator_.2870.25.29">Debugging allocator (70%)</span></h2>
+<h3><span class="mw-headline" id="Statistics">Statistics</span></h3>
+<p>Implement the following function:
+</p>
+<dl><dt><b>void m61_getstatistics(struct m61_statistics* stats)</b></dt>
+<dd>Fill in the <b>stats</b> structure with overall statistics about memory allocations so far.</dd></dl>
+<p>The <b>m61_statistics</b> structure is defined like this:
+</p>
+<pre>struct m61_statistics {
+    unsigned long long nactive;           // number of active allocations [#malloc - #free]
+    unsigned long long active_size;       // number of bytes in active allocations
+    unsigned long long ntotal;            // number of allocations, total
+    unsigned long long total_size;        // number of bytes in allocations, total
+    unsigned long long nfail;             // number of failed allocation attempts
+    unsigned long long fail_size;         // number of bytes in failed allocation attempts
+    char* heap_min;                       // smallest address in any region ever allocated
+    char* heap_max;                       // largest address in any region ever allocated
+};
+</pre>
+<p>The hard statistic to track is <code>active_size</code>. To track this, your <code>free(ptr)</code> implementation must find the number of bytes allocated for <code>ptr</code>.
+</p><p>The easiest, and probably best, way to do this is for your <code>malloc</code> code to allocate <i>more space than the user requested</i>. The first part of that space is used to store metadata about the allocation, including the allocated size. This metadata will <i>not</i> be a <code>struct m61_statistics</code>, it’ll be a structure you define yourself. Your <code>malloc</code> will initialize this metadata, and then return a pointer to the <i>payload</i>, which is the portion of the allocation following the metadata. Your <code>free</code> code then will take the payload pointer as input, and then use address arithmetic to calculate the pointer to the corresponding metadata. This is possible because the metadata has fixed size. From that metadata it can read the size of the allocation. See CS:APP3e Figure 9.35 “Format of a simple heap block” for an example of this type of layout.
+</p><p>If you don’t like this idea, you could create a list or hash table <code>size_for_pointer</code> that mapped pointer values to sizes. Your <code>malloc</code> code would add an entry to this data structure. Your <code>free</code> code would check this table and then remove the entry.
+</p><p>Other aspects of the problem set will require you to add more stuff to the metadata.
+</p><p>The other statistics are quite easy to track, and you should tackle the easy ones first. You can pass tests 1–10 without per-allocation metadata.
+</p><p>Run <b><code>make check</code></b> to test your work. Test programs <code>test001.c</code> through <code>test009.c</code> test your overall statistics functionality. Open one of these programs and look at its code. You will notice some comments at the end of the file, such as this:
+</p>
+<pre>//! malloc count: active          0   total          0   fail          0
+//! malloc size:  active          0   total          0   fail          0
+</pre>
+<p>These lines define the expected output for the test. The <code>make check</code> command checks your actual output against the expected output and reports any discrepancies. (It does this by calling <code>compare.pl</code>.)
+</p>
+<h3><span class="mw-headline" id="Secondary_allocation_functions.2C_integer_overflow_protection">Secondary allocation functions, integer overflow protection</span></h3>
+<p>Your debugging malloc library should support the secondary allocation functions <b>calloc</b> and <b>realloc</b>. It also needs to be robust against integer overflow attacks. (See, for example CS:APP2e Aside “Security vulnerability in the XDR library”, in section 2.3, p91.)
+</p><p>Our handout code’s <b>m61_calloc</b> and <b>m61_free</b> functions are close, but they don’t quite work. Fix them, and fix any other integer overflow errors you find.
+</p><p>Test programs <code>test010.c</code> through <code>test015.c</code> check your work.
+</p>
+<h3><span class="mw-headline" id="Invalid_free_and_double-free_detection">Invalid free and double-free detection</span></h3>
+<p><b>m61_free(ptr, file, line)</b> should print an error message and then call C’s <code>abort()</code> function when <b>ptr</b> does not point to active dynamically-allocated memory.
+</p><p>Some things to watch:
+</p>
+<ul><li> Be careful of calls like <b>free((void*) 0x1)</b>, where the <b>ptr</b> argument is not <code>NULL</code> but it also doesn't point to valid memory. Your debugging malloc library should <i>not</i> crash when passed such a pointer. It should print an error message and exit in an orderly way. Test program <code>test016.c</code> checks this.</li>
+<li> The test programs define the desired error message format. Here's our error message for test016:</li></ul>
+<pre>MEMORY BUG: test016.c:9: invalid free of pointer 0x7fff683fab8c, not in heap</pre>
+<ul><li> Different error situations require different error messages. See test programs <code>test016.c</code> through <code>test019.c</code>.</li>
+<li> Your code should print out the file name and line number of the problematic call to <code>free()</code>.</li></ul>
+<p>Test programs <code>test016.c</code> through <code>test023.c</code> check your work.
+</p>
+<h3><span class="mw-headline" id="Boundary_write_error_detection">Boundary write error detection</span></h3>
+<p>A <i>boundary error</i> is when a program reads or writes memory <i>beyond</i> the actual dimensions of an allocated memory block. An example boundary write error is to write the 11th entry in an array of size 10:
+</p>
+<pre>int* array = (int*) malloc(10 * sizeof(int));
+...
+for (int i = 0; i &lt;= 10 /* WHOOPS */; ++i)
+    array[i] = calculate(i);
+</pre>
+<p>These kinds of errors are relatively common in practice. (Other errors can happen, such as writing to totally random locations in memory or writing to memory <i>before the beginning</i> of an allocated block, rather than after its end; but after-the-end boundary writes seem most common.)
+</p><p>A debugging memory allocator can't detect boundary <i>read</i> errors, but it can detect many boundary <i>write</i> errors. Your <b>m61_free(ptr, file, line)</b> should print an error message and call <code>abort()</code> if it detects that the memory block associated with <code>ptr</code> suffered a boundary write error.
+</p><p><b>No</b> debugging malloc software can reliably detect all boundary write errors. For example, consider this:
+</p>
+<pre>int* array = (int*) malloc(10 * sizeof(int));
+int secret = array[10];     // save boundary value
+array[10] = 1384139431;     // boundary write error
+array[10] = secret;         // restore old value! dmalloc can't tell there was an error!
+</pre>
+<p>Or this:
+</p>
+<pre>int* array = (int*) malloc(10 * sizeof(int));
+array[200000] = 0;          // a boundary write error, but very far from the boundary!
+</pre>
+<p>We’re just expecting your code to catch common simple cases. You should definitely catch the case where the user writes one or more zero bytes directly after the allocated block.
+</p><p>Test programs <code>test024.c</code> through <code>test026.c</code> check your work.
+</p>
+<h3><span class="mw-headline" id="Memory_leak_reporting">Memory leak reporting</span></h3>
+<p>A <b>memory leak</b> happens when code allocates a block of memory but forgets to free it. Memory leaks are not as serious as other memory errors, particularly in short-running programs. They don't cause a crash directly. (The operating system always reclaims all of a program's memory when the program exits.) But in long-running programs, such as your browser, memory leaks have serious effect and are important to avoid.
+</p><p>Write a <b>m61_printleakreport()</b> function that, when called, prints a report about <b>every allocated object in the system</b>. This report should list every object that has been <b>malloc()</b>ed but not <b>free()</b>d. Print the report to <b>standard output</b> (not standard error). A report should look like this:
+</p>
+<pre>LEAK CHECK: test029.c:23: allocated object 0x9b811e0 with size 19
+LEAK CHECK: test029.c:21: allocated object 0x9b81170 with size 17
+LEAK CHECK: test029.c:20: allocated object 0x9b81140 with size 16
+LEAK CHECK: test029.c:19: allocated object 0x9b81110 with size 15
+LEAK CHECK: test029.c:18: allocated object 0x9b810e0 with size 14
+LEAK CHECK: test029.c:16: allocated object 0x9b81080 with size 12
+LEAK CHECK: test029.c:15: allocated object 0x9b81050 with size 11
+</pre>
+<p>A programmer would use this leak checker by calling <b>m61_printleakreport()</b> before exiting the program, after cleaning up all the memory they could using <b>free()</b> calls. Any missing <b>free()</b>s would show up in the leak report.
+</p><p>To implement a leak checker, you'll need to keep track of every active allocated block of memory. It's easiest to do this by adding more information to the block metadata. You will use the <b>file</b> and <b>line</b> arguments to m61_malloc()/m61_realloc()/m61_calloc().
+</p>
+<dl><dd><b>Note</b>: You may assume that the <b>file</b> argument to these functions has <i>static storage duration</i>. This means you don't need to copy the string’s <i>contents</i> into your block metadata—it is safe to use the string <i>pointer</i>.</dd></dl>
+<p>Test programs <code>test027.c</code> through <code>test029.c</code> check your work.
+</p>
+<h3><span class="mw-headline" id="Advanced_reports_and_checking">Advanced reports and checking</span></h3>
+<p>Test programs <code>test030.c</code>, <code>test031.c</code>, and <code>test032.c</code> require you to update your reporting and error detection code. You’ll print better information and defend against more diabolically invalid frees. You will undoubtedly need to read the test code and understand what is being tested to defend against it.
+</p><p>Update your <code>invalid free</code> message. After determining that a pointer is invalid, your code should check whether the pointer is <i>inside</i> a different allocated block. This will use the same structures you created for the leak checker. If the invalid pointer <i>is</i> inside another block, print out that block, like so:
+</p>
+<pre>MEMORY BUG: test028.c:10: invalid free of pointer 0x833306c, not allocated
+ test028.c:9: 0x833306c is 100 bytes inside a 2001 byte region allocated here
+</pre>
+<p>And make sure your invalid free detector can handle the diabolical situations in the other tests. What situations? Check the test code to find out!
+</p>
+<h2><span class="mw-headline" id="Style_.2810.25.29">Style (10%)</span></h2>
+<p>Your code should be <a href="https://cs61.seas.harvard.edu/wiki/2016/Style" title="2016/Style">clean, clear, correct, and consistent</a>.
+The most important style guideline is <b>consistency</b>. Our handout code follows a certain format (indentation amount, comment usage, variable names). We won't grade you down if you choose a different format. But <i>pick a format</i>. Don't write code that changes style from line to line.
+</p><p>For this problem set, additional coding guidelines will be incorporated into your grade.
+</p>
+<ul><li> <b>Document your metadata.</b> Explain what additional data structures you used to track debugging and heavy-hitter information.</li>
+<li> Your metadata should be compact. The debugging allocator should introduce at most <b>tens</b> of bytes of overhead per allocation, not hundreds or thousands.</li>
+<li> Your malloc and free functions should be relatively fast. For full credit, you should add only <i>O</i>(1) additional work to a successful (i.e., non-erroneous) malloc or free call. (Your heavy-hitter reports implementation might be more expensive than the other parts.)</li>
+<li> Your implementation should not introduce memory errors of its own! Check your code by running tests under <b>valgrind</b>.</li></ul>
+<h2><span class="mw-headline" id="Heavy_hitter_reports_.2820.25.29">Heavy hitter reports (20%)</span></h2>
+<p>Memory allocation is one of the more expensive things a program can do. It is possible to make a program run much faster by optimizing how that program uses malloc and by optimizing malloc itself. (Did you know that both Google and Facebook have malloc specialists? <a rel="nofollow" class="external text" href="http://code.google.com/p/gperftools/">Here’s Google’s tcmalloc</a>, and Facebook liked <a rel="nofollow" class="external text" href="https://www.facebook.com/notes/facebook-engineering/scalable-memory-allocation-using-jemalloc/480222803919">jemalloc</a> so much that they hired Jason Evans.)
+</p><p>But before optimizing a program, we must measure that program’s performance. Programmer intuition is frequently wrong: programmers tend to assume the slowest code is either the code they found most difficult to write or the last thing they worked on. Thus, before optimizing anything, you want to have data to guide your optimization. In this case, it useful to have a <b>memory allocation profiler</b>—a tool that tracks and reports potential memory allocation problems.
+</p><p>Your job is to design and implement a particular kind of profiling, <b>heavy hitter reports</b>, for your memory allocator. This has two parts. You will:
+</p>
+<ol><li> Track the heaviest users of <b>malloc()</b> <i>by code location</i> (file and line). A “heavy” location is a location that is responsible for allocating many bytes.</li>
+<li> Generate a readable report that summarizes this information.</li></ol>
+<p><b>Rule 1:</b> If a program makes lots of allocations, and a single line of code is responsible for 20% or more of the total bytes allocated by a program, then your heavy-hitter report should mention that line of code (possibly among others).
+</p><p><b>Rule 2:</b> Your design should handle both large numbers of allocations and large numbers of allocation <i>sites</i>. In particular, you should be able to handle a program that calls <b>malloc()</b> at 10,000 different file-line pairs.
+</p><p><b>Rule 3:</b> Your report should include some information that helps the user decide which lines are likely to be the <i>heaviest</i> hitters, such as exact or estimated byte counts, or even just by ordering the hitters.
+</p><p>How should you implement this? That’s up to you, but here are some pointers.
+</p>
+<ul><li> <b>Sampling is acceptable.</b> It would be OK, for example, to sample 1/100th of all allocations and report information for only the sampled allocations. This can cut down the amount of data you need to store.
+<ul><li> You could sample <i>exactly</i> every Nth allocation, but random sampling is usually better, since it avoids synchronization effects. (For instance, if the program cycled among 4 different allocation sites, then sampling every 20th allocation would miss 75% of the allocation sites!) For random sampling you'll need a source of randomness. Use <a rel="nofollow" class="external text" href="http://www.gnu.org/software/libc/manual/html_node/BSD-Random.html">random()</a> or <a rel="nofollow" class="external text" href="http://www.gnu.org/software/libc/manual/html_node/SVID-Random.html">drand48()</a>.</li></ul></li>
+<li> Clever, yet easy, algorithms developed quite recently can help you catch all heavy hitters with <i>O</i>(1) space and simple data structures!
+<ul><li> <a rel="nofollow" class="external text" href="http://www.cs.yale.edu/homes/el327/datamining2011aFiles/ASimpleAlgorithmForFindingFrequentElementsInStreamsAndBags.pdf">A Simple Algorithm for Finding Frequent Elements in Streams and Bags</a>, Karp, Shenker, and Papadimitriou</li>
+<li> <a rel="nofollow" class="external text" href="http://erikdemaine.org/papers/NetworkStats_ESA2002/paper.pdf">Frequency Estimation of Internet Packet Streams with Limited Space</a>, Demaine, López-Ortiz, and Munro. The paper's context doesn't matter; the relevant algorithms, “Algorithm MAJORITY” and “Algorithm FREQUENT,” appear on pages 6-7, where they are simply and concisely presented. (You want FREQUENT, but MAJORITY is helpful for understanding.)</li>
+<li> <b>YOU DO NOT NEED TO USE THESE ALGORITHMS!</b> But why not take a look? They’re surprisingly simple.</li></ul></li></ul>
+<p>We provide a test program for you to test heavy hitter reports, <code>hhtest.c</code>. This program contains 40 different allocators that allocate regions of different sizes. Its first argument, the <i>skew</i>, varies the relative probabilities that each allocator is run.
+</p><p>You should change <code>hhtest.c</code> to call your heavy hitter printer just before <code>main</code> exits.
+</p><p>Running <code>./hhtest 0</code> will call every allocator with equal probability. But allocator #39 (which is at httest.c:47) allocates twice as much data as any other. So when we run our dirt-simple heavy hitter detector against <code>./hhtest 0</code>, it reports:
+</p>
+<pre>HEAVY HITTER: hhtest.c:49: 1643786191 bytes (~50.1%)
+HEAVY HITTER: hhtest.c:48: 817311692 bytes (~25.0%)
+HEAVY HITTER: hhtest.c:47: 403156951 bytes (~12.4%)
+</pre>
+<p>(Your detector doesn’t need to follow this output format.)
+</p><p>If we run <code>./hhtest 1</code>, however, then the first allocator (<code>hhtest.c:10</code>) is called twice as often as the next allocator, which is called twice as often as the next allocator, and so forth. There is almost no chance that allocator #39 is called at all. The report for <code>./hhtest 1</code> is:
+</p>
+<pre>HEAVY HITTER: hhtest.c:10: 499043 bytes (~50.0%)
+HEAVY HITTER: hhtest.c:11: 249136 bytes (~25.0%)
+HEAVY HITTER: hhtest.c:12: 123995 bytes (~12.5%)
+</pre>
+<p>At some intermediate skews, though, and there may be no heavy hitters at all. Our code reports nothing when run against <code>./hhtest 0.4</code>.
+</p><p>Negative skews call the <i>large</i> allocators more frequently. <code>./hhtest -0.4</code>:
+</p>
+<pre>HEAVY HITTER: hhtest.c:49: 15862542908 bytes (~62.1%)
+HEAVY HITTER: hhtest.c:48: 6004585020 bytes (~23.5%)
+</pre>
+<p>Try <code>./hhtest --help</code> to get a full description of <code>hhtest</code>’s arguments. You should test with many different arguments; for instance, <b>make sure you try different allocation “phases.”</b> A great software engineer would also create tests of her own; we encourage you to do this!
+</p><p>This idea can be taken quite far. Google, for example, links a heavy-hitter detector with many important servers. It is possible (within Google) to connect to many servers and generate <i>a graph</i> of its current heavy hitter allocation sites, <i>including their calling functions</i> and relationships among functions. <a rel="nofollow" class="external text" href="http://goog-perftools.sourceforge.net/doc/heap_profiler.html">Here's a little example (scroll down the page)</a>; <a rel="nofollow" class="external text" href="http://benchgraffiti.googlecode.com/hg/havlak/havlak4a-mallocgc.png">here's a bigger one</a>. Have fun!!
+</p>
+<h2><span class="mw-headline" id="Extra_credit">Extra credit</span></h2>
+<p>We encourage you to learn more and flex your coding muscles by doing some extra credit work! We will grade extra credit attempts, but we aren’t publishing any formula about how extra credit feeds into final grades, and extra credit is in no sense required to get an A.
+</p>
+<ol><li> Implement a particularly awesome heavy-hitter detector. For example, make your heavy-hitter detector find <i>frequent</i> allocations as well as <i>heavy</i> allocations. Allocating a single byte a billion times is expensive, even if the byte is immediately freed each time! So augment your heavy hitter detector to report call sites that are responsible for 20% or more of the total <i>number</i> of allocations the program made, <i>even if those call sites aren’t responsible for many total bytes</i> relative to other call sites.</li>
+<li> Extend your debugging allocator. For instance, include a <b>full heap checker</b>, which should cross-check heap data structures to see if any wild writes have corrupted internal heap state. Check with us if you're not sure whether your extension is worthwhile.</li></ol>
+<h2><span class="mw-headline" id="Other_links">Other links</span></h2>
+<p>Debugging allocators have a long history. <a rel="nofollow" class="external text" href="http://dmalloc.com/">dmalloc</a> is one of the early ones; <a rel="nofollow" class="external text" href="http://en.wikipedia.org/wiki/Memory_debugger">here’s a list of some others</a>. In fact, Mac OS and Linux’s memory allocators already turn on some debugging features <i>by default</i>!
+</p><p>Feel free to look at the code and documentation for other allocators to get ideas, <b>but make sure you cite them if you do.</b>
+</p>
+<h2><span class="mw-headline" id="Turnin">Turnin</span></h2>
+<p>You will turn in your code using Git. <b>In the pset1/ subdirectory, you MUST include a text file called <code>README.txt</code>.</b> This file should list:
+</p>
+<ul><li> Other collaborators and citations. (Just list "None" if you have none, but we'd be surprised if you had no citations for the heavy hitter part of the assignment.)</li></ul>
+<ul><li> Comments for the graders, if any.</li></ul>
+<p>Your submission <b>will not be graded until you configure the <a rel="nofollow" class="external text" href="http://cs61.seas.harvard.edu/cs61/2016">grading server</a>.</b> Log in and enter your code.seas username and repository URL. Click "pset1" to initiate a fetch of your repository from code.seas. Verify that all tests that you expect to pass continue to pass on the grading server.
+</p>
+<h2><span class="mw-headline" id="Notes">Notes</span></h2>
+<p>This lab was originally created for CS 61.
+</p><p><br>
+</p>
+<!-- 
+NewPP limit report
+Cached time: 20170520222459
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.040 seconds
+Real time usage: 0.039 seconds
+Preprocessor visited node count: 136/1000000
+Preprocessor generated node count: 216/1000000
+Post‐expand include size: 201/2097152 bytes
+Template argument size: 0/2097152 bytes
+Highest expansion depth: 2/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    1.048      1 - Template:Header2016
+100.00%    1.048      1 - -total
+-->
+
+<!-- Saved in parser cache with key wikidb:pcache:idhash:752-0!*!0!!en!*!* and timestamp 20170520222459 and revision id 5413
+ -->
+</div>					<div class="printfooter">
+						Retrieved from "<a dir="ltr" href="https://cs61.seas.harvard.edu/wiki/index.php?title=2016/Dmalloc&amp;oldid=5413">https://cs61.seas.harvard.edu/wiki/index.php?title=2016/Dmalloc&amp;oldid=5413</a>"					</div>
+				<div id="catlinks" class="catlinks catlinks-allhidden" data-mw="interface"></div>				<div class="visualClear"></div>
+							</div>
+		</div>
+		<div id="mw-navigation">
+			<h2>Navigation menu</h2>
+
+			<div id="mw-head">
+									<div id="p-personal" role="navigation" class="" aria-labelledby="p-personal-label">
+						<h3 id="p-personal-label">Personal tools</h3>
+						<ul>
+							<li id="pt-login"><a href="https://cs61.seas.harvard.edu/wiki/index.php?title=Special:UserLogin&amp;returnto=2016%2FDmalloc" title="You are encouraged to log in; however, it is not mandatory [alt-shift-o]" accesskey="o">Log in</a></li>						</ul>
+					</div>
+									<div id="left-navigation">
+										<div id="p-namespaces" role="navigation" class="vectorTabs" aria-labelledby="p-namespaces-label">
+						<h3 id="p-namespaces-label">Namespaces</h3>
+						<ul>
+															<li id="ca-nstab-main" class="selected"><span><a href="https://cs61.seas.harvard.edu/wiki/2016/Dmalloc" title="View the content page [alt-shift-c]" accesskey="c">Page</a></span></li>
+															<li id="ca-talk" class="new"><span><a href="https://cs61.seas.harvard.edu/wiki/index.php?title=Talk:2016/Dmalloc&amp;action=edit&amp;redlink=1" title="Discussion about the content page [alt-shift-t]" accesskey="t" rel="discussion">Discussion</a></span></li>
+													</ul>
+					</div>
+										<div id="p-variants" role="navigation" class="vectorMenu emptyPortlet" aria-labelledby="p-variants-label">
+												<h3 id="p-variants-label" tabindex="0">
+							<span>Variants</span><a href="https://cs61.seas.harvard.edu/wiki/2016/Dmalloc#" tabindex="-1"></a>
+						</h3>
+
+						<div class="menu">
+							<ul>
+															</ul>
+						</div>
+					</div>
+									</div>
+				<div id="right-navigation">
+										<div id="p-views" role="navigation" class="vectorTabs" aria-labelledby="p-views-label">
+						<h3 id="p-views-label">Views</h3>
+						<ul>
+															<li id="ca-view" class="selected"><span><a href="https://cs61.seas.harvard.edu/wiki/2016/Dmalloc">Read</a></span></li>
+															<li id="ca-viewsource"><span><a href="https://cs61.seas.harvard.edu/wiki/index.php?title=2016/Dmalloc&amp;action=edit" title="This page is protected.
+You can view its source [alt-shift-e]" accesskey="e">View source</a></span></li>
+															<li id="ca-history" class="collapsible"><span><a href="https://cs61.seas.harvard.edu/wiki/index.php?title=2016/Dmalloc&amp;action=history" title="Past revisions of this page [alt-shift-h]" accesskey="h">View history</a></span></li>
+													</ul>
+					</div>
+										<div id="p-cactions" role="navigation" class="vectorMenu emptyPortlet" aria-labelledby="p-cactions-label">
+						<h3 id="p-cactions-label" tabindex="0"><span>More</span><a href="https://cs61.seas.harvard.edu/wiki/2016/Dmalloc#" tabindex="-1"></a></h3>
+
+						<div class="menu">
+							<ul>
+															</ul>
+						</div>
+					</div>
+										<div id="p-search" role="search">
+						<h3>
+							<label for="searchInput">Search</label>
+						</h3>
+
+						<form action="https://cs61.seas.harvard.edu/wiki/index.php" id="searchform">
+							<div id="simpleSearch">
+							<input type="search" name="search" placeholder="Search" title="Search CS61 [alt-shift-f]" accesskey="f" id="searchInput" tabindex="1" autocomplete="off"><input type="hidden" value="Special:Search" name="title"><input type="submit" name="go" value="Go" title="Go to a page with this exact name if it exists" id="searchButton" class="searchButton">							</div>
+						</form>
+					</div>
+									</div>
+			</div>
+			<div id="mw-panel">
+				<div id="p-logo" role="banner"><a class="mw-wiki-logo" href="https://cs61.seas.harvard.edu/wiki/2016/Home" title="Visit the main page"></a></div>
+						<div class="portal" role="navigation" id="p-navigation" aria-labelledby="p-navigation-label">
+			<h3 id="p-navigation-label">Navigation</h3>
+
+			<div class="body">
+									<ul>
+						<li id="n-mainpage-description"><a href="https://cs61.seas.harvard.edu/wiki/2016/Home" title="Visit the main page [alt-shift-z]" accesskey="z">Main page</a></li><li id="n-portal"><a href="https://cs61.seas.harvard.edu/wiki/CS61:Community_portal" title="About the project, what you can do, where to find things">Community portal</a></li><li id="n-currentevents"><a href="https://cs61.seas.harvard.edu/wiki/CS61:Current_events" title="Find background information on current events">Current events</a></li><li id="n-recentchanges"><a href="https://cs61.seas.harvard.edu/wiki/Special:RecentChanges" title="A list of recent changes in the wiki [alt-shift-r]" accesskey="r">Recent changes</a></li><li id="n-randompage"><a href="https://cs61.seas.harvard.edu/wiki/Special:Random" title="Load a random page [alt-shift-x]" accesskey="x">Random page</a></li><li id="n-help"><a href="https://www.mediawiki.org/wiki/Special:MyLanguage/Help:Contents" title="The place to find out">Help</a></li>					</ul>
+							</div>
+		</div>
+			<div class="portal" role="navigation" id="p-tb" aria-labelledby="p-tb-label">
+			<h3 id="p-tb-label">Tools</h3>
+
+			<div class="body">
+									<ul>
+						<li id="t-whatlinkshere"><a href="https://cs61.seas.harvard.edu/wiki/Special:WhatLinksHere/2016/Dmalloc" title="A list of all wiki pages that link here [alt-shift-j]" accesskey="j">What links here</a></li><li id="t-recentchangeslinked"><a href="https://cs61.seas.harvard.edu/wiki/Special:RecentChangesLinked/2016/Dmalloc" title="Recent changes in pages linked from this page [alt-shift-k]" accesskey="k">Related changes</a></li><li id="t-specialpages"><a href="https://cs61.seas.harvard.edu/wiki/Special:SpecialPages" title="A list of all special pages [alt-shift-q]" accesskey="q">Special pages</a></li><li id="t-print"><a href="https://cs61.seas.harvard.edu/wiki/index.php?title=2016/Dmalloc&amp;printable=yes" rel="alternate" title="Printable version of this page [alt-shift-p]" accesskey="p">Printable version</a></li><li id="t-permalink"><a href="https://cs61.seas.harvard.edu/wiki/index.php?title=2016/Dmalloc&amp;oldid=5413" title="Permanent link to this revision of the page">Permanent link</a></li><li id="t-info"><a href="https://cs61.seas.harvard.edu/wiki/index.php?title=2016/Dmalloc&amp;action=info" title="More information about this page">Page information</a></li>					</ul>
+							</div>
+		</div>
+				</div>
+		</div>
+		<div id="footer" role="contentinfo">
+							<ul id="footer-info">
+											<li id="footer-info-lastmod"> This page was last modified on 14 September 2016, at 23:04.</li>
+									</ul>
+							<ul id="footer-places">
+											<li id="footer-places-privacy"><a href="https://cs61.seas.harvard.edu/wiki/CS61:Privacy_policy" title="CS61:Privacy policy">Privacy policy</a></li>
+											<li id="footer-places-about"><a href="https://cs61.seas.harvard.edu/wiki/CS61:About" title="CS61:About">About CS61</a></li>
+											<li id="footer-places-disclaimer"><a href="https://cs61.seas.harvard.edu/wiki/CS61:General_disclaimer" title="CS61:General disclaimer">Disclaimers</a></li>
+									</ul>
+										<ul id="footer-icons" class="noprint">
+											<li id="footer-poweredbyico">
+							<a href="https://www.mediawiki.org/"><img src="./m61_files/poweredby_mediawiki_88x31.png" alt="Powered by MediaWiki" srcset="/wiki/resources/assets/poweredby_mediawiki_132x47.png 1.5x, /wiki/resources/assets/poweredby_mediawiki_176x62.png 2x" width="88" height="31"></a>						</li>
+									</ul>
+						<div style="clear:both"></div>
+		</div>
+		<script>(window.RLQ=window.RLQ||[]).push(function(){mw.loader.state({"user":"ready","user.groups":"ready"});mw.loader.load(["mediawiki.toc","mediawiki.action.view.postEdit","site","mediawiki.user","mediawiki.hidpi","mediawiki.page.ready","mediawiki.searchSuggest"]);});</script><script>(window.RLQ=window.RLQ||[]).push(function(){mw.config.set({"wgBackendResponseTime":167});});</script>
+	
+
+<div class="suggestions" style="display: none; font-size: 13px;"><div class="suggestions-results"></div><div class="suggestions-special"></div></div></body></html>

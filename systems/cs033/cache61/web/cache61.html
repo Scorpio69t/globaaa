@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<!-- saved from url=(0050)https://cs61.seas.harvard.edu/wiki/2016/StdioCache -->
+<html lang="en" dir="ltr" class="client-js"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<title>2016/StdioCache - CS61</title>
+<script>document.documentElement.className = document.documentElement.className.replace( /(^|\s)client-nojs(\s|$)/, "$1client-js$2" );</script>
+<script>(window.RLQ=window.RLQ||[]).push(function(){mw.config.set({"wgCanonicalNamespace":"","wgCanonicalSpecialPageName":false,"wgNamespaceNumber":0,"wgPageName":"2016/StdioCache","wgTitle":"2016/StdioCache","wgCurRevisionId":5748,"wgRevisionId":5748,"wgArticleId":755,"wgIsArticle":true,"wgIsRedirect":false,"wgAction":"view","wgUserName":null,"wgUserGroups":["*"],"wgCategories":[],"wgBreakFrames":false,"wgPageContentLanguage":"en","wgPageContentModel":"wikitext","wgSeparatorTransformTable":["",""],"wgDigitTransformTable":["",""],"wgDefaultDateFormat":"dmy","wgMonthNames":["","January","February","March","April","May","June","July","August","September","October","November","December"],"wgMonthNamesShort":["","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],"wgRelevantPageName":"2016/StdioCache","wgRelevantArticleId":755,"wgRequestId":"ee0209c1081fc5239deecde4","wgIsProbablyEditable":false,"wgRestrictionEdit":[],"wgRestrictionMove":[]});mw.loader.implement("user.options",function($,jQuery,require,module){mw.user.options.set({"variant":"en"});});mw.loader.implement("user.tokens",function ( $, jQuery, require, module ) {
+mw.user.tokens.set({"editToken":"+\\","patrolToken":"+\\","watchToken":"+\\","csrfToken":"+\\"});/*@nomin*/;
+
+});mw.loader.load(["mediawiki.page.startup","skins.vector.js"]);});</script>
+<link rel="stylesheet" href="./cache61_files/load.php">
+<style>
+.mw-collapsible-toggle{float:right;-moz-user-select:none;-webkit-user-select:none;-ms-user-select:none;user-select:none}  .mw-content-ltr .mw-collapsible-toggle,.mw-content-rtl .mw-content-ltr .mw-collapsible-toggle{float:right} .mw-content-rtl .mw-collapsible-toggle,.mw-content-ltr .mw-content-rtl .mw-collapsible-toggle{float:left}.mw-customtoggle,.mw-collapsible-toggle{cursor:pointer} caption .mw-collapsible-toggle,.mw-content-ltr caption .mw-collapsible-toggle,.mw-content-rtl caption .mw-collapsible-toggle,.mw-content-rtl .mw-content-ltr caption .mw-collapsible-toggle,.mw-content-ltr .mw-content-rtl caption .mw-collapsible-toggle{float:none} li .mw-collapsible-toggle,.mw-content-ltr li .mw-collapsible-toggle,.mw-content-rtl li .mw-collapsible-toggle,.mw-content-rtl .mw-content-ltr li .mw-collapsible-toggle,.mw-content-ltr .mw-content-rtl li .mw-collapsible-toggle{float:none} .mw-collapsible-toggle-li{list-style:none}
+.suggestions{overflow:hidden;position:absolute;top:0;left:0;width:0;border:none;z-index:1099;padding:0;margin:-1px 0 0 0}.suggestions-special{position:relative;background-color:white;cursor:pointer;border:solid 1px #aaaaaa;padding:0;margin:0;margin-top:-2px;display:none;padding:0.25em 0.25em;line-height:1.25em}.suggestions-results{background-color:white;cursor:pointer;border:solid 1px #aaaaaa;padding:0;margin:0}.suggestions-result{color:black;margin:0;line-height:1.5em;padding:0.01em 0.25em;text-align:left; overflow:hidden;-o-text-overflow:ellipsis; text-overflow:ellipsis;white-space:nowrap}.suggestions-result-current{background-color:#4C59A6;color:white}.suggestions-special .special-label{color:gray;text-align:left}.suggestions-special .special-query{color:black;font-style:italic;text-align:left}.suggestions-special .special-hover{background-color:silver}.suggestions-result-current .special-label,.suggestions-result-current .special-query{color:white}.highlight{font-weight:bold}
+@media screen {
+	.tochidden,.toctoggle{-moz-user-select:none;-webkit-user-select:none;-ms-user-select:none;user-select:none}.toctoggle{font-size:94%}}
+@media print {
+	#toc.tochidden,.toctoggle{display:none}}
+body{font-family:helvetica,sans-serif,serif}h1,h2,h3{font-family:"chaparral-pro-caption",serif}h1.firstHeading{display:none}.hidden{display:none}table.simple > tbody > tr{vertical-align:baseline}table.simple > thead > tr{vertical-align:baseline}table.simple{border-spacing:0;border-collapse:collapse;empty-cells:show}table.simple > tbody > tr.k1 > td{background:#f1f8fc}table.simple > tbody > tr.k2 > td{background:#fcf1fb}table.colpad > tbody > tr > td:nth-child(n+2){padding-left:0.8em}table.colpad > tbody > tr > th:nth-child(n+2){padding-left:0.8em}table.col1rpad > tbody > tr > td:nth-child(1){padding-right:0.8em}table.col2rpad > tbody > tr > td:nth-child(2){padding-right:0.8em}td.sn{padding:3px 5px;text-align:right}table.spacey > tbody > tr > td{padding:1em 2em}table.spacey-indexed > tbody > tr > td{padding:1em 2em}table.spacey-indexed > tbody > tr > td:first-child{padding:5px 5px;text-align:right}table.col2code > tbody > tr > td:nth-child(2){font-family:"source-code-pro",monospace}table.col1nowrap > tbody > tr > td:first-child{white-space:nowrap}table.col1right > tbody > tr > td:nth-child(1){text-align:right}table.col2right > tbody > tr > td:nth-child(2){text-align:right}table.col3right > tbody > tr > td:nth-child(3){text-align:right}table.col4right > tbody > tr > td:nth-child(4){text-align:right}table.col5right > tbody > tr > td:nth-child(4){text-align:right}table.colright > tbody > tr > td{text-align:right}table.col1left > tbody > tr > td:nth-child(1){text-align:left}table.col1center > tbody > tr > td:nth-child(1){text-align:center}table.col2left > tbody > tr > td:nth-child(2),table.col2left > tbody > tr > th:nth-child(2){text-align:left}td.hpink{background:#ff80bb}td.hgreen{background:#aff0d6}td.hgray{background:#888888}div.solution,div.sol{background:#eef8ff;padding:2px 5px;border:1px solid #6666AA;margin-left:2em}td > div.solution,td > div.sol,th > div.solution,th > div.sol{margin-left:0}pre > span.sol{background:#eef8ff;padding:3px 3px;border:1px solid #6666AA;margin:2px -4px;display:block}div.nosolution div.solution,div.nosolution div.sol{display:none}div.solution table,div.sol table{background:inherit}div.highlight{background:#f8f8f8;padding:2px 5px;border:1px solid #666666;margin-left:2em}div.hnote{background:#fffff0;padding:2px 5px;border:1px solid #dddd66;margin-left:2em}div#bodyContent{font-size:12pt}pre,code{font-size:10.75pt;font-family:"source-code-pro",monospace}div.prelike{padding:0 1em;border:1px dashed #2f6fab;background-color:#f9f9f9}div.prelike > pre{padding:0;border:0 none}div.sol > pre,div.sol code{background:#f0f4fa}code.greysmallpad{display:inline-block;margin-left:1.5em;font-size:smaller;color:#555555}span.nb{display:inline-block;white-space:nowrap;text-indent:0}div.alphaol > ol,td.alphaol > ol{list-style-type:lower-alpha}div.Alphaol > ol,td.Alphaol > ol{list-style-type:upper-alpha}div.romanol > ol,td.romanol > ol{list-style-type:lower-roman}div.Romanol > ol,td.Romanol > ol{list-style-type:upper-roman}
+.postedit-container{margin:0 auto;position:fixed;top:0;height:0;left:50%;z-index:1000;font-size:13px}.postedit-container:hover{cursor:pointer}.postedit{position:relative;top:0.6em;left:-50%;padding:.6em 3.6em .6em 1.1em;line-height:1.5625em;color:#626465;background-color:#f4f4f4;border:1px solid #dcd9d9;text-shadow:0 0.0625em 0 rgba(255,255,255,0.5);border-radius:5px;box-shadow:0 2px 5px 0 #ccc;-webkit-transition:all 0.25s ease-in-out;-moz-transition:all 0.25s ease-in-out;-ms-transition:all 0.25s ease-in-out;-o-transition:all 0.25s ease-in-out;transition:all 0.25s ease-in-out}.skin-monobook .postedit{top:6em !important}.postedit-faded{opacity:0}.postedit-icon{padding-left:41px;  line-height:25px;background-repeat:no-repeat;background-position:8px 50%}.postedit-icon-checkmark{background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAB9ElEQVR4AZWRA3AYURQArxrVHtW2bdu2bdu2zdi2bdu2bWxs7zeehZaw4f70kbs+zI3e/nWK+RWx3aOFlrL56Sy5SxrruG69hlv6OyK+mz+8KDSXdXembj0ispT7tjs4ZTIbpYBvxGSGKzZTeFrb7W/meN002swFs0U8ttpHTkF2BvCqWQrW35929bTsKm5Zb+SEwWwcY8wAngB9m7Z+d+rIPZ/npdy12M5p47n8dXsCYAf0qPy06eGMdktuDu9Qf+JmKl3SWM91qzVcN9tAbEYkwMaq0tyb1m/To5kP170el/BK8/qa6sJr70ydf+T/Uu5ab+Oo/lS0AkUBpIFWlZ9WPhxpse/PHO7YbOOczjL0vZV2lNxPPtG73dYXM+xvm2znrOl83tidoqCwMBgYXsPFB0on5S6pr+eK5TKuW67lgvaKvF8mL1dtfTL32FHxRdyx3cQpg7m4x9sCXKkTIzA4LDH44zWdzaUf71hv5rTG4uyzcusybxSX7aThbMQ8XgCYAp3rzTTQOiIh9PNlzY3FSuZxrzjme1Y7uGS6kjsWO4jPjM4FVjRZsvD4kO9XtTZzQn82NyzWc0B7AmZh6gA/hOYSGhfw9YbOVnarj+S7800AL2BIsxUAbWNToj7bhBuQmZcOsFdoKUC74rGheCwXmqAIQTc9jQcrADIAAAAASUVORK5CYII=);background-image:url(/wiki/resources/src/mediawiki.action/images/green-checkmark.png?d94f1)!ie;background-position:left}.postedit-close{position:absolute;padding:0 .8em;right:0;top:0;font-size:1.25em;font-weight:bold;line-height:2.3em;color:black;text-shadow:0 0.0625em 0 white;text-decoration:none;opacity:0.2;filter:alpha(opacity=20)}.postedit-close:hover{color:black;text-decoration:none;opacity:0.4;filter:alpha(opacity=40)}</style><style>
+.suggestions a.mw-searchSuggest-link,.suggestions a.mw-searchSuggest-link:hover,.suggestions a.mw-searchSuggest-link:active,.suggestions a.mw-searchSuggest-link:focus{color:black;text-decoration:none}.suggestions-result-current a.mw-searchSuggest-link,.suggestions-result-current a.mw-searchSuggest-link:hover,.suggestions-result-current a.mw-searchSuggest-link:active,.suggestions-result-current a.mw-searchSuggest-link:focus{color:white}.suggestions a.mw-searchSuggest-link .special-query{ overflow:hidden;-o-text-overflow:ellipsis; text-overflow:ellipsis;white-space:nowrap}</style><meta name="ResourceLoaderDynamicStyles" content="">
+<link rel="stylesheet" href="./cache61_files/load(1).php">
+<script async="" src="./cache61_files/load(2).php"></script>
+<meta name="generator" content="MediaWiki 1.27.0">
+<link rel="shortcut icon" href="https://cs61.seas.harvard.edu/favicon.ico">
+<link rel="search" type="application/opensearchdescription+xml" href="https://cs61.seas.harvard.edu/wiki/opensearch_desc.php" title="CS61 (en)">
+<link rel="EditURI" type="application/rsd+xml" href="https://cs61.seas.harvard.edu/wiki/api.php?action=rsd">
+<link rel="alternate" type="application/atom+xml" title="CS61 Atom feed" href="https://cs61.seas.harvard.edu/wiki/index.php?title=Special:RecentChanges&amp;feed=atom">
+<script src="./cache61_files/load(3).php"></script></head>
+<body class="mediawiki ltr sitedir-ltr ns-0 ns-subject page-2016_StdioCache rootpage-2016_StdioCache skin-vector action-view">
+		<div id="mw-page-base" class="noprint"></div>
+		<div id="mw-head-base" class="noprint"></div>
+		<div id="content" class="mw-body" role="main">
+			<a id="top"></a>
+
+						<div class="mw-indicators">
+</div>
+			<h1 id="firstHeading" class="firstHeading" lang="en">2016/StdioCache</h1>
+									<div id="bodyContent" class="mw-body-content">
+									<div id="siteSub">From CS61</div>
+								<div id="contentSub"></div>
+												<div id="jump-to-nav" class="mw-jump">
+					Jump to:					<a href="https://cs61.seas.harvard.edu/wiki/2016/StdioCache#mw-head">navigation</a>, 					<a href="https://cs61.seas.harvard.edu/wiki/2016/StdioCache#p-search">search</a>
+				</div>
+				<div id="mw-content-text" lang="en" dir="ltr" class="mw-content-ltr"><center>
+<p><span style="color:#ad1b71; font-size:larger"><b>Computer Science 61 and E61</b></span><br>
+<span>Systems Programming and Machine Organization</span><br>
+<span>Fall 2016</span><br>
+</p>
+</center>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2><span class="toctoggle">&nbsp;[<a href="https://cs61.seas.harvard.edu/wiki/2016/StdioCache#" id="togglelink">hide</a>]&nbsp;</span></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="https://cs61.seas.harvard.edu/wiki/2016/StdioCache#Assignment_3:_Caching_and_File_I.2FO"><span class="tocnumber">1</span> <span class="toctext">Assignment 3: Caching and File I/O</span></a>
+<ul>
+<li class="toclevel-2 tocsection-2"><a href="https://cs61.seas.harvard.edu/wiki/2016/StdioCache#Get_the_code"><span class="tocnumber">1.1</span> <span class="toctext">Get the code</span></a></li>
+<li class="toclevel-2 tocsection-3"><a href="https://cs61.seas.harvard.edu/wiki/2016/StdioCache#Goal"><span class="tocnumber">1.2</span> <span class="toctext">Goal</span></a></li>
+<li class="toclevel-2 tocsection-4"><a href="https://cs61.seas.harvard.edu/wiki/2016/StdioCache#Evaluation"><span class="tocnumber">1.3</span> <span class="toctext">Evaluation</span></a></li>
+<li class="toclevel-2 tocsection-5"><a href="https://cs61.seas.harvard.edu/wiki/2016/StdioCache#Roadmap"><span class="tocnumber">1.4</span> <span class="toctext">Roadmap</span></a></li>
+<li class="toclevel-2 tocsection-6"><a href="https://cs61.seas.harvard.edu/wiki/2016/StdioCache#Hints"><span class="tocnumber">1.5</span> <span class="toctext">Hints</span></a></li>
+<li class="toclevel-2 tocsection-7"><a href="https://cs61.seas.harvard.edu/wiki/2016/StdioCache#Building"><span class="tocnumber">1.6</span> <span class="toctext">Building</span></a></li>
+<li class="toclevel-2 tocsection-8"><a href="https://cs61.seas.harvard.edu/wiki/2016/StdioCache#Extra_credit:_Deadlock"><span class="tocnumber">1.7</span> <span class="toctext">Extra credit: Deadlock</span></a></li>
+<li class="toclevel-2 tocsection-9"><a href="https://cs61.seas.harvard.edu/wiki/2016/StdioCache#Turnin"><span class="tocnumber">1.8</span> <span class="toctext">Turnin</span></a></li>
+</ul>
+</li>
+</ul>
+</div>
+
+<h1><span class="mw-headline" id="Assignment_3:_Caching_and_File_I.2FO">Assignment 3: Caching and File I/O</span></h1>
+<p>In this assignment, you’ll gain experience with caching by writing your own buffered I/O library.
+</p>
+<ul><li> Due <b>Fri 10/21</b> at 11:59pm for college students (1 day later for extension)
+<ul><li> <b>EXTENDED</b> to <b>Mon 10/24</b> at 11:59pm for college students (1 day later for extension)</li></ul></li>
+<li> This assignment may be completed in pairs.</li>
+<li> <b>Reminder:</b> You may not use code or solutions from previous years.</li></ul>
+<h2><span class="mw-headline" id="Get_the_code">Get the code</span></h2>
+<p>Our code is released in the <a rel="nofollow" class="external text" href="https://github.com/cs61/cs61-psets"><code>cs61-psets</code> repository</a>. To update it, run
+</p>
+<pre>git remote show handout
+</pre>
+<p>If this reports an error, run
+</p>
+<pre>git remote add handout <a rel="nofollow" class="external free" href="git://github.com/cs61/cs61-psets.git">git://github.com/cs61/cs61-psets.git</a>
+</pre>
+<p>Then run 
+</p>
+<pre>git pull handout master
+</pre>
+<p>This will <a href="https://cs61.seas.harvard.edu/wiki/2016/Git#Merges" title="2016/Git">merge</a> our Assignment 3 code with your previous work. If you have any “conflicts” from Assignment 1 or 2, <a href="https://cs61.seas.harvard.edu/wiki/2016/Git#Conflicts" title="2016/Git">resolve them</a> before continuing further. Run <code>git push</code> to save this merge back to your private repository.
+</p><p><i>Use an explicit merge.</i> If you copy code by hand, our automated scripts will have trouble analyzing your code, and it’ll be harder for you to incorporate our updates.
+</p><p>You may also create a new <code>cs61-psets</code> repository for this assignment. However, you will need our help: some issues with our use of GitHub Classroom make it difficult for you to create a new repository yourself. Write <code>cs61-staff@seas.harvard.edu</code> for help. Tell us (1) <i>your GitHub username</i> and (2) <i>the name of the repo you want to create</i>. Once the repo is ready, make sure you update <a rel="nofollow" class="external text" href="http://cs61.seas.harvard.edu/grading/">the grading server</a>.
+</p>
+<h2><span class="mw-headline" id="Goal">Goal</span></h2>
+<p>We’ve released a simple library, <i>IO61</i>, to perform I/O to/from files. You will find the code in the pest directory in the file <code>io61.c</code>. Our version of IO61 is pretty stupid—it uses character-at-a-time system call I/O and is thus quite slow. Your goal is simple: <i>speed it up using caching.</i>
+</p><p>We also distribute several programs that use IO61. (The grading server has some secret extra programs too!)
+</p>
+<ul><li> <code>cat61</code> reads a file sequentially one character at a time and writes it to standard output.</li>
+<li> <code>blockcat61</code> is like <code>cat61</code>, but reads the file sequentially one <i>block</i> at a time. Its <code>-b BLOCKSIZE</code> argument sets the block size.</li>
+<li> <code>randblockcat61</code> is like <code>blockcat61</code>, but it chooses a <i>random</i> block size for each read and write. It still reads and writes sequentially (only the block sizes are random). The <code>-b</code> argument is the maximum possible block size. This may very well stress your caching solution.</li>
+<li> <code>reverse61</code> reads a file a character at a time <i>in reverse</i> and writes the result to standard output.</li>
+<li> <code>stride61</code> reads its input file using a strided access pattern, writing the data it reads sequentially. By strided, we mean that it begins at offset 0, reads BLOCKSIZE bytes, seeks to position STRIDE, reads another bloc, seeks to position (2 * STRIDE), etc.  When it gets to the end of the file, it jumps back to the first bytes not yet read and repeats the pattern. The <code>-b</code> and <code>-s</code> arguments set the block size and stride length, respectively.</li>
+<li> <code>reordercat61</code> reads its input file one block at a time <i>in random order</i> and writes each block to the output file <i>at the correct position</i>. The result is a copy of the input file, but created non-sequentially.</li>
+<li> <code>gather61</code> can take two or more input files. It reads blocks from them in round-robin order to create its single output file. This will test your ability to handle multiple input files.</li>
+<li> <code>scatter61</code> can take two or more <i>output</i> files. It reads blocks from a single input file, then writes them to the output files in round-robin order. This will test your ability to handle multiple output files.</li></ul>
+<p>Introduce buffering (that is, caching) to the <code>io61_file</code> abstraction and use them to speed up IO61 operations.
+</p><p>We’re giving you tons of freedom to implement the file caches as you like. You may even use <a href="https://cs61.seas.harvard.edu/wiki/2016/FileDescriptors" title="2016/FileDescriptors">memory-mapped I/O</a>, <a href="https://cs61.seas.harvard.edu/wiki/2016/FileDescriptors" title="2016/FileDescriptors">prefetching system calls</a> like <code>madvise</code> or <code>posix_fadvise</code>, or multiple threads or processes <b>(although none of these are required)</b>. But you <b>may not</b> use another buffered I/O library or caching I/O library.
+</p><p>Your library should:
+</p>
+<ul><li> <b>Return correct results</b> for <i>all</i> access patterns and file types, including multiple files, very large files, non-seekable files, mixtures of calls (for instance, alternating <code>io61_read</code> and <code>io61_readc</code>), and random accesses.</li>
+<li> Perform as well as stdio on <b>sequential</b> reads and writes for <i>any</i> files, including very large files (such as files that don’t fit in memory) and non-seekable files.</li>
+<li> Improve on stdio’s performance for some <b>non-sequential</b> access patterns, such as simple strides or reverse access.</li></ul>
+<p>All your code should fit in <code>io61.c</code>.
+</p>
+<h2><span class="mw-headline" id="Evaluation">Evaluation</span></h2>
+<p>We will evaluate you based on your code’s performance relative to a version of IO61 that uses stdio. That version is provided for you for testing in <code>stdio-io61.c</code> (and the makefile builds <code>stdio-cat61</code>, <code>stdio-blockcat61</code>, and so forth).
+</p><p>Run <code>make check</code> to see how your current implementation is doing on a battery of tests. This will also print summary statistics at the end. Run <code>make check-TESTNUMBERS</code> (e.g., <code>make check-9</code> or <code>make check-5-10</code> or <code>make check-1,2,3</code>) to run selected tests.
+</p><p>We may update the tests during the pset release period. We may also run additional tests during grading.  In all instances, correctness counts -- that is, a program that runs quickly but incorrectly is worse than a program that runs slowly!
+</p>
+<h2><span class="mw-headline" id="Roadmap">Roadmap</span></h2>
+<p>It’s easy in this problem set to design something too complex and get yourself stuck. Avoid that problem by tackling the simple cases first. Here’s a possible roadmap.
+</p>
+<ul><li> <b>First,</b> you can improve the way <code>io61_read</code> and <code>io61_write</code> work <i>without introducing a cache</i>. Use <code>strace</code> to investigate the operation of <code>blockcat61</code>. Look at the <code>blockcat61</code> code; what system calls do you think it should make? Then run <code>strace -o strace.out ./blockcat61 blockcat61.c</code>. (That command line tells <code>strace</code> to write its output to <code>strace.out</code>, so examine <code>strace.out</code> with a command like <code>less strace.out</code>.) What system calls does <code>blockcat61</code> <i>actually</i> make?
+<ul><li> This will improve your performance on the block I/O tests (e.g., <code>make check-4-6</code>).</li></ul></li>
+<li> <b>Then,</b> implement a <b>single-slot cache buffer for reading</b>. This will hold bytes [N, N+B) of the file, where B is some largish number (try different numbers). Any read request that lies within that range of bytes can be satisfied without making a system call. In the book’s terminology, this is a single-slot cache. Check your work by examining <code>strace</code> output. Don’t worry about seeks yet. (This means your code will stop working on the “reverse order,” “stride order,” and “random seek order” tests.)
+<ul><li> This will improve your performance on character I/O tests.</li></ul></li>
+<li> <b>Then,</b> implement a <b>single-slot cache buffer for writing</b>. This is like the cache buffer for reading, but it absorbs writes instead of prefetching reads.
+<ul><li> This will improve your performance on character I/O tests. If you do this well, you should now match or beat stdio’s performance on all sequential I/O tests!</li></ul></li>
+<li> <b>Then,</b> fix your code to handle seeks correctly (but not necessarily in a high-performance way). This is actually pretty easy.
+<ul><li> This should make your code produce correct results for all tests.</li></ul></li>
+<li> <b>Then,</b> fix your code to handle seeks correctly, but with good performance for <code>reverse61</code>. For ideas, try running <code>strace</code> on the <code>stdio-reverse61</code> variant. What does it look like stdio is doing?
+<ul><li> This should make your code roughly equal stdio’s performance on all tests.</li></ul></li>
+<li> <b>Then,</b>  if you feel ambitious, you might try changing your code to use memory-mapped I/O when this is possible. Note: Memory-mapped I/O is not always possible, though, so keep your old block cache around for pipe files and other non-mappable files. (Mmap is not required; it is optional.)
+<ul><li> This should make your code beat stdio on some non-sequential I/O tests!</li></ul></li>
+<li> <b>Then,</b> if you have additional time and feel even more ambitious, implement an associative cache that works for non-mappable files or for very large memory-mapped files.
+<ul><li> Something like this will get the highest performance.</li>
+<li> It is difficult and rewarding to implement an associative cache. You’ll learn a lot! But design carefully so you don't make your other code more difficult to read and  maintain. In fact, you might try working on <a href="https://cs61.seas.harvard.edu/wiki/2016/Git" title="2016/Git">a separate branch</a> initially.</li></ul></li></ul>
+<h2><span class="mw-headline" id="Hints">Hints</span></h2>
+<ul><li> <b>Read our <a href="https://cs61.seas.harvard.edu/wiki/2016/FileDescriptors" title="2016/FileDescriptors">file descriptors notes</a>.</b></li>
+<li> Write code to handle sequential I/O first. This isn’t so hard and covers many important cases.</li>
+<li> Some of our tests, particularly on shorter files, are noisy, and can produce different timing results when run multiple times.</li>
+<li> You will likely need to change most of the functions in <code>io61.c</code>.</li>
+<li> To handle reordered I/O and particularly stride I/O, you will need to be clever and implement more complex cache algorithms.</li>
+<li> Stdio is a well-written package! It is OK if you can’t <i>always</i> beat it.</li>
+<li> <b>Write your own tests!</b> This will help you shake out bugs in your code, particularly correctness bugs. What diabolical things can you think of to try? You can add new tests pretty easily; just edit <code>GNUmakefile</code> and <code>check.pl</code>.</li>
+<li> You can run the tests on their own, too. <code>make check</code> creates some useful input files for testing and puts them in <code>files/</code>.</li></ul>
+<p>You are allowed to make a couple assumptions.
+</p>
+<ul><li> You may assume that any file descriptor passed to <code>io61_fdopen</code> has its file pointer set to 0 (the beginning of the file).</li>
+<li> You don’t need to set the file pointer after every call to <code>io61_seek</code>.</li></ul>
+<h2><span class="mw-headline" id="Building">Building</span></h2>
+<p>If you want to compile without optimization (which might help you debug), run <code>make O=0</code> or edit the GNUmakefile to set <code>O = 0</code> by default. Your code should work safely with sanitizers turned on; try <code>make SANITIZE=1 check</code>.
+</p>
+<h2><span class="mw-headline" id="Extra_credit:_Deadlock">Extra credit: Deadlock</span></h2>
+<p>We also release a program, <code>pipeexchange61</code>, that demonstrates a problem with conventional <i>blocking</i> I/O. The <code>pipeexchange61</code> program forks two copies of itself. One copy, the <i>requester</i>, sends requests to the other copy, the <i>responder</i>. The requester can send many requests back-to-back and only then wait for responses (a form of batching). When you run <code>pipeexchange61</code>, the program appears to get stuck! Why? Can you construct an I/O library that unsticks <code>pipeexchange61</code>, <i>without</i> modifying <code>pipeexchange61.c</code>?
+</p>
+<h2><span class="mw-headline" id="Turnin">Turnin</span></h2>
+<p>You will turn in your code by <i>pushing your git repository to github.com</i> and <i>updating <a rel="nofollow" class="external text" href="http://cs61.seas.harvard.edu/cs61/2016">the grading server</a></i> with your repository.
+</p><p><b>Don’t forget to fill out <code>README.txt</code>.</b> But don’t put your name there.
+</p>
+<hr>
+<p>This pset was originally created for CS61.
+</p>
+<!-- 
+NewPP limit report
+Cached time: 20170520021602
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.020 seconds
+Real time usage: 0.019 seconds
+Preprocessor visited node count: 40/1000000
+Preprocessor generated node count: 54/1000000
+Post‐expand include size: 201/2097152 bytes
+Template argument size: 0/2097152 bytes
+Highest expansion depth: 2/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    1.059      1 - Template:Header2016
+100.00%    1.059      1 - -total
+-->
+
+<!-- Saved in parser cache with key wikidb:pcache:idhash:755-0!*!0!!en!*!* and timestamp 20170520021602 and revision id 5748
+ -->
+</div>					<div class="printfooter">
+						Retrieved from "<a dir="ltr" href="https://cs61.seas.harvard.edu/wiki/index.php?title=2016/StdioCache&amp;oldid=5748">https://cs61.seas.harvard.edu/wiki/index.php?title=2016/StdioCache&amp;oldid=5748</a>"					</div>
+				<div id="catlinks" class="catlinks catlinks-allhidden" data-mw="interface"></div>				<div class="visualClear"></div>
+							</div>
+		</div>
+		<div id="mw-navigation">
+			<h2>Navigation menu</h2>
+
+			<div id="mw-head">
+									<div id="p-personal" role="navigation" class="" aria-labelledby="p-personal-label">
+						<h3 id="p-personal-label">Personal tools</h3>
+						<ul>
+							<li id="pt-login"><a href="https://cs61.seas.harvard.edu/wiki/index.php?title=Special:UserLogin&amp;returnto=2016%2FStdioCache" title="You are encouraged to log in; however, it is not mandatory [alt-shift-o]" accesskey="o">Log in</a></li>						</ul>
+					</div>
+									<div id="left-navigation">
+										<div id="p-namespaces" role="navigation" class="vectorTabs" aria-labelledby="p-namespaces-label">
+						<h3 id="p-namespaces-label">Namespaces</h3>
+						<ul>
+															<li id="ca-nstab-main" class="selected"><span><a href="https://cs61.seas.harvard.edu/wiki/2016/StdioCache" title="View the content page [alt-shift-c]" accesskey="c">Page</a></span></li>
+															<li id="ca-talk" class="new"><span><a href="https://cs61.seas.harvard.edu/wiki/index.php?title=Talk:2016/StdioCache&amp;action=edit&amp;redlink=1" title="Discussion about the content page [alt-shift-t]" accesskey="t" rel="discussion">Discussion</a></span></li>
+													</ul>
+					</div>
+										<div id="p-variants" role="navigation" class="vectorMenu emptyPortlet" aria-labelledby="p-variants-label">
+												<h3 id="p-variants-label" tabindex="0">
+							<span>Variants</span><a href="https://cs61.seas.harvard.edu/wiki/2016/StdioCache#" tabindex="-1"></a>
+						</h3>
+
+						<div class="menu">
+							<ul>
+															</ul>
+						</div>
+					</div>
+									</div>
+				<div id="right-navigation">
+										<div id="p-views" role="navigation" class="vectorTabs" aria-labelledby="p-views-label">
+						<h3 id="p-views-label">Views</h3>
+						<ul>
+															<li id="ca-view" class="selected"><span><a href="https://cs61.seas.harvard.edu/wiki/2016/StdioCache">Read</a></span></li>
+															<li id="ca-viewsource"><span><a href="https://cs61.seas.harvard.edu/wiki/index.php?title=2016/StdioCache&amp;action=edit" title="This page is protected.
+You can view its source [alt-shift-e]" accesskey="e">View source</a></span></li>
+															<li id="ca-history" class="collapsible"><span><a href="https://cs61.seas.harvard.edu/wiki/index.php?title=2016/StdioCache&amp;action=history" title="Past revisions of this page [alt-shift-h]" accesskey="h">View history</a></span></li>
+													</ul>
+					</div>
+										<div id="p-cactions" role="navigation" class="vectorMenu emptyPortlet" aria-labelledby="p-cactions-label">
+						<h3 id="p-cactions-label" tabindex="0"><span>More</span><a href="https://cs61.seas.harvard.edu/wiki/2016/StdioCache#" tabindex="-1"></a></h3>
+
+						<div class="menu">
+							<ul>
+															</ul>
+						</div>
+					</div>
+										<div id="p-search" role="search">
+						<h3>
+							<label for="searchInput">Search</label>
+						</h3>
+
+						<form action="https://cs61.seas.harvard.edu/wiki/index.php" id="searchform">
+							<div id="simpleSearch">
+							<input type="search" name="search" placeholder="Search" title="Search CS61 [alt-shift-f]" accesskey="f" id="searchInput" tabindex="1" autocomplete="off"><input type="hidden" value="Special:Search" name="title"><input type="submit" name="go" value="Go" title="Go to a page with this exact name if it exists" id="searchButton" class="searchButton">							</div>
+						</form>
+					</div>
+									</div>
+			</div>
+			<div id="mw-panel">
+				<div id="p-logo" role="banner"><a class="mw-wiki-logo" href="https://cs61.seas.harvard.edu/wiki/2016/Home" title="Visit the main page"></a></div>
+						<div class="portal" role="navigation" id="p-navigation" aria-labelledby="p-navigation-label">
+			<h3 id="p-navigation-label">Navigation</h3>
+
+			<div class="body">
+									<ul>
+						<li id="n-mainpage-description"><a href="https://cs61.seas.harvard.edu/wiki/2016/Home" title="Visit the main page [alt-shift-z]" accesskey="z">Main page</a></li><li id="n-portal"><a href="https://cs61.seas.harvard.edu/wiki/CS61:Community_portal" title="About the project, what you can do, where to find things">Community portal</a></li><li id="n-currentevents"><a href="https://cs61.seas.harvard.edu/wiki/CS61:Current_events" title="Find background information on current events">Current events</a></li><li id="n-recentchanges"><a href="https://cs61.seas.harvard.edu/wiki/Special:RecentChanges" title="A list of recent changes in the wiki [alt-shift-r]" accesskey="r">Recent changes</a></li><li id="n-randompage"><a href="https://cs61.seas.harvard.edu/wiki/Special:Random" title="Load a random page [alt-shift-x]" accesskey="x">Random page</a></li><li id="n-help"><a href="https://www.mediawiki.org/wiki/Special:MyLanguage/Help:Contents" title="The place to find out">Help</a></li>					</ul>
+							</div>
+		</div>
+			<div class="portal" role="navigation" id="p-tb" aria-labelledby="p-tb-label">
+			<h3 id="p-tb-label">Tools</h3>
+
+			<div class="body">
+									<ul>
+						<li id="t-whatlinkshere"><a href="https://cs61.seas.harvard.edu/wiki/Special:WhatLinksHere/2016/StdioCache" title="A list of all wiki pages that link here [alt-shift-j]" accesskey="j">What links here</a></li><li id="t-recentchangeslinked"><a href="https://cs61.seas.harvard.edu/wiki/Special:RecentChangesLinked/2016/StdioCache" title="Recent changes in pages linked from this page [alt-shift-k]" accesskey="k">Related changes</a></li><li id="t-specialpages"><a href="https://cs61.seas.harvard.edu/wiki/Special:SpecialPages" title="A list of all special pages [alt-shift-q]" accesskey="q">Special pages</a></li><li id="t-print"><a href="https://cs61.seas.harvard.edu/wiki/index.php?title=2016/StdioCache&amp;printable=yes" rel="alternate" title="Printable version of this page [alt-shift-p]" accesskey="p">Printable version</a></li><li id="t-permalink"><a href="https://cs61.seas.harvard.edu/wiki/index.php?title=2016/StdioCache&amp;oldid=5748" title="Permanent link to this revision of the page">Permanent link</a></li><li id="t-info"><a href="https://cs61.seas.harvard.edu/wiki/index.php?title=2016/StdioCache&amp;action=info" title="More information about this page">Page information</a></li>					</ul>
+							</div>
+		</div>
+				</div>
+		</div>
+		<div id="footer" role="contentinfo">
+							<ul id="footer-info">
+											<li id="footer-info-lastmod"> This page was last modified on 23 October 2016, at 16:24.</li>
+									</ul>
+							<ul id="footer-places">
+											<li id="footer-places-privacy"><a href="https://cs61.seas.harvard.edu/wiki/CS61:Privacy_policy" title="CS61:Privacy policy">Privacy policy</a></li>
+											<li id="footer-places-about"><a href="https://cs61.seas.harvard.edu/wiki/CS61:About" title="CS61:About">About CS61</a></li>
+											<li id="footer-places-disclaimer"><a href="https://cs61.seas.harvard.edu/wiki/CS61:General_disclaimer" title="CS61:General disclaimer">Disclaimers</a></li>
+									</ul>
+										<ul id="footer-icons" class="noprint">
+											<li id="footer-poweredbyico">
+							<a href="https://www.mediawiki.org/"><img src="./cache61_files/poweredby_mediawiki_88x31.png" alt="Powered by MediaWiki" srcset="/wiki/resources/assets/poweredby_mediawiki_132x47.png 1.5x, /wiki/resources/assets/poweredby_mediawiki_176x62.png 2x" width="88" height="31"></a>						</li>
+									</ul>
+						<div style="clear:both"></div>
+		</div>
+		<script>(window.RLQ=window.RLQ||[]).push(function(){mw.loader.state({"user":"ready","user.groups":"ready"});mw.loader.load(["mediawiki.toc","mediawiki.action.view.postEdit","site","mediawiki.user","mediawiki.hidpi","mediawiki.page.ready","mediawiki.searchSuggest"]);});</script><script>(window.RLQ=window.RLQ||[]).push(function(){mw.config.set({"wgBackendResponseTime":119});});</script>
+	
+
+<div class="suggestions" style="display: none; font-size: 13px;"><div class="suggestions-results"></div><div class="suggestions-special"></div></div></body></html>

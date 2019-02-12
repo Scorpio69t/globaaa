@@ -1,0 +1,104 @@
+memory:
+
+	: partial function mapping each address to at most one data value
+
+	: when you write, you move from state m -> m' | m' = m + (a -> d)
+
+	: when you read something from memory, you lookup that value. if no value is in
+	  memory at that location, the value returned is unconstrained
+
+		: QUESTION: Why do this? Why not have some seminal value that represents UNINITIALIZED?
+
+		: QUESTION: This is a little weird to me -- why not have read be a function that returns
+			    the value:
+
+			fun read(m : Memory, a : Addr) : Data {
+				m[a]	-- should be the empty set if a isn't in m
+			}
+
+			and then your assert can be:
+
+			assert WriteRead {
+				all m, m' : Memory, a : Addr, d : Data |
+					write[m, m', a, d] implies read[m', a] = d
+			}
+
+			--  it's odd to know what value you're getting out of a read before the read.
+
+			check mymemory.als
+
+	: loading and flushing are nondeterministic since you can't tell which values from the cache
+	  will be evicted.
+
+		: QUESTION: Why not model something like LFU or LRU as an eviction policy?
+
+		: QUESTION: Why not model the size of the cache in the implementation?
+
+			pred flush [c, c': CacheSystem] {
+				some addrs: some c.cache.Data {
+					c'.main = c.main ++ addrs <: c.cache
+					c'.cache = c.cache - addrs -> Data
+				}
+			}
+
+	: how does the above function work? for some addrs for some cache.Data, c'.main equals the current
+	  memory and a relational override with the memory in c.cache where the left value equals addrs;
+	  for c'.main, replace any addrs in c.main with the new value in the cache + add any new binary relations
+	  in the cache.
+
+	: how is the initial model of memory different from the fixed size memory model? Well, there's still no
+	  size limit to the memory. differences are, however:
+
+		1) no init
+		2) no check for presence in memory before read
+		3) one Data in Addr
+
+	  -- memory always has some value in it.
+
+abstract functions:
+
+	: I think the issue is that given two memory implementations, the states in the implementations don't necessarily line up.
+
+	: if we look at the abstract function for cachesystem and memory, the alpha function simply converts between the two -- changing 
+	  the type of memory so we can pass the correct type between the two models.
+
+	: furthermore, let's say we want to compare abstract memory with a fixed memory model. in both of these models they use the same
+	  kinds of memory signatures but "distinct signatures represent distinct sets of atoms, even if their fields have the same name" (pg. 230)
+	  even if they have the same name you can't compare between them.
+
+	: let's think again about the difference between abstract memory and fixed memory. in the abstract case, what they say is that if the value is
+	  in the memory it'll return it. otherwise, it'll return a random value. in the fixed case, it'll again simply return a value for the address --
+	  the fixed size memory doesn't init the memory or check the presence in memory before a read; this is because it assumes you always have a
+	  pool of memory with *some* values in it.
+
+	: if we wanted to compare between these two models, both reads will return something -- it's ok if the abstract returns a random value
+	  as long as there has never been a write there in the fixed model
+	
+		: use a history variable to keep track of what addresses have been written to; if it hasn't been written to it can return
+		  a random value, like in he abstract case. if it has been written to it has to return the value that was written there.
+
+syntax:
+
+	: e1[e2] is the same as e2.e1. given a relation (a -> b) and a set {a}, 
+	  {a}.(a -> b) = b = (a -> b)[{a}]
+
+		: in this syntax, it's like you're asking for the index in the
+		  binary relation
+
+	: domain and range restrictions. given a set s and a relation r, s <: r contains
+	  all tuples in r that start with s. r :> s contains all tuples in r that end
+	  with s.
+
+	: ++ relational override replaces the keys in a binary relation. for example:
+	  (a -> b) ++ {(a -> c), (b -> d)} = {(a -> c), (b -> d)}
+
+hotel keys:
+
+	: I think what he was saying was that, as formulated with a fact if we were to extend the model s.t. there's
+	  a master key, our fact about no itervening events wouldn't work -- we'd want a master key or something to be
+	  able to enter the room before two guests changed rooms without any effect.
+
+	  he mentioned that a way to fix this would be to change the fact to a predicate { no intervening implies no bad entry }.
+	  therefore, if there's no intervening event, which I think we'd define as someone else entering the room with a normal
+	  key (aka not a master key) then there's no bad entry. working with a predicate here, instead of a fact, allows us to
+	  extend our model.

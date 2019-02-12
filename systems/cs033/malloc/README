@@ -1,0 +1,63 @@
+- mm_init:
+
+	- when initializing the prologue and epilogue, start with blocks of only
+	  WORD_SIZE. You only need this much space to:
+
+		1) record the size of the block
+		2) and mark it as allocated to demarcate the region of heap memory
+
+- mm_malloc:
+
+	- when trying to malloc a block, first check the free list using check_flist(). If you find
+	  a block in the free list with enough space to hold 'size + TAGS_SIZE + MINBLOCKSIZE', this means 
+	  you can pull that block out, splice it, and reinsert the extra memory back into the list.
+	  If there's not enough space to do this, simply use the block from the list.
+
+	  If you can't find a block of adequate size in the free list, allocate more memory, 
+	  first overwriting the previous epilogue and stacking a new epilogue on the end.
+
+- mm_free:
+
+	- given a block, check both previous and next blocks, coalescing if adjacent blocks
+	  on the heap are also free. To coalesce, the blocks have to be adjacent on the heap,
+	  so make sure to use block_next() and block_prev() and not block_next_free(), etc.
+
+- mm_realloc:
+
+	- for realloc, there seems to be 3 cases: 1) you're trying to realloc a block to the 
+	  size it currently is, 2) to a size less than its current size, and 3) to a size greater
+	  than its current size.
+
+	  	1) In the first case, simply return. 
+
+		2) If you're shrinking the block and there's enough space in the original block to
+		   splice it and insert extra memory into the free list, do this. Here, as in elsewhere, 
+		   I make use of the mm_free() function since this will coalesce the blocks if possible.
+
+		   If, instead, there's not enough memory, malloc more space, copy the contents over, and
+	  	   free the old memory.
+
+		3) If you're growning the block, I make use of a temporary buffer so I can change the sequence
+		   from (2) above. Here, I create a char buffer[], copy the contents into this buffer, first
+		   free the memory and then malloc more. I do this, prioritizing freeing memory over malloc'ing more,
+		   so mm_free() can possibly coalesce the block into something bigger to be reused. 
+
+		   The downside to this comes in terms of performance; copying everything over into a temporary buffer
+		   slows things down - this is why I only do this when I'm growing the block and there's the possibility
+		   freeing before malloc'ing could coalesce a block into a new block of adequate size.		
+
+- mm_heap_check:
+
+	- my heap check does a couple things:
+
+		1) print_heap_info(): prints out the basic info specified in the .pdf.
+		2) check_free_list(): checks that all blocks in the free list are marked as free
+		3) check_free_heap(): checks that all blocks marked free in the heap are also in the free list
+
+- auxillary functions:
+
+	void* check_flist(size_t size);
+	void print_heap_info(block_t* first, block_t* top);
+	int check_free_list();
+	int check_free_heap(block_t* block, block_t* top);
+	int find_in_list(block_t* block);

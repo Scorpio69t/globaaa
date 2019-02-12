@@ -1,0 +1,43 @@
+compilation:
+
+	to make both builds (33sh and 33noprompt) simply type: "make". To clean up any executables type
+	"make clean".
+
+design:
+
+	A couple design decisions:
+
+		(1) I tried to separate the headers, helper functions, and the core program for running the
+		    shell. These can be found, respectively, in 'helpers.h', 'helpers.c', and 'sh.c'.
+
+		(2) I chose to malloc() memory for a number of buffers (for reading in & for holding args).
+		    I like this better than having a static buffer since, ideally, you can realloc() this
+		    memory if the # of chars read in by read() > BLOCK, which I defined as 512. I don't do
+		    this, but it does provide the framework for a more robust program that won't simply
+		    crash with very large inputs.
+
+		(3) The flow of this program is basically a number of conditionals. I first (1) check the
+		    commands I'm overloading (rm, ln, cd, and exit). If user input doesn't match any of these,
+		    I then (2) check to see if there's a redirection symbol in the input - it's convenient you
+		    don't really use any redirection with any of the 4 above commands. If the input doesn't have
+		    any of this, I simply execv() on the command since it must be a shell command the system will
+		    handle (if this messes up, it'll return an error and wait for further user input).
+
+		(4) I had some grief dealing with types, specifically transitioning between int, ssize_t, and
+		    size_t. I'm pretty sure:
+
+				(1). int: used for both signed and unsigned numbers.
+
+				(2). ssize_t: returned by many programs (like read()) to indicate size
+					      of return value, however, can have negative values.
+
+				(3). size_t: returned to indicate size of something created, lke from
+					     malloc(). This is unsigned.
+
+		    When dealing with the size of things, I tried to use size_t and tried to only cast from
+		    a signed number to an unsigned one after I'd already checked that the signed number was
+		    greater than or equal to zero.
+
+		(5) Beyond this, I have extensive error checking, however, I tried to keep the number of error
+		    msgs to a minimum. I understand that in a program, verbosity helps with debugging, but for
+		    a small shell like this, I opted for a more streamlined, general approach to error msgs.

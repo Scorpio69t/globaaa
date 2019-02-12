@@ -1,0 +1,27 @@
+- cases to consider:
+
+	dir/file
+
+	/dir/file
+
+	/dir/file/
+
+	/
+
+	//////dir
+
+	//////dir//////file
+
+- 
+
+	if you have a file:
+
+		dir/file
+	
+			- return the vnode for dir in vnode_t** res_vnode
+			- return file in name
+
+		////
+
+			- return vnode for the base directory
+			- what should be the file name?

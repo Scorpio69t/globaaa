@@ -1,0 +1,59 @@
+1.
+
+---****--------
+---****--------
+---****--------
+---****--------
+---****--------
+---****--------
+---****--------
+---****--------
+---****--------
+---****--------
+---****--------
+---************
+---************
+---************
+---************
+
+2.
+
+Imagine a row of length 5. Right now, if we have a single rule stipulating that
+only 1 cell be shaded, we need 5 starting variables {A1, A2, A3, A4, A5} in order
+to represent this in our Nanogram. The constraints would look something like:
+
+        (set 1)		(set 2)		(set 3)		(set 4)		(set 5)
+	-A1 1		-A2 -1		-A3 -1		-A4 -1		-A5 -1
+	-A1 -2		-A2 2		-A3 -2		-A4 -2		-A5 -2
+	-A1 -3		-A2 -3		-A3 3		-A4 -3		-A5 -3
+	-A1 -4		-A2 -4		-A3 -4		-A4 4		-A5 -4
+	-A1 -4		-A2 -5		-A3 -5		-A4 -5		-A5 5
+
+	(set 6)		(set 7)		(set 8)		(set 9)
+	-A1 -A2		-A2 -A3		-A3 -A4		-A4 -A5
+	-A1 -A3		-A2 -A4		-A3 -A5
+	-A1 -A4		-A2 -A5
+	-A1 -A4
+	A1 A2
+
+	(set 10)
+	A1 A2 A3 A4 A5
+
+Let's say, however, we have 2 rules for the row: (1, 2). In this case you'd need
+constraints for when the first cell is shaded and then additional constraints for when
+the two other consecutive cells are shaded. This means that each of the given sets above 
+is going to grow substantially. For example, just the first cell in the row (set 1)
+above expands to:
+
+	-A1 1		-A1 1		-A1 1
+	-A1 B2		-A1 -2		-A1 -2
+	-B2 2		-A1 B3		-A1 -3
+	-B2 3		-B3 3		-A1 B4		etc...
+	-B2 -4		-B3 4		-B4 4
+	-B2 -5		-B3 -5		-B4 5
+
+with additional constraints ensuring there is a starting variable, but only one. Although
+not complete, the above should make it clear that adding additional rules greatly expands
+the satisfiability equation that needs to be solved. This is because we have to account for
+every possible combination of viable starting variables, and that number is going to increase
+with the inclusion of additional rules.

@@ -1,0 +1,46 @@
+TODO: lists, cases, types, and data:
+
+	lists and cases are dependent on data definitions: lists are 
+
+	1) go through all types - compile to Ocaml types:
+
+		1.1) if the type you're defining is an alias for a builtin,
+		     there's no need to actually compile it. Instead, add it
+		     to a hashtable.
+
+		1.2) need two hashtables: 
+
+			hshtbl1: types -> builtins
+			hshtbl2: data -> types (will get to later)
+
+
+	2) let's think about data definitions for a second. if I have a data
+	   definition:
+
+	      data Code:
+		| item(letter :: String, color :: Color)
+		| item2(letter :: String, number :: Number)
+	      end
+
+	   I'll add it to hshtbl1: 
+
+		Code -> Code
+
+	   and I'll add its entries to hshtbl2:
+
+		item -> Code
+		item2 -> Code
+
+	   So, for a list I might have something like:
+
+	      data List:
+		| link(hd, tl)
+	      end		
+
+	    s-user-type("List", t-union(all), t-list)
+
+	    I need a type in Definitions for this. Let's define:
+
+		s-user-type()
+
+	    whenever we see a link() in our code, we compile it as:

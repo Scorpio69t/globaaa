@@ -1,0 +1,117 @@
+- There are different ways to think about scheduling:
+
+	- you want to minimize the average time threads have to wait (AWT)
+
+	- some notion of fairness. For example, if you're running a system where those 
+	  threads that finish quickest are run first, if you have a thread [k] that's 
+	  time consuming and you keep adding other (quicker) threads to the system, thread [k]
+	  might never get to run.
+
+	- there might be certain constraints (and jobs), which have to be handled
+	  on time (real time systems)
+
+- AWT:
+
+        - introduced the concept of AWT (average wait time) = sum(t_i + T_i) / n | t_i is the time
+          for a thread to start running, T_i is the time for a thread to complete execution, and
+          n is the total number of threads.
+
+                - it's optimal if you run the quickest threads i.e. min(T_i) first
+
+        - this might not be fair, however, if you have modes of preemption and time slicing -- you might
+          have a thread that's waiting forever
+
+        - you might also have certain threads that you want to run first, for example you might have
+          interactive threads (i.e. those facing the user) that you want to run first
+
+                - use a version of priority queues
+
+- priority queues: 
+
+	- the assumption here is that interactive threads will usually be pretty quick:
+
+		1) Place all threads in the first level of a priority queue 
+
+		2) If a thread doesn't finish, move it to a lower level queue. This means 
+		   that thread probably wasn't an interactive thread and is probably a 
+		   thread that will take a long time
+	
+		3) add support s.t. as a thread doesn't get processor time, it is more 
+		   likely to get the processor -- this helps ensure fairness, and this
+		   is where the idea of stride scheduling comes from:
+
+- stride scheduling:
+
+        - threads with 'lower number' have a higher priority. All threads start with a certain priority, and
+          if a thread is running on the cpu it adds to its count.
+
+                - threads can buy tickets, tho, which will slow the number of tickets added to its count
+
+        so let's say I have 2 threads, [1] bought 1 ticket, [2] 4.
+
+
+                [2]                     (1/4 -> 1/2)
+                [2]                     (1/2 -> 3/4)
+                [2]                     (3/4 -> 1)
+                [2]                     (1 -> 5/4)              // assuming it had a lower tid
+                [1]                     (1 -> 2)
+                [2]                     (5/4 -> 3/2)
+                ...
+
+- adding a thread:
+
+	- let's say we have a thread jump into the pool where other threads have been running - its meter
+	  will be less than the others', yet this might not accurately represent its number of tickets.
+
+	  I have 2 threads, one with 3 tickets the other with 2. After 4 clock ticks:
+
+		[1]			(1/3 -> 2/3)
+		[2]			(1/2 -> 1)
+		[1]			(2/3 -> 1)
+		[1]			(1 -> 4/3)
+
+	  Let's say at this point I have another thread jump into the pool having bought 3 tickets. It would then
+	  hog the processor:
+
+		[3]			(1/3 -> 2/3)
+		[3]			(2/3 -> 1)
+		...
+
+	  this treats its late arrival into the thread pool as almost a 'boost' to its position in the schedule.
+	  What should happen instead is that it's meter should = the total ticks of the clock + it's metered time
+	  s.t. [3] starts at (4/3)
+
+		fictitious meter:
+
+			(1/5 -> 2/5)
+			(2/5 -> 3/5)
+			(3/5 -> 4/5)
+			(4/5 -> 1)
+
+		so after the 4th clock tick, [3] jumps in with a meter of (4/3)
+
+	  this makes perfect sense - after the 5th clock tick [2] (1 -> 3/2); [2] has a lower thread ID than
+	  [3] so it should run. Now, the states of all 3 tickets are:
+
+			[1] : (4/3)
+			[2] : (3/2)
+			[3] : (4/3)
+
+	  and the schedule can run as if there were 3 threads running in the system the entire time.
+
+- removing a thread:
+						(THIS IS NOT RIGHT) 
+
+  [I would think that after 13 clock ticks, the overall meters of the tickets would be metered_rate * 3
+   for a situation where a thread with 2 tickets leaves for 3 clock ticks then rejoins the system; this
+   would mimic the system where the thread never left at all, but instead ran for 15 clock ticks]
+
+  let's say a thread is leaving the system. So, taking the example above, after 4 clock ticks thread [2] leaves. It's
+  remaining time = metered time - total meter = 0. The system now runs for 1 clock tick (with only 3 tickets in the system)
+
+		[1] 			(4/3 -> 5/3)
+		[1]			(5/3 -> 2)
+
+	([2] re-enters the system with a metered time of (4/3))
+
+		[2]			(5/3 -> 13/6)

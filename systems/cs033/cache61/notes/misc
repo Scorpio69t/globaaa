@@ -1,0 +1,256 @@
+profiling:
+
+	cmds:
+
+		CPUPROFILE=tests/blockcat_profile ./blockcat61 -b 1024 -o tests/out files/text5meg.txt
+
+		google-pprof --pdf ./blockcat61 tests/blockcat_profile > tests/pdfs/profile.pdf
+
+(1) blocks for read() and write():
+
+	first tests (cat61.c) use readc() and writec(). I thought originally everything simply called read() and 
+	write() and then these delegated actual writing to the char functions, but that's not the case. cat61.c 
+	calls readc() and writec(). 
+
+	in blockcat61.c, though, i think read() and write() delegate tasks to readc() and writec() s.t. a call 
+	to read 100 bytes would iterate through readc() 100 times. clearly this is awful. performance can be greatly 
+	improved by simply making a single read() and write() of the correct size -- no buffer needed.
+
+(2) add buffer: 
+
+	in order to get better performance for single character reads and writes, I need to implement a cache:
+	in the 'io61_file' struct, add a buffer[BLOCK] as well as a position. Now, when you call readc(), 
+	if you're at the end of the buffer you'll have to make a call to system read() again, however, if
+	position < BLOCK, you can simply index into the buffer that's already associated with the file.
+
+(3) read metadata:
+
+	i'm a little bit uncertain what elements i need to keep around as metadata. reads seem pretty simple:
+	i'm going to make use of **spatial locality** to prefetch data i.e. read ahead. for example, if i make
+	a single call to read 100 bytes, im instead going to read BLOCK bytes where BLOCK is something like
+	16k or 32k bytes. the idea, then, is that if another call is made to read without seeking elsewhere
+	within the file, i can fulfill that read via the buffer, thus bypassing the need to make another
+	system call.
+
+		unsigned char buf[BLOCK]		/* file's buffer */
+		size_t pos				/* position within the buffer */
+
+	things get a bit more confusing when taking seeks into account. for example, let's say you prefetch BLOCK
+	bytes but then seek to a location outside of the data within the buffer. in this case, you want to 
+	empty the buffer and prefetch another block of size BLOCK. because of this, you need to keep around
+	some reference to your position within the file. what i think i want to do is have some absolute position
+	keep track of the position of the current block within the file. SEEK_CUR, then, would always be at position
+	abs + pos.
+
+		size_t abs				/* position of the BLOCK buffer in the file */
+
+	lastly, i want to keep around some notion of the size of the data i prefetched. normally, size will equal BLOCK
+	unless, of course, i'm near the end of the file or the file's size < BLOCK. either way, I need to know the
+	amount of data in the buffer.
+
+		size_t sz				/* amount of data in the buffer */
+
+(4) write metadata:
+
+	this is difficult. I can use the above metadata for most writes. what i've run into trouble with, though, is 
+	reordercat61.c. what this program does is jump around, using io61_seek, to multiple locations within an in file,
+	reading data from that file, and then writing it out to some out file. 
+
+	the reason this is tricky is let's say I have a relatively small file (1), say 40 bytes, and I'm jumping around in 
+	blocks of 10 bytes. let's say my buffer is small, but ok relative to the size of the file; BLOCK equals 36
+	bytes. if we seek to position 10 and write, this write will be buffered in the write buffer. if we then seek
+	to position 30 and try to make a write, this'll exceed the buffer. we can't simply flush the buffer, tho, since
+	we only want to write out 10 bytes (the buffer is filled with mostly NULL). we therefore make a targeted write
+	of 10 bytes from the buffer into the out file at SEEK_SET + 10 (since this is where the write should've occured).
+
+	how about another scenario (2): we write to position 0 10 bytes, jump to position 20 and write 10 bytes, then jump to 
+	position 10 and write 10 bytes. now, the buffer isn't full so i can't simply flush the buffer, but instead of making
+	3 writes each of size 10, I can make a single write of size 30. I need to know, though, that I can combine these disparate
+	writes into a single, large write. i try to handle this with insert_into_wbuf() and flush_wbuf()
+
+(5) wbuf:
+
+	this feels a bit hacky. what I do is keep around a buffer, wbuf[], that keeps track of the positions and sizes of writes.
+	so in example (1) from above, if I seek outside the buffer I'll call flush_wbuf(), which'll make a targeted write at position
+	10 of the correct size. 
+
+	in example (2), the last write at position 10 should cause all the other writes to coalesce such that you have a single write
+	of size 30 starting at position 0. This reduces the number of writes while also flushing the buffer correctly. 
+
+	Currently, the algorithm to insert and coalesce blocks in insert_into_wbuf() runs O(n^2), though I think I can change it 
+	to one using binary search, which'll be O(log[n]).
+
+(6) misc:
+
+-
+
+	I implemented the buffer in the readc() case -- when I look at the output of the files they look the
+	same, however, it could be off by one or something. /* TODO: write small test files */
+
+-
+
+	The first 10 tests pass and are acceptable (although a little slow). It seems an 8k BLOCK size works best.
+	I need to work on reverse CAT and speeding up all tests.
+
+	I'm curious the cost of certain function calls, such as memcpy() and lseek(), since I user them both a 
+	number of times in io61_read(). I might want to run the profiling tool (from lab 5) to see what functions 
+	are the most expensive. Also, see if I can use the file buffers in io61_read(0 and io61_write() instead
+	of creating temporary buffers limited to the scope of the function (I don't think this'll affect the runtime,
+	it just seems cleaner)
+
+-
+
+	I'm not sure how my read and write are OK -- they perform, at times, almost equivalently to stdio's, but the
+	problem is I'm basically making a call to read() everytime a program calls io61_read(). I'm no longer reading
+	in single characters, but I'm not buffering at all. 
+
+	The key here is to use the same buffer in the file struct (f->fbuf) to reduce the number of calls to read().
+
+	If I'm going to make use of the file's buffer, I need to keep track of metadata associated with it: f->fsz refers
+	to how many bytes are currently in the buffer, while f->fpos refers to the position in that buffer. So, let's say
+	we fill the buffer so it has 8k bytes. We then return 100 bytes, since that was the initial read. If a subsequent
+	read is for 100 bytes, since the sz of the read is less than (f->fsz - f->fpos), return characters in f->fbuf
+	and update f->fpos.
+
+
+- 
+
+	randblockcat61 -b 2 -o tests/out tests/hamlet
+	
+	reordercat61 -b 5 -o tests/out tests/drake
+
+	blockcat61 -b 5 -o tests/out tests/drake
+
+-
+
+	I think the key to handling seeking is that you need to keep track of the absolute position in the file
+	you're reading / writing from. This means, in addition to f->fpos, have something like f->fabs. You should
+	be able to use this, along with f->fpos, to determine if you need to read in more data or if you've lseeked
+	to a block that's already been put into the single slot cache.
+
+-
+
+	let's say you have 2 caches, one that's direct mapped and one that's fully associative. Direct mapped caches mean
+	that blocks can only take up certain locations in the cache, whereas fully associative caches allow blocks to 
+	fit anywhere (downside is that checking for cache hits must search the entire cache).
+
+	Let's say X_i is between [0, 63]. If this is the case, (floor(X / 64) mod N) will return the same value, meaning in
+	the direct mapped cache, you will continuously have to evict the current occupant of the cache and replace it.
+
+	Let's say N = 8:
+
+		(floor(1 / 64) mod N)			/* place in first slot of direct mapped cache: 0 */
+		(floor(2 / 64) mod N)			/* replace first slot of cache: 0 */
+
+		(floor(64 * 8 + 1 / 64) mod N) 		/* will replace the first slot: 0 */
+		(floor(64 * 8 + 2 / 64) mod N) 		/* replace first slot ... i.e. there's never a cache hit */
+
+		(floor(1 / 64) mod N)			/* these won't be cache hits in a direct mapped cache, but they will hit
+		(floor(2 / 64) mod N)			/* in an associative cache */
+
+	In this case, the direct mapped cache will do worse than an associative cache.
+
+	Assuming N = 8 again:
+
+		(floor(1 / 64) mod N)
+		(floor(65 / 64) mod N)
+		(floor(129 / 64) mod N)
+		(floor(193 / 64) mod N)
+		(floor(1 / 64) mod N)
+		(floor(65 / 64) mod N)
+		(floor(129 / 64) mod N)
+		(floor(193 / 64) mod N)
+
+	After this, the cache will be half full, but both the direct mapped and associative caches should perform the same: 4 misses
+	and 4 hits.
+
+-
+
+	The problem with strided access is lets say we have stride-1024, where we read a byte every 1024 bytes. In this case, if you're
+	prefetching, let's say 1024 bytes, then you're going to run slower than if you weren't caching at all since you're reading in more, 
+	yet none of what you read in will result in a cache hit. 
+
+-
+
+	I think what I want to do is everytime I read something in update f->fabs to reference the beginning of this. So let's say I'm on
+	the second read of 1024 btyes:
+
+		f->fabs = 1024		/* position in file */
+		f->fpos = 0		/* position in buffer */
+		f->fsz = 1024		/* sz of buffer */
+
+	I then get a read of 100 bytes:
+
+		f->fabs = 1024
+		f->fpos = 100
+		f->fsz = 1024
+
+	Let's say I now seek to position 2000 in the file:
+
+		check if (position < f->fabs + f->fsz), if it is then what I want is in the buffer. If not, I'm going to need
+		to perform another read. I might not need to do this in lseek tho -- just put off till I call read again.
+
+-
+
+	I think what I want to do for reverse files, is prefetch data, but prefetch with a range. So, if I leek() to position 20000
+	in the file, maybe read 2000 bytes before that and 14000 bytes after, so I'm prefetching a total of 16k, prioritizing future
+	reads but also prepping for reverse reads. 
+
+-
+
+	The problem r.n. is I'm not lseeking correctly in write files. That's because when I lseek for reads, I check to see if I'm seeking
+	within the file's buffer. If I am, I can simply update the file's metadata so that I don't need to perform a new read(). The conditional
+	I use is:
+
+		if(pos >= f->fabs && pos <= f->fabs + f->fsz)
+
+	this doesn't work for writes, though, since writes don't really have a sz. f->fsz should be BLOCK, since that's the space available in the
+	buffer, yet unless I initialize this when I open the file, this won't work since I can lseek() before any call to write. Furthermore, 
+	files can be open for reads and writes, so you don't want to initialize f->fsz to BLOCK since you it's not clear whether you're going
+	to read or write.
+
+	I think the key is you need to keep around a buffer space + metadata for reads and writes within the same file. I wonder, though, let's
+	say I write to a file, and this write enters the file's buffer. I then read from the file in a space that overlaps with the write. If the
+	write is still in the buffer and not a part of the file, you could get an error in consistency. I think the fix here, then, is check to 
+	see if there's overlap in the read/ write, and if there is, flush the write buffer before the read. 
+
+		1) add distinct metadata + buffer for reads/writes
+
+		2) fix references to metadata
+
+		3) make sure lseek() works for both reads and writes
+
+		4) fix any consistency errors that could result in reading will writes are in the buffer
+
+-
+
+	I'm not sure if I should have one buffer or two: one for reads and one for writes. The reason I initially though I wanted two buffers
+	was for handling lseek() before a write. 
+
+		1) Let's say I'm at absolute position 100 in the file. 
+		2) I read in 100 bytes so that the f->rsz = 100	and f-rpos = 0. 
+		3) In the file I'm actually at position 200, but f->abs = 100 since this points to the beginning of the block. 
+		4) Let's say I lseek() to 300 offset from SEEK_SET. This'll be outside the read buffer, but if I don't read but instead write, 
+		   I could place the write inside the file's buffer. 
+
+			- maybe, the move here is if the lseek() is outside the read's buffer, you memset() it to zero but keep the metadata
+		 	  around if it could still be within the write's buffer. 
+
+			- before you read from a file, always flush its write buffer. 
+
+-
+
+	keep around information -- if the write to the buffer makes a continuous block, keep going. If it doesn't, clear out the buffer
+	with a call like write(f->fd, f->buf + f->pos, f->sz - f->pos);
+
+	Ideally, you'd have a buffer that you fill piece by piece. Let's say the buffer was of size 32. You jump to pos 8 and
+	write 8 bytes. You then jump to pos 24 and write 8 bytes. You can't simply clear this buffer, though, since it's 8 bytes of NULL, 
+	followed by 8 bytes to write out, followed by 8 more bytes of NULL, finishing with 8 bytes of a write. I think in the above scenario,
+	you're going to need 2 calls to write.
+
+	Ideally, you might have another write in the above buffer at position 16 -- this would fill in the gap between the two previous writes
+	and you could now have a single call to write.
+
+		- the key here, then, is knowing when to combine disparate writes into a single block. Unless you were storing metadata in something
+		  like a binary tree, the increased complexity of trying to locate adjacent blocks might negate the saved time from using a cache. How
+		  is this handled in the malloc pset from 33?

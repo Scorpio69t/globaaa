@@ -1,0 +1,50 @@
+
+FIXES
+
+	- I made a couple changes from shell_1:
+
+		(1) redirection with less than 2 cmds will throw an error. So,
+		    for example '> out.txt' will not create a file.
+
+		(2) it should be memory safe now - running valgrind should always 
+		    report no memory leaks.
+
+		(3) I got a number of points off for having my entire code in main,
+		    which I don't quite understand since I have a helpers.c file with
+		    nearly a dozen helper functions.
+
+		    Since main() runs sequentially as a number of conditionals checking
+		    the user's input, I feel it makes sense to keep that structure
+		    explicit. That being said, I tried to make it more readable by further
+		    compartmentalizing the code, splitting up all my helpers into 
+		    shell_1_helpers.c and shell_2_helpers.c
+	
+MAKING
+
+	- simply run 'make all' and 'make clean' to compile and rm files, respectively. There
+	  are a few test files I used in the folder "tester". Running 'make all' will compile these,
+	  as well. 'make clean' will, likewise, remove them.
+
+
+KNOWN BUGS
+
+	- the only known bugs I ran across while running the traces:
+
+		(1) trace07.txt almost always throws an incorrect input to mysplit
+		    error - a usage error. I'm not really sure why this is the only
+		    program that does this, since other traces use mysplit as well.
+		    Furthermore, if you run the commands in trace07.txt manually in
+		    the terminal you don't get this error.
+
+		(2) sometimes certain traces will return permission errors, though this
+		    doesn't happen with regularity.
+
+DESIGN
+
+	- similar to the traces run in 'cs033_shell_2_test_all -s 33noprompt' I count
+	  foreground processes as I increment jobs, though, if they exit I won't add 
+	  them to the list of jobs, since I would then be immediately removing them. 
+
+	  I mainly did this since the usage error on trace07.txt meant I needed to run 
+	  the above script 'cs033_shell_2_test_all -s 33noprompt' and this script counts 
+	  foreground processes.

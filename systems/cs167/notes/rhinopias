@@ -1,0 +1,62 @@
+- max:
+
+	If they ask you for the maximum transfer speed, this is assuming there is:
+
+		1) no rotational latency: the time for a particular sector to come under the head
+		2) no seek time: the time for the head to position itself over the correct cylinder
+
+	So, let's say a disk drive is rotating at 10,000 RPMs with a sector size of 512 bytes, with roughly 750 
+	sectors per track. In this case, the maximum transfer rate equals:
+
+		10,000/min * 1/60 seconds * 512 * 750 bytes = 64 million bytes
+
+- avg:
+
+	the above is, of course, assuming the head of the disc is over the exact correct sector. What if we need to 
+  	factor in both rotational latency and seek time?
+
+		1) avg seek time: .004 seconds
+		2) avg rotational latency: .003 seconds (this is half the time for a single rotation)
+
+	In this case (using the book) you have roughly .005 seconds of latency to position the head of the disc drive in 
+	the correct position:
+
+		512 bytes / .005 seconds = 102,400 bytes (the time to read in a single sector is negligible, so only
+							  take into account the time it takes to find that sector)
+
+- changes:
+
+	let's say we've made changes to the system to hopefully make it faster. Now we're:
+
+		1) reading in larger blocks of data at a time, s.t. we're now transferring close to 8kbs/seek as opposed to
+		   512kbs/seek
+
+			- I'm only going to have to pay seek and rotational latency every 8kb instead of every 512kbs
+
+		2) placing similar data closer together so that we don't need to seek as much.
+	
+			- so, for example, we'll place directory inodes and the inodes in that directory in the same cylinder group.
+			  we'll also place direct data (data that isn't in indirect blocks) in the same cylinder group. 
+
+	let's say we're trying to read in a file, 8kbs, from within the same cylinder group:
+
+		1) rotational delay: 3ms
+		2) but if you're seeking for a sector within the same cylinder group, this should be quicker (.3ms)
+
+		(800 sectors / 6 ms) * (16 sectors / x ms) = 96 / 800 = .12 ms; so it'll take .12 ms to read in 8kb
+
+		8kb / (.12 + .3 + 3) = 8kb / (3.42) is roughly 2.4 million bytes per second. 
+
+	the big changes came in the form of decreases to seek time + # of bytes transfered per having to move the disc head. 
+		
+	lastly, it's clear from above that there are still big delays in terms of rotational latency. This happens since, 
+	even if blocks are ordered sequentially along a track, there's a small delay in when I finish reading one block and
+	can start reading the next (the processor waits for an interrupt that the first read finished before it can start the
+	second read).
+
+		- block interleaving: have sequential blocks start at offsets. So let's say you can fit 50 blocks on a single track.
+				      instead of maxing out the number of blocks on the track, use every other block (25 blocks)
+				      essentially leaving a block for the disc head to pass over while it waits for the processor
+				      to act.
+
+		- doing this, you can get almost 50% transfer rate.

@@ -1,0 +1,46 @@
+strstr:
+
+	strstr(haystack, needle) looks to return a pointer to the first character in haystack that 
+	matches substring needle. The way I start is to recur on all characters in haystack, each time 
+        checking if that particular character equals needle[0] (since you have to start at the beginning
+	of the substring).
+
+	If you find the start of a substring, set 'ptr' pointing to it. Now, check all the characters
+	in the needle and make sure the substring exists in the haystack. If you reach the end of the 
+	needle, this means needle[k] == '\0' == 0: 
+		    	
+			if(!needle[k])
+        		  return ptr;
+      			else
+        		  ptr = NULL;
+
+	This means the substring is in the haystack and you can simply return pointer. If you break out 
+	of the for-loop recuring over the needle early, this means a character in the haystack didn't match 
+	a character in the needle, so reset ptr = NULL.
+
+	Continue with this basic algorithm until you reach the end of haystack.
+
+strtok:
+
+	strtok(str, delim) is a destructive function on str, returning tokens broken up by delim.
+	Here, have a static variable 'strtok_saved_state' to save the current state of 'str'. So,
+	if you call strtok(NULL, delim), the first thing you do is set str = strtok_saved_state;
+
+	First, what I want to do is skip over any characters in delim. If str[i] == delim[k] that
+	means some character in delim is in str, which means k != dlen, where dlen equals the length
+	of the delim. This will keep the outer for-loop going.
+
+	If k == dlen, that means you've reached the end of delim without finding a matching 
+	character in str, so set str = str + i (since this is the character that didn't match
+	any in delim) and continue.
+
+	Now find the end of the token that's between delims. In similar nested for-loops, search
+	over the string making sure all chars in the token != any chars in delim. If a char in str
+	equals one in delim and you haven't reached the end of both strings, replace the char in 
+	str with a '\0' effectively creating a string.
+
+	Lastly, update strtok_saved_state to point to one past the str you just created with:
+
+			strtok_saved_state = str + slen + 1;
+
+	If the new string you just created has nothing in it, return NULL, otherwise return the string.

@@ -1,0 +1,18 @@
+- The key here is the fact that the university uses the same RSA public-private key 
+  pair for both the digital signature and the challenge response.
+
+  When verifying the signature of the university, you take the encrypted value, decrypt
+  it with the public key, and see if the hashed value passed to you by the server matches the 
+  hashed value you get when you hash the file yourself. What's key in this problem is that
+  for the challenge/response, you're supposed to pass a value, encrypted with the public key, 
+  to the university, who'll then use the private key to find the nonce. What you can do instead
+  is simply pass the hashed value of the forged transcript to the challenge/response protocol â- 
+  the website will "decrypt" it with its private key and send it back. What it's essentially done,
+  then, is signed the hash of the forged transcript, allowing you to pass it off as authentic.
+
+- What made this possible was the fact the university uses the same RSA public-private key pair
+  for both the challenge/response and the digital signature.
+
+- If the university instead used a different RSA pair for each of these protocols it would prevent
+  the kind of attack above. The attacker would essentially need to know the RSA private key in this
+  case, since it's not really feasible to crack RSA.

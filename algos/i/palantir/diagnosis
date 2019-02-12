@@ -1,0 +1,123 @@
+:- problem solving:
+
+	: compiler
+		: tasked with writing a program to translate from Pyret to Ocaml
+		: hopefully this compilation would be faster than Pyret to JS
+		: additionally, we hoped that during this compilation we'd be able to project
+		  Ocaml's type system over Pyret, providing a faster, type safe language
+
+		: tasked with initially researching project.
+
+			: able to convert to Ocaml, but couldn't reuse Ocaml's type system. Trouble came from
+			  the fact that everything in Pyret has to be upcast to a unitype in Ocaml, using something
+			  like a wrapper, in order to get the same kind of functionality in Pyret
+
+				: heterogenous lists
+				: overloaded operators
+				: etc
+
+		: re-examined the problem
+
+			: the speed increase was definitely a plus
+			: in addition, if we spent the time constructing our own type inference system we'd have more
+			  control
+
+				: for example, only give type information in certain instances, such as function calls
+				  and pattern matching (since in Pyret you have to define the type of structure you're	
+				  pattern matching on)
+
+					: benefits to this: limits the number of errors users get, which is good.
+							    as a beginner programming language, you don't want to
+							    flood newbies with a bunch of type information right off the
+							    bat -- provides too high a barrier for entry
+
+							    if we only infer type in a few instances, it cuts down on speed
+							    loss due to running ti a lot
+
+							    for function calls, only infer type when a value is used
+
+		: after some work, we decided to think more about the pedagogy of things: infer type solely off of unit test
+		  then type check the program off of this contract, constructed from unit tests
+
+				: interesting that so much is dependent on unit tests
+
+	: as preceptor
+		: choosing not to fire employee; same story as before
+
+:- about palantir
+
+	: like their humanitarian efforts
+		: using data, but providing it to people to use
+			: gotham, foundry, contour, slate
+
+:- diagnosis
+
+	: importing a file / graph and getting an error
+
+		1) first, check the error file or log file. anything interesting here?
+
+		2) could what you're im ...
+
+	: logging in
+
+	    :: Determine if it's a single client's problem or something more widespread
+
+		** ask for what happpened **
+		** ask for the error message, error code, and any logs **
+
+		1) make sure there is a connection to the internet. 
+			: can you log onto the internet from another application?
+
+		2) have you ever connected remotely to this address before? if so, when?
+		   has anything changed on your system since then? are you inputing your
+		   credentials the same as before?
+
+		3) is a coworker close by? can you if they can connect remotely? (assuming the system doesn't use
+		   asymmetric key cryptography)
+			: trying to determine if this issue is localized to your machine,
+			  or it might be more widespread.
+
+	    :: Let's say the user said yes to (2), let's try to figure out what's changed. Even
+	       if the user said no, perhaps there are certain configuration issues
+
+		4) is it a firewall issue?
+			: Do you have a firewall running? If so, can you disable is and
+			  try connecting again?
+
+		4.1) what version of the software are you running?
+			: if it's not the latest verion, let's update and then continue.
+
+		5) if you're using a name, maybe the resolution isn't working.
+			: are you trying to connect remotely to the name of a site
+			  as opposed to an IP address? If so, can you perhaps put me on
+			  with a member of the technical staff near you. I want them to
+			  check a host or DNS file to make sure the name you're trying 
+			  to connect to is resolving to the correct IP address.
+
+			: you can check this by pinging the IP address and the host name
+			  separately. if the former goes through and not the latter, it might
+			  be an issue in the resolution. Pinging the latter should also give you
+			  and IP address. Does it match the IP address you're trying to connect to?
+
+		6) the server is going to be listening on certain ports. for example, if you're
+		   trying to ssh to a remote server, the remote server will likely be listening
+		   on port 22. remote desktops usually listen on 3389.
+			: can you get someone from the technical team to check what port you're
+			  trying to connect to when you perform this remote connection?
+
+			: you can use something like netcat to check if a port is open on
+			  a remote server. if it's not and that's what you're trying to 
+			  connect to, it's a problem
+
+		7) It might be an encryption / authentication issue.
+			: if you're using shh, have you shared your public key with the
+			  remote server?
+
+			: don't tell me! but in your ssh file do you have a private key that
+			  maps to your public key?
+
+		8) permissions?
+
+	: using an API
+
+		1) TODO

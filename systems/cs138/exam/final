@@ -1,0 +1,118 @@
+-: problem with modular hashing:
+
+	- let's say we're trying to put something on the network by hashing its contents and then modding by the number
+	  of clients on the network:
+
+			hash(content) % n -> ID of client to post on
+
+	  the problem here is that if new clients are added or removed from the network, the value n is changed, which means
+	  content posted to [hash(content) % n_old] as to be moved to [hash(content) % n_new]
+
+	-: consistent hashing:
+
+		- in consistent hashing, it's not dependent on n, instead values are distributed among available machines. If
+		  a machine leaves, K/n hashes need to be redistributed | K = # of keys and n = number of slots
+
+		- consistent hashing is used in something like Chord
+
+-: chord:
+
+	- the way chord uses consistent hashing is there's a ring w/ slots not necessarily dependent on the number of machines in 
+	  the chord.
+
+	- let's say we have a chord network where we hash values by 128 (not depedent on # of clients). Let's say there are only 4 clients
+	  placed along the chord server @: 10, 37, 87, and 110. If an object is hashed to value 20 this'll be placed at client 37, since
+	  this is the first client along the chord server
+
+	- each client along the chord server has a finger table: 2^0, 2^1, 2^2, 2^3, ..., 2^6; here we have log(128) entries taking us
+	  to a value = 128/2
+
+		- we want log(128) values in the finger table so that we can cut the available space by half
+
+		- the finger table of 37:
+
+			2^0: 87		2^4: 87
+			2^1: 87		2^5: 87
+			2^2: 87		2^6: 110	(37 + 2^6 = 101 -> 110)
+			2^3: 87
+
+	- In the homework, the problem I got wrong: to find 127 needs only a single jump. it'll be published on client 3
+
+	- virtual nodes; these are IDs placed along the Chord ring that maps to a single client. This would allow a single client to be 
+	  responsible for a larger proportion of keys; all keys placed on these virtual nodes will actually be placed on a single client
+	  that ideally has more processing power, space, etc.
+
+		- I think the problem mentioned in the final is that if we're adding a bunch of new virtual nodes, the total number of
+		  nodes in the chord ring has increased. to still cover log(n) of the space the finger tables of nodes has to increase,
+		  which will increase more traffic?
+
+-: tapestry:
+
+-: timing:
+
+	- from the final, if A sends a message to B and gets a response back from B, it's unclear when B got the message and how much of the delay
+	  is due to the network
+
+		- TA = (TA_arrive + TA_leave)/2
+		- TB = (TB_arrive + TB_leave)/2
+
+		  TA = TB + o; o = TA - TB
+
+		- uncertainty is half the network time: [(TA_leave - TA_arrive) - (TB_leave - TB_arrive)] /2
+
+	-  Sa = 10.0s, Rb = 8.0s, Sb = 10.0s, and Ra = 13.0s
+
+		(13 - 10) - (10 - 8) = 1
+
+		(10 + 13) / 2 = 11.5
+		18/2 = 9
+
+		2.5 +- .5
+
+-: consistency:
+
+-: puddlestore:
+
+	- the idea behind editing blocks in puddlestore is each block has an identifier. If I edit a block, I only edit that block then update
+	  the reference from the indirect block to point to this new block. this way, if someone tries to read while I'm editing they'll get
+	  the previous block, and then when I push the changes all the references will be updated so suddenly the changes will be visible. 
+
+	  problem with this, however, is if multiple people are editing the same block then push simultaneously, whichever push happened slightly
+	  later will overwrite all previous writes.
+
+	-
+
+-: consensus:
+
+	- termination: eventually decides on a value
+	- agreement: if a correct process decides on a value, all will decide on that value
+	- integrity: if a process decides on v, then v was previously proposed
+		- this is usually handled by TCP; ensures messages between servers are reliable and safe from outside attacks
+
+-: raft:
+
+	- log entry known to be committed if stored on a majority of servers
+
+	- you can only vote if your term < that of requester
+
+	- don't vote for server if your log > than their term or your term > than their term
+
+-: snapshots:
+
+	- if you have snapshots (3,4,0), (0,6,4), and (4,4,6) is this globally consistent?
+
+	- I think the idea, is that if a vector timestamp in a process follows another, then a component of its timestamp is
+	  ahead, which means it's received a message not yet sent.
+
+-: terms:
+
+	- linearizable
+
+		- as if you were talking to a single replica manager; operations of all the clients can be put into a sequence;
+		  it's not concurrent; take into account real time operations
+
+	- sequentially consistent
+
+		- I want to maintain consistency within a single client
+
+	- weakly consistent

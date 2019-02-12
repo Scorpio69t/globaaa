@@ -1,0 +1,23 @@
+
+- the problem is that, if I unlock the spinlock before I actually switch threads,
+  there's a chance another thread could come along and dequeue the currently running
+  thread from the mut->wait_queue and place it on the run queue before I've actually
+  switched away, allowing another processor to run the same thread.
+
+  the goal, then, is to only unlock the spinlock after the thread has switched.
+
+
+- let's add another field to the thread_t struct. using thread_switch() from II-26:
+
+	void thread_switch(thread_t* next_thread, mutex_t* mut) {
+	  thread_t* oldCurrentThread = CurrentThread;
+	  CurrentThread = next_thread;
+
+	  // assume thread_t has a mutex_t* prev_mutex field
+	  CurrentThread->prev_mutex = mut;	
+
+	  SwapContext(&oldCurrentThread->ctx, &CurrentThread->ctx);
+
+	  // unlock previous mutex's spinlock
+	  spin_unlock(CurrentThread->prev_mutex->spinlock);
+	}

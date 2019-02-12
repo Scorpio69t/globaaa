@@ -1,0 +1,72 @@
+Why?:
+	A VM is essentially a way to run one machine on top of another. 
+
+		- allows for time slicing
+		- allows multiple OS's to run on the same machine
+
+Real vs. virtual modes:
+
+	From the HW, for example, let's say we have a VMM (virtual machine monitor) running on top
+	of real hardware. You can think of the VMM in this case as the OS for the machine. On top
+	of the VMM, then, runs a VM that has an OS and applications running on it. 
+
+	Key to this idea in older machines was that all sensitive instructions (those that might change
+	the system or affect other users on the system) were also privileged instructions. So let's say
+	the OS running on the VM tries to execute a privileged instruction. This will trap into the VMM
+	(although the OS thinks its running in (real) privileged mode, it's actually running in (virtual)
+	privileged and (real) user mode. Since it's trying to execute a privileged instruction in user mode,
+	this will trap into the VMM, which will handle the instruction. 
+
+	The VMM acts as a mediating factor, handling OS's running on VMs and handling instructions where
+	the VM thinks it's in (real) privileged mode but is actually in (real) user mode. 
+
+Sensitive instructions subset privilege instructions:
+
+	As mentioned, key to this idea is the fact that all sensitive instructions are privileged instructions.
+	This is not the case in x86, however. In x86, you have instructions that behave differently whether 
+	you're in privileged or user mode. For example, the 'popf' instr executed in privileged mode will
+	ignore certain interrupts, while in user mode the instruction is still valid, it simply won't ignore
+	interrupts.
+
+	This is a problem, though, since let's say an OS running on a VM executes a 'popf' instruction. The OS
+	will think this is privileged, but since it's running in (real) user mode and the instruction won't
+	result in a trap to the VMM (remember, the instr is valid in both user and privileged modes) - it'll be 
+	executed just without affecting interrupts i.e. as if it was not supposed to be a privileged instr.
+
+		- a way to handle this was pioneered by VMWare, where at runtime it essentially translates the binaries
+		  of the system running on the VM and replaces all sensitive instructions with hypervisor calls (calls
+		  to the VMM). So now, if I try to execute a 'popf' instruction on a VM, this will be translated into
+		  a hypervisor call that has to be handled by the VMM.
+
+			- expanding a little on this, I would think the VMM in the case would check the state of the virtual
+			  machine: if it's in (virtual) user mode the VMM could simply emulate the user version of the 'popf'
+			  instruction, while if it's in (virtual) privileged mode, the VMM could emulate the equivalent of 
+			  this privileged call. 
+
+- I/O (big problem: there might not be device drivers for VMM since it's not a normal OS):
+
+	The problem with device drivers on a VM is that device drivers provide an interface for a device and an OS, however,
+	the driver can be very different depending on the kind of OS the device is interacting with. If I'm running an OS
+	in a VM on top of a VMM, the device I'm trying to use with the OS might have very different drivers than the divers 
+	needed for that device to work with the VMM (the device might not have drivers for the VMM).
+
+		- I think the issue then becomes, how does the VMM handle all possible device drivers that might be used on
+		  any guest operating system? So, let's say I have a mouse that works on a windows operating system. I'm running
+		  windows on my VM, so when I plug in my mouse I'm going to expect that it works, however, the device might not
+		  run on the VMM I'm working on. 
+
+		- To handle this, have a VMDriver (which acts as the VMM) that is embedded into the host OS redirect any I/O device 
+		  to an app running on the host OS, then let this app make a normal call to the device driver. If there's some kind 
+		  of I/O now on a guest OS, the VMM no longer needs to add support for all drivers that might be functional on the 
+		  guest OS, but rather, it'll redirect calls to VMApp, which'll use the host OS's device drivers.
+
+- Paravirtualization:
+
+	Essentially the VM is not acting like a real machine, but instead certain operations, like I/O, will cause the VM to request 
+	help from the real OS. So the VM won't have device drivers, but will simulate this operations through calls to the real OS.
+
+- XEN weird process migration:
+
+	Start copying dirty (edited) pages over to the new machine while still running the process on the source machine. When only
+	'x' # of dirty pages are left on the source machine, copy them all over, shut down the source machine and begin running on
+	the destination machine. 

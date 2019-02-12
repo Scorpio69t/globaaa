@@ -1,0 +1,153 @@
+3:
+
+9: radix sort
+
+  First, I think it's useful to give a high level description of how this algorithm works. Given a list of elements where d refers to the
+  most significant bit in the list, this algorithm recursively splits the list into those elements with a 0 in the dth position and a 1 in the
+  dth position and then recurs on these lists checking the (d-1)th position. In this way, you always run into smaller elements first. For example,
+  all zeross. or if an element had a 1 in the dth posiion, you put the element with a 0 in the d-1th posiion in the array first. 
+
+  you're placing elements into the resultant sorted list by breaking up the recursive calls dependent on whether there's a one or zero in the dth
+  position. given the same bit alignments > d, if there's a 0, we know that all numbers with a 0 in the dth position < all numbers with a one.
+
+  first placing in elements with more zeros in more significant d positions. 
+
+  you're place elements in by recuring on lists of elements with a 1 in the dth position
+
+ur splitting elements, recurring first on elements with a one in the dth postinon
+
+. first looks for all elements with a zero in position d.  
+
+  this algorithm takes a list of numbers, and recurs until it finds the smallest one. you're simply reordering the elements in the array
+  based on whether they have a zero or one in the d'th bit. 
+
+  say, in words, what this algorithm does. then prove it. 
+
+  prove it through induction on the d'th bit. or, should I think of this like dynamic programming?
+
+6: uniqueness 
+
+  This is a recursive divide and conquer algorithm much like merge sort. In the initial phase we recursively break up the 
+  array into two sub arrays of size n/2. Our base case, then, is when the size of the array equals 1, in which
+  case we simply return the element in the array; if there's only one element in the array it is guaranteed to
+  be unique.
+
+  Since there is no restriction on the order of the elements returned from our algorithm we'll sort the 
+  elements of the array, much like merge sort, except when we run into two elements from sub arrays that equal
+  each other our resultant array will only include one of these elements. 
+
+  We'll prove the correctness of our entire algorithm through induction on the size of the array. Our induction hypothesis 
+  assumes that given an array of size i | 1 <= i <= n our algorithm correctly returns only the unique characters in the array 
+  in sorted order. Using this assumption we'll prove that we can also find only the unique characters in an array of size n + 1.
+
+  Given an array of size n + 1 we'll first break up this array into 2 sub arrays, A and B, each of size (n + 1)/2. By our 
+  induction hypothesis both of these subarrays will return sorted without any duplicates. Now all we have to do is merge these two halves. 
+
+  Using indices j and k to index into our arrays A and B, respectively, There are three cases:
+
+	case 1: if B[k] < A[j] we'll fill our resultant matrix with element B[k] and increase index k by 1
+
+	case 2: if B[k] > A[j] we'll fill our resultant matrix with element A[j] and increase index j by 1
+
+	case 3: if B[k] = A[j] we'll fill our resultant matrix with element A[j] and increase both indices by 1,
+		effectively eliminating the duplicate character.
+
+	we'll continue in this way until either k = the size of B in which case we'll copy the rest of A into the
+	resultant matrix. At this point we know A is made up of unique characters sorted in increasing order, so if we're at the 
+	end of B the rest of A's elements will be greater than anything in B, and since A is made up of unique characters
+	we know there can't be any duplicates. The case with k = the size of A is symmetric.
+
+  Much like merge sort, this algorithm has a recurrence of T(n) = C + 2T(n/2) where we're doing a constant amount of work sorting
+  and removing duplicates at each level of the recursion. Thus, this algorithm has aymptotic running time of O(nlog(n)). 
+
+
+15: k-sorted lists
+
+  Our goal in this problem is to sort k already sorted lists, each of length n, into a single sorted list. In order to do this,
+  our algorithm simply applies the merge operation from merge sort. In mergesort, where we’re sorting an unsorted array, the base 
+  case is a single element since we can only rely on the fact that an array of a single element is sorted. In this case, however, we
+  start out knowing that each of the k lists is sorted; i.e. we don’t have to subdivide these lists any further. Starting with our 
+  k lists, we’ll merge them in pairs until we get a single array.
+
+  We'll prove the correctness of our algorithm through induction on the number of sorted lists. In the base case, where we only have a 
+  single, sorted array (i.e. k = 1) we can simply return the already sorted array. Otherwise we’ll assume that given i lists | 1 <= i <= k  
+  we can correctly return a single, sorted array. Using this assumption we’ll show that our algorithm works with k + 1 sorted lists.
+  
+  Given k + 1 lists, we’ll sort them in twos (by pairs). There are two cases:
+
+    (k + 1) is odd: 
+
+	in this case, if we pair the lists up, we'll have a single leftover list. We can simply propagate this list up to the next level of
+        recursion where the number of lists < (k + 1). By our induction hypothesis we can correctly sort this smaller set of lists.
+
+    (k + 1) is even:
+
+        in this case, we'll pair the kth and (k + 1)th list together. As we compare the elements of the lists there are 3 cases when we index
+        into the kth list with p and the (k + 1)th list with m:
+
+          case 1: if k[p] < (k+1)[m] we'll fill our resultant matrix with element k[p] and increase index p by 1
+
+          case 2: if k[p] > (k+1)[m] we'll fill our resultant matrix with element (k+1)[m] and increase index m by 1
+
+          case 3: if k[p] = (k+1)[m] we'll fill our resultant matrix with element k[p] and increase p by 1
+
+        we'll continue in this way until either p = n in which case we'll copy the rest of (k + 1) into the resultant list since we know the rest 
+        of the elements in (k + 1) must be greater than everything in list k. The case with m = n is symmetric.
+
+  Once we sort the kth and (k + 1)th lists, we'll continue the recursion on (k + 1)/2 lists, which, by our induction hypothesis we know will correctly 
+  return a sorted array.
+
+  Since we're merging the lists by two, the number of lists k will halve on each iteration. Thus, given k lists, we'll call our algorithm log(k) times.
+  On each level of our recursion, in order to sort all the lists we'll have to perform kn operations. Thus we'll perform kn operations log(k) times
+  giving us an asymptotic running time of O(knlog(k)).
+
+   
+20: median of two sorted arrays (sets i.e. distinct elements)
+
+  Our goal in this problem is, given two sets A and B that are sorted with lengths i and j, which sum to n, and medians m1 and m2,
+  respectively, to find the median of the entire set {A, B}. Key to solving this problem is the fact that given m1 and m2 |
+  m1 <= m2 (which we can assume without a loss of generality) the median of the combined sets m3 will be between m1 and m2 in
+  the sorted set s.t.:
+
+    m1 <= m3 <= m2		(1)
+
+  Let's prove this fact:
+
+    Let 'alen' equal the length of A, 'blen' equal the length of B, 'k' equal the length of the subarray in B 
+    where every element is (<= m2) and (>= m1), and 'l' equal the length of the subarray in A where every element is
+    (>= m1) and (<= m2).
+
+    Since sets A and B are already sorted, what this does is sort the numbers in the combined set between the two medians m1 
+    and m2. Our goal, then, is to prove that this is all we have to sort and the median of the combined sets will be in this 
+    interval. Let's rearrange equation (1) according to the above variables and look at indices in the combined set {A, B}:
+
+       (pos. m1 in {A, B})           m3                (pos. m2 in {A, B})
+      alen/2 + (blen/2 - k) <= (alen + blen)/2 <= alen/2 + (blen/2 - k) + (k + l)
+
+      (alen + blen - 2k) <= (alen + blen) <= (alen + blen + 2l)
+
+    where the inequality holds for any positive integers k,l > 0 and becomes an equality at k = l = 0. We've thus shown that
+    the median of the combined sets A and B will be in between medians m1 and m2. [QED]
+    
+  If we can sort the numbers in between the two medians of sets A and B, we can find the median of the combined sets {A, B} by 
+  indexing into this interval without having to worry about elements < m1 or > m2. Our algorithm is as such:
+
+    We'll first take the median of A, m1, and perform binary search on B looking for this element. Out of this, we'll return a length
+    k, which is the number of elements <= m2 and >= m1. We'll now call binary search on A looking for m2. This'll give us a length l,
+    which is the number of elements in A >= m1 and <= m2.
+
+  The indices in the combined, sorted set of elements between the medians m1 and m2 are therefore:
+
+      [alen/2 + (blen/2 - k), alen/2 + (blen/2 + l)]
+
+  Since we know the indices of all the elements in the sorted interval between m1 and m2 and we know m3 must be in this interval,
+  we know we can find in median of the combined sets {A, B}.
+
+  In order to sort the elements in this interval we called binary search twice. Since i + j = n, we can select n as an upper bound
+  s.t. the running time of the is Log(n) + Log(n) = 2Log(n) = O(Log(n))
+
+  (specifically):
+
+      [alen/2 + (blen/2 - k), alen/2 + (blen/2 - k) + l]   (in A) 
+  and
+      (alen/2 + (blen/2 - k) + l, alen/2 + blen/2 + l]     (in B)

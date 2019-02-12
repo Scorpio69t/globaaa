@@ -1,0 +1,232 @@
+- addup.py
+
+	: don't be afraid to use things like flag variables
+
+	: in the first implementation, I have a flag 'first'. I multiply
+	  sum by each number in the list, except for the first element where
+	  I add the element to sum, since 0 * anything = 0
+
+	: in the second implementation, I use a while loop and mod the value
+	  by the length of the list. this isn't the best way to do it.
+
+- neighbor.py
+
+	: the key to solving a lot of these problems is determining if there's
+	  a relation. In this, the relation is between a player and his neighbor.
+	  in this case, it makes sense to at least try to solve this with a dict
+
+	: first time through, set up our dict. then, replace dict[player] -> neighbor
+	  with dict[neighbor] -> neighborneighbor:
+	
+		dict[player] -> neighborneighbor
+
+	: key here is the stopping condition, which should be dict[player] -> player
+
+- parentProcess.py
+
+	: this is one of the problems I got. the relation here is parent -> children,
+	  so let's try to use a dictionary.
+
+	: switch the order dict[children] -> parent
+
+	: I kind of thought it mattered where in the dict you started, but if we have
+	  one parent process that all eventually spawn from, then this is the root
+	  of the tree. we should be able to start at any leaf and follow the dict up
+	  the tree to the root, which is the parent process
+
+		: stopping condition should be that the parent process isn't in
+		  the hash table
+
+- mastermind.py
+
+	: playing the game mastermind
+
+	: this is too hard to do in one pass. it's hard, since if you mark something
+	  with a "O", how do you know if it comes up again? if you have nested for loops, 
+	  index i for original might map with some j for guess, so you want to mark it 
+	  with a O, but you don't know if for some incremented i you'll actually get a 
+	  "X" -- this is why you know you can't use nested for loops. This is why you should
+	  do it in multiple loops.	
+
+- isPermutation.py
+
+	: check if a word is a permutation of a palindrome
+
+	: I really like how I approached this -- almost always think about it first in
+	  terms of hash tables.
+		: guy from bloomberg argued that sometimes it doesn't make sense to
+		  use a hash table if the relation isn't very strong, like a hash pointing
+		  to true and false values.
+
+	: if a word can be a palindrome, then each letter, except one, should have an
+	  even cardinality
+
+	: make a single pass, adding cardinality for each character, then go through the dict
+	  and if two chars have an odd cardinality and length > 2, return false
+
+- compress.py
+
+	: basically performing run length compression in linear time
+
+	: I also use a flag variable in this; don't be afraid to use them
+
+	: pretty simple: keep track of element you're on then count all those entries
+	  that match this particular element
+
+- fizzbuzz.py
+
+	: fizzbuzz.py
+
+		# only print fizz if divisible by 3, buzz by 5, fizzbuzz by both
+		if i mod 3 == 0:
+			print("fizz")
+		if i mod 5 == 0:
+			print("buzz")
+
+- anagram.py
+
+	: want to find the minimum number of characters that need to be deleted to convert 
+	  the two words, a and b, into anagrams of eachother
+
+	: I add characters to a dictionary again, [c] -> # of occurences. Go through both
+	  dictionaries and if {a}[c] != {b}[c] I take the absolute value of their difference. 
+	  If c is not in {b}, i add {a}[c] to #. I delete all c in {a} from {b} so that I know
+	  all the remaining characters in {b}.
+
+- dp/contiguous.py
+
+	: it looks like what this problem is computing is the longest contiguous sequence
+	  of numbers in a list
+
+	: you have either two options: 1) add the val you're on or 2) start the list anew
+
+	: I think you want to pass the sum value as a parameter, otherwise I don't think
+	  the values would have to be contiguous along the sequence
+
+	: take the max from the current sum, the sum of adding another value, or the recursive
+	  call to the rest of the list
+
+	: this can, of course, be turned into a dp problem:
+
+		: the for-loop constructs the table, then I simply run max on the resultant
+		  list
+
+- subsort.py
+
+	: a good point: if there's any structure to the problem, don't be too quick
+	  to think "oh, it has to be recursive, let's do that and then dp".
+
+	: the structure here is that there's sum subset of the numbers in the middle
+	  that are unsorted. find the smallest subset that, if sorted, would sort
+	  the entire list.
+
+		: there's structure to this: middle part unsorted, the rest sorted
+
+	: only tricky thing here is when you're expanding the left (or right bound), you
+	  have to compare against the whole rest of the list. this is because, even though
+	  the right list might be sorted to a point, it might have values less than those
+	  in the left list. you have to find the inflection point in the left list s.t.
+	  all values to the right of that point are larger than it
+
+- pairsum.py
+
+	: a bunch of pairsums to determine how many pairs (distinct) can sum to target.
+	  there are multiple methods here:
+
+		1) O(n): remember, if there's a relation try to use a dict! the relation
+		   here is that a + b = target s.t. if we place all values into a dict
+		   we can find if there's some pair including a by simply querying
+		   the dict to see if key b exists
+
+		2) O(n^2): nested for loops
+
+		3) O(nlog(n)): sort the list then use the structure of the sorted
+		   list when looking for pairs.
+
+		   let's say I have two pointers, one moving from the left and the
+		   other moving from the right. if l + r == target then great, add
+		   one to my count. if l + r > target, then all I can do is decrement
+		   the value of r, since moving the left pointer in will only increase
+		   values. symmetric argument works for the other side
+
+- eval.py
+
+	: this is a bit too long to actually write out, but the general idea is that you're
+	  essentially parsing. normally, you'd place the rules for operations with higher
+	  precedence later, since this means you'd add these operations to the parse tree
+	  later and then, in a post order traversal, you'd evaluate these first.
+
+	: in this case, just keep around something like a lookahead and let this effect whether
+	  you evaluate the result and an operand, or you go off and compute some subexpression
+	  before updating result
+
+- circus.py
+
+	: this is the circus problem. funny, this is essentially the exact problem from 157 team
+	  contest. I think what you're trying to do is find the longest sequence where the
+	  weight and height increase from the bottom.
+
+	: since we have two factors to consider, let's sort based on both these factors, then
+	  compute the longest common subsequence between the two.
+
+	: remember, the recurrence for lcs is: max(1 + lcs(a, b, i + 1, j + 1), lcs(a, b, i + 1, j),
+	  lcs(a, b, i, j + 1)). In lcs, you keep around the count even if the characters don't
+	  equal eachother. In the case where the count goes back to zero on different characters,
+	  pass the count variable in the parameters of the function. 
+
+- palindrome.py
+
+	: another recursive problem than can be turned into dp: find longest palindrome in
+	  a word:
+
+		: this is a lot like longest sequence in a word -- if you hit a value outside
+		  of the sequence, you have to start over. in cases like this, it makes sense
+		  to keep around the summation value as a parameter in the function call
+
+		: add 2 if the characters match, coming from the left and right. otherwise,
+		  pass in 0 to the function call to reset the size of the palindrome after
+		  you find a mismatching character
+
+- BST.py
+
+	: trying to determine whether a tree given is a binary tree. the implementation here is not
+	  the best; I think it runs un O(n^2). essentially what I do is for every node, go down
+	  its left and right subtrees ane make sure everything to the left is less than the root while
+	  everything to the right is greater than the root. 
+
+	  once I recur down one side (i.e. left), I only have to check the new root's subtrees -- i'm sure 
+	  nothing on the other side will be less than this new root.
+
+	: this is definitely not optimal. check my hackerrank solution: just do an inorder traversal
+	  and check that the resultant list is sorted. O(n).
+- ll.py
+
+	: for linked list problems, remember its useful to have a head and trailer pointer
+	  running in parallel down the list
+
+	: in the sum problem, remember it's 10^n * val, since val's position in the list is
+	  going to change its actual value
+
+- stack.py
+
+	: kind of like dp problems, keep pushing min onto the stack so you can find of the current
+	  min of the stack in constant time
+
+- trees.py
+
+	: bfs: use a working list, where you put the left and right subtrees into the list and then
+	  pop off the list (essentially a queue)
+
+	: preorder: print before recuring; postorder: print after recuring; in order: do it in between
+
+		: isn't dfs essentially like an in order traversal? lol yeah
+
+	: how do we check that, given a tree it's left and right subtrees are within 1 height
+	  of eachother?
+
+		: recur down the left and right, returning max height since even if a root node
+		  has two subtrees, one of height 2 and the other of height 3, it's height will
+		  be 4
+
+	: just intuitively thought about createbst: you want the subtrees to be roughly the
+	  same size, so use the idea of binary search

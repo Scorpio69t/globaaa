@@ -1,0 +1,142 @@
+1) 
+	- key to this is drawing the picture
+
+	- proof by induction: we can solve any 2^k x 2^k grid. base case in the 2^0 by 2^0 case.
+
+	- draw a 2^(k+1) x 2^(k+1) matrix with the top right missing. rotate 3 squares. fill in the hole with an
+	  L shaped piece.
+
+2) 
+
+	- trying to sort a stack of pancakes by flipping them with a running time of at most O(2n) flips where 
+	  n is the number of pancakes.
+
+	- our algorithm finds the largest pancake, let's call it P_k, places our spatula under this pancake, flips it to the
+	  top, then again which places it on the bottom of our stack. We know P_k is in the correct position. We continue on the
+	  rest of the (n-1) stack, flipping the next largest pancake to the top, then flipping it into place above our already 
+	  sorted pancake stack (position n-k | P_0 is the largest pancake, P_1 second largest, etc}.  
+
+	- proof by induction: base case of 0 or 1 pancake is already sorted
+
+	- we can correctly sort any stack of size n. let's show we can sort a stack of size n + 1
+
+	- find the largest pancake, call it P_k again. flip it to the top, then to the bottom. It's in the correct position. 
+	  Now recur on the rest of the stack, which is of size n, which, by our induction hypothesis we know we can sort.
+
+	- 2 flips for each pancake to place in the correct position: O(2n)
+
+3)
+
+	(useful before I start to draw out a CxN matrix) 
+
+	- given n cents and c different coints {d_1, ..., d_c} we're looking for the minimal number of coins to make n cents with the
+	  assumption there's some way to make each value with the coins. 
+
+	- We'll try to solve the program dynammically, keeping around a table T where each entry in the table i, j represents the minimum
+	  number of coins needed to make j cents using only coins d_1 through d_i.
+
+	- Our algorithm is as such: we'll traverse the table from left to right, up to down. At each index [i, j] we'll take the minimum
+	  from adding a single coin to (the previous amount), the previous minimum amount of coins needed to make j cents T[i-1, j],
+	  and the number of coins used if we use our current coin (1 + T[i, j-d_i]) The recurrence is then:
+
+				(1 + T[i, j-1])		(add a single coin)
+			min:	T[i-1, j]		(previous minimum number of coins)
+				(1 + T[i, j-d_i])	(minimum at T[i, j-d_i] + coin of current denomination)
+
+	- Let's prove this by induction. base case 0 coins -> positive infinity on our table; 0 cents = 0.
+
+	- Let's assume an optimal solution has brought us to position T[i, j] in our table. Let's show that our algorithm will do just as well as the
+	  optimal solution filling T[i, j+1]. Since we're taking the min of all the possible ways we might be able to make (j+1) cents with {1, ..., i} 
+	  denominations of coins, we're certain that our algorithm will do just as good as any optimal solution. As such, our table will return
+	  the minimum numbers of coins needed to make n cents in table position T[c, n].
+
+	- Since this is dynamic, the running time is simply the dimensions of the table O(cn).
+
+6)
+
+	- this is the same as merge sort. the induction works on the size of the array; talk about cases when we're trying to merge two arrays of size
+	  (n + 1)/2 (that we're sure have no duplicates from our inductive hypothesis). The third case, when A[i] = B[j] is the only case that differentiates
+	  this from normal merge sort. 
+
+	- Since we're doing at most n comparisons at each level of the recursion, and the recurrence relation is essentially the same as merge sort where we're
+	  halving the size of the array at each level, we'll do O(nlogn) work. 
+
+(I'm going to assume 7-8 get taken by the time I get up)
+
+9)
+
+	- before proving the correctness of radix sort, a little intuition.
+
+	- given a list of numbers this algorithm first reorders the list based on the dth bit, placing numbers with a 0 in the
+	  dth bit {1, ..., c} before numbers with a 1 in the dth bit {c + 1, n}.
+
+	- it then recurs on each list, performing the same separation dependent on the (d-1)th bit to the 0th bit.
+
+	- what this effectively does is looks at numbers with less significant bits flipped (set to 1) before those with more significant bits flipped.
+	  in this way it places into the sorted list smaller numbers before larger numbers.
+
+	- let's prove this algorithm through induction on the number of significant bits d.
+
+	- in the base case, when d = 0, we only have two options: 0 and 1. Since we reorder this correctly, placing 0 in the array before 1, the base case
+	  is proved. Our induction hypothesis, then, is that for any 1 <= k <= d radix sort correctly sorts numbers dependent on their bit representations.
+
+	- let's now prove this works on any array with numbers that have a bit representation up to d + 1 bits. in this case, we'll first reorder the list
+	  of numbers dependent on their (d + 1)th bit, placing into the beginning of the array all numbers with a 0 in their (d + 1)th bit before those
+	  with a 1 in their (d + 1)th bit. we then recur on these lists, checking bit d. by our induction hypothesis, these recursive calls will return
+	  sorted subarrays.
+
+	- we'll then have a sorted subarray with a 0 in the (d + 1)th bit in the resultant list before the sorted subarray with a 1 in the (d + 1)th significant
+	  bit. All numbers with a 0 in the (d + 1)th bith should come before numbers with a 1, so our entire array is sorted.
+
+13)
+
+	- what this algorithm does is picks an arbitrary index i s.t. L[i] > L[i + 1] (i.e. is inverted) and swaps the two numbers thus decreasing the inversions.
+
+	- let's define inversions to be a number that signifies, given an index k, how many elements in positions < k are greater than L[k]. so, for example, in the
+	  list [3;2;1] we'd have 3 inversions: one for 2 and 2 for 1.
+
+	- key to proving that this algorithm terminates is the realization that an unsorted list must have > 0 inversions. If we can prove that this algorithm 
+	  eventually finds 0 inversions, it will terminate with a sorted array. 
+
+	- Let's look at the base. when we have an array of 0 or 1 elements it's trivially sorted. in the case when the number of elements in the list is 2, there
+	  can be 1 or 0 inversions. if there are no inversions the list is sorted, so the algorithm will terminate. if there's one inversion, the algorithm
+	  will swap the two numbers, eliminating the inversion, thus creating a sorted list.
+
+	- assuming mysterious sort works with n inversions, let's show that it works with (n + 1) inversions as well. We'll first pick a number L[i] s.t.
+	  L[i] > L[i + 1]. We'll then swap it, decrementing the number of inversions by 1. we'll then call the algorithm again, on a list with at most n 
+	  inversions, which, by our inductive hypothesis, will return a sorted list with 0 inversions. Thus, since we decrement the number of inversions
+	  on each iteration of the algorithm, and never increment them, we're assured the algorithm will eventually terminate. 
+
+	- you can point out that this is very similar to bubble sort, which runs in O(n^2).
+
+20)
+	
+	- in the problem, what we want to do is given two sorted sets A and B, return the median of the combined sorted set in O(log(n)) time where n = i 
+	  (the size of set A) + j (the size of set B) and is odd.
+
+	- what our algorithm does is leverage the fact that the median of the sorted set {A, B} must have (i + j)/2 elements on its left and (i + j)/2 elements 
+	  on its right. our algorithm recursively calls itself on the midpoint of an array, starting in our case with array A, and checks to see if there's an 
+	  element in B s.t. the above invariant, where there are (i + j)/2 elements on each side of the number, holds. 
+
+	- in the cases where n = 0 there is no median, and when one of the sets A or B is zero, the median of the combined sets {A, B} is simply the median
+	  of the non-empty set (either A or B). 
+	
+	- assuming that the above algorithm works for two sets of size n, let's show that it also works for two sets of combined size (n + 2). since 
+	  (n + 2) = i + j + 2, let's assume set A, that previously had size i, now has size (i + 2). let's take the median of set A, which has (i/2) + 1
+	  elements to its left and check at the index in set B s.t. the number of elements to the left of B, plus the number of elements to the left of A,
+	  equals (i + j)/2 + 1. in the initial case we'll look at the median of B. there are two cases to consider:
+
+		1) if the median of A = B i.e. A[i/2 + 1] == B[j/2] then this is the median of our combined set.
+
+		2) if B[j/2 - 1] <= A[i/2 + 1] < B[j/2] then if we were to insert A[i/2 + 1] between these two numbers in B, we'd know everything to the left of it
+						        is less than it, and it'd have (i + j)/2 + 1 elements to its left. thus, A[i/2 + 1] would be our median
+
+	if none of these cases hold, we want to recur on half of set A. if A[i/2 + 1] is less than the midpoint of B then, none of the elements to the left of 
+	A will satisfy these conditions either. Thus, let's call our algorithm again on the upper half of A, taking the midpoint over the interval {i/2 + 1, i + 2}.
+	when we index into B, then, we'll modify the index to account for the shift in A s.t. we'll look at the position in B s.t. there are at max (i + j)/2 + 1
+	elements to the left of the desired median.if A[i/2 + 1] is greater than the midpoint, do a symmetric opertion recurring on the midpoint on the lower half
+	of A. By our inductive hypothesis, since we're now calling our algorithm reccursively on smaller subsets, this will eventually return the median of the 
+	combined set {A, B}.
+
+	Since we're halving set A on each iteration, and simply doing a couple constant time comparisons of set B, this'll run in O(log(i)) time where, since i
+	has an upper bound of n, will be equivalent to O(log(n)).

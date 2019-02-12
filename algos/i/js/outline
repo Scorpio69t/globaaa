@@ -1,0 +1,41 @@
+-: basics
+
+	- a bid: order to buy
+	- an offer: order to sell
+
+-: Plan (to handle extraordinary volatility)
+
+	-: how would a participant comply with the plan? 
+
+		- "each participant will take such actions ... to fulfill the functions set forth in the plan"
+
+		- offer up a member to serve on an operating committee
+
+	-: "The Processor for each NMS stock shall calculate and disseminate to the public a
+	    Lower Price Band and an Upper Price Band during Regular Trading Hours for such NMS Stock. (pg. 8)"
+
+		- the price band shall be based on a reference price = the arithmetic mean of eligible transactions of
+		  the stock over the preceding 5 minute period.
+
+		- if no transactions have occurred over this 5 minute period, the previous arithmetic mean preceding
+		  this 5 minute period will be maintained
+
+		- you'll be given percentage parameters, which should vary throughout the day, and the:
+
+			- lower price band: percentage parameter below the reference price
+			- upper price band: percentage parameter above the reference price
+
+		- so, for example, let's say the arithmetic mean of transactions over the preceding 5 minutes is 3 dollars 
+		  a stock with a percentage parameter = 10%. the price bands would then be [2.70, 3.30].
+
+		- between 9:30 - 9:45 and 3:35 - 4, percentage parameters will be double whatever they are set forth as.
+
+		- reopening price: price of a transaction following a trading pause / regulatory halt
+
+		- "If a Pro-Forma Reference Price has not moved by 1% or more from the Reference Price currently in effect, no
+		  new Price Bands shall be disseminated" (pg. 8)
+
+		- Except when a Regulatory Halt is in effect at the start of regular trading hours, the first Reference Price 
+		  for a trading day shall be the Opening Price on the Primary Listing Exchange in an NMS Stock if such Opening 
+		  Price occurs less than five minutes after the start of regular trading hours.
+

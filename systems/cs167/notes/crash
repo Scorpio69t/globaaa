@@ -1,0 +1,76 @@
+- The idea of file system consistency is very important (ACID):
+
+	let's say you're creating a new file in a directory. So, we have a directory inode, the data block for the
+	directory, a file inode, and the data block for the file.
+
+		1) write the file inode to disc
+		2) update the directory data block to refer to the file inode
+		3) update the directory inode pointing to the data block (* you might not need to do this *)
+		4) create the file's data block
+		5) write out data to this block
+		6) update the file inode to refer to this data block
+
+	the key here, then, is you want whenever you update a pointer to something for there actually to be something there.
+	If you update the pointer before you write the block its pointing to onto disc, and there's a sudden crash, you might
+	have a pointer referencing garbage values.
+
+- soft updates:
+
+	soft updates rely on the ordering of operations. So let's say, for example, we create a directory and file in that directory.
+	We first want to create the file inode, update the directory's data block to point to that file inode, then the directory
+	inode to point to the data block. Thus, if the system crashes at any of these steps, we don't have any pointers referencing
+	garbage values.
+
+	If you have multiple operations in the same data block s.t. the above ordering is not possible, you'll end up writing changes
+	to the system multiple times, undoing certain operations that might result in an inconsistent state.
+
+- journaling:
+
+	you want changes to disk to be ACID (atomic, consistent, isolated, and durable). One way you could do this would be
+	to have a log where you write changes out to. Only once all steps are safely recorded is the log said to be committed 
+	and it can be written out to disk. (redo and undo)
+
+	- in a system like Ext3 you have redo journaling: changes are committed from the cache to the journal. Once this is complete
+	  an 'end of transaction' tag is placed on the journal. The checkpointing process will then begin, moving items from the cache
+	  onto the disc. If the system were to crash now, it could attempt to update the disc from the journal, thereby redoing the
+	  transaction.
+
+	- you can journal either metadata + user data or only metadata. The problem with the former is that you're writing everything
+	  out twice: once to the journal and then once to disc, which is going to slow things down substantially. To improve performance
+	  you could only journal metadata. This will keep the metadata on the file system consistent, which is our main concern.
+
+	  Only journaling the metadata, though, could lead to problems:
+
+		1) let's say user [1] deletes file B, I then create A and start writing to it. The changes of deleting B and creating A
+		   are journaled, so if the system crashes right now, A will point to a data block, but this could possibly hold B's
+		   user data that wasn't yet cleared - the A file inode references a data block that has B's old data, a security problem.
+
+		2) to handle this problem, let's write user data straight to the file system. In the above case, now, when the system comes
+		   back online and redoes the journaling, block A will point to the correct data (that was first added to disc).
+
+		   However, let's say the transaction of deleting B and A was not fully committed - now B, who thought they deleted their file,
+		   still has a pointer to data, but it's A's data that was first written to disc.
+
+		   The fix here, then, is to only use blocks that have previously been committed and freed - so you wouldn't use B's data block
+		   to write out A's data before B was fully committed.
+
+		3) let's say you create a directory A then a file X. You then delete both. All these changes are committed, so if the system crashes
+		   they'll occur. You then create a file Y and start writing data to it - since the above contents were committed, let's say Y's data
+		   block turns out to be the one A previously used. Following the rules above (2) this data will start to write out to disc to save the
+		   user data. If the system crashes now, though, the changes in the journal will be user; this will delete A and X, yet Y's data is in 
+		   A's data block, thus, this will delete Y's data.
+
+		   The solution to this is to revoke changes in the journal that sum to zero. So, for example, if you create a file then delete it in 
+		   the same journal transaction, you simply do neither. 
+
+		   [QUESTION]: I'm a little confused above: If you create a file Y then start writing data out to it, but none of these changes have been
+			       committed, shouldn't you expect a crash to not preserve Y's data?
+
+		   [ANSWER]: You can have multiple transactions committed in the journal. So creating Y is committed, and let's say for some reason the 
+			     transaction with Y is checkpointed before the first transaction. If the system were to crash, then, it'll update from the
+			     journal what hasn't been checkpointed, thus deleting the contents of Y, which should be there.
+
+- shadow paging:
+
+	keep around old copies until transaction is complete; essentially maintain an old copy and new copy of the pages, 
+	and only switch over to the new pages, in a single operation, once it's committed. 

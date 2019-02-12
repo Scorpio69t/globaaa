@@ -1,0 +1,27 @@
+1) For this particular database there are 10004 possible ciphertext blocks: 1 for each of the 10000 students + 4 for each 
+   of the grades.
+
+   The new key being implemented produces values [0 - 2^48 - 1], however, since this block cipher only works on blocks of 8 bytes, 
+   that means there are technically only 2^32 possible values for the unique ciphertext blocks.
+
+2) Don't have to do.
+
+3) 
+
+	In terms of strings:
+
+		'\\\n\xd7f\xe6\x0c\x9d\x16'		: 		A
+		'*\ri8\xf3\xfe \xf1'			: 		B
+		'\xdfU\xbb\x84\xf1c\x11\x0c'		: 		C
+		'F\xce\x1e\x07+\xc5Q\x81'		: 		N
+
+	In terms of hex values:
+
+		0x5c0ad766e60c9d16			:		A
+		0x2a0d6938f3fe20f1			: 		B
+		0xdf55bb84f163110c			:		C
+		0x46ce1e072bc55181			: 		N
+
+4)
+
+	The student in question with hex valued ID: 0xe357bfec381fb39e received 22 As, 7 Cs, and 1 N.

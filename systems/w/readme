@@ -1,0 +1,33 @@
+-: kernel
+
+	- what does it mean for a kernel to be preemptible?
+
+		: i think this means that a thread of execution in the kernel can be preempted
+		  by to a time slice, like user threads. if a kernel is non-preemptible this means
+		  you don't have to worry about a kernel thread losing execution priority when changing global
+		  data structures.
+
+		: in the mthreads assignment
+
+-: processes
+
+	- in weenix, we have a single thread for each process. think of processes as resources and the
+	  threads as the actual execution.
+
+	- one of the interesting things is that it doesn' seem that any of the processes/threads are preempted by a time slice.
+	  this makes sense considering the above section, however, if this is the case a thread will only ever give up control
+	  of the processor freely.
+
+	- in bootstrap we create an idleproc then context switch into it. the idle process creates an init proc, which should
+	  itself create a number of child processes. In the idle proc, the init proc is created, made runnable, and then
+	  the idle proc is waited, which freely gives up control of the processor to another thread.
+
+	- right now a number of tests are in the initproc. however, I'm sure in the future something else will be here to essentially
+	  loop continuously while the OS is running.
+
+-: drivers
+
+	- in dma we are interacting directly with memory. I think the hierarchy of memory you'll be interacting with is block->sector->byte.
+	  in the dma we'll be referencing a block, which is referenced by the blocknum_t -- this is the # of the block on the dma. within a
+	  block there are a number of sectors (ata_sectors_per_block). I haven't gotten here yet, but likely I'll have to reference the 
+	  particular sector in the dma to read/write to.

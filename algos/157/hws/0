@@ -1,0 +1,165 @@
+1)
+   I think the biggest thing I want to get out of this class is a better, more intuitive understanding of 
+   complexity and how to quickly analyze different algorithms, being able to determine which one will be
+   algorithmically fastest. I've always found approximations very fun, and so even if it might be difficult
+   to find a completely correct answer, when given a choice between multiple ways to solve a problem I want 
+   to be able to easily determine the best one and have an approximate answer for how quickly it will run. 
+   it seems weird to say, but whereas computing answers can give something correct even if you have no intution
+   about the problem, being able to look at a problem and know 'generally' something about it and the best
+   way to solve it, i think, displays a somewhat deeper understanding of underlying concepts.
+
+2) Big O variants for all:
+
+    a) O(n^3) b) O(n^2) c) n
+
+    d) O(n^8621909) e) 3^n f) log[n]
+
+    g) O(n^(log[n])) h) O(nlog[n]) i) n! 
+
+    big question, then, is how does factorial and exponential relate to n^y | y is some constant
+    factor?
+
+    sorting from smallest to largest:
+
+    f -> c -> h -> b -> a -> d -> (g -> e -> i)		/* slightly unclear order of these last three */
+
+3) 
+  a)
+    Given the recurrence relations:
+
+	T(0) = 0 
+        T(n) = 2 * T(n - 1) + 1
+
+    let's prove the conjecture: 
+
+        T(n) < (a * 2^n - b)
+
+    Let's let { a = 2; b = 1 } -->
+
+        base case: T(1) = 2 * 0 + 1 < (2 * 2^1 - 1)		( by math )
+
+    What's the inductive hypothesis then? It's essentially that T(k) < (2 * 2^k - 1) | k is some smaller case. We can then
+    argue that this smaller case is the base case and build from there.
+
+        T(n) = 2 * T(n - 1) + 1
+
+        T(n) < 2 * (2 * 2^(n - 1) - b) + 1
+
+        T(n) < 2 * 2^n - 1    (which proves the conjecture here) QED
+
+  b)
+    2 * T((n - 1)/2) + (n - 1)
+
+    2 * [(n - 1)/2]Log([(n-1)/2]) + (n - 1) | I want to prove the conjecture T(n) <= nlog(n)
+
+    2 * [(n - 1)/2]Log[n/2]/Log[1/2] + (n - 1) hmmm ...
+
+    2 * [n - 1]/2 * Log(n)/Log(2) + n
+
+    2 * [n - 1]/2 * Log(n) + n
+
+    I think what's key here is that since we're using the floor function, n/2 and (n + 1)/2 are equivalent expressions: 4/2 = 5/2; 
+    these pairs of expressions are the same. Can i substitute for something in my recurrence relation?
+
+    for any given n - 1: it'll be equivalent to either n or (n - 2); this is how you eliminate the floor expression. So, for example,
+
+        n - 1 = n (4 = 5) --> they'll both give the same answer
+
+    if n is odd then you can rewrite it as simply n
+
+    if n is even you can rewrite it as n - 2
+
+        2 * (n/2)Log(n/2) + (n - 1)
+
+        2 * (n - 2)/2Log(n/2)/Log(1) + (n - 1)
+
+        2 * (n-1)/2 * Log(n-1/2) - (n - 1)  --> (n - 1) * Log((n - 1)/2) - (n - 1)  -->  (n - 1) * Log(n/2) / Log(1/2) - (n - 1)
+
+        (n - 1) * -Log(n/2) - (n - 1) --> -nLog(n/2) + Log(n/2) + n - 1
+
+        2 * n/2Log(n)/Log(2) + (n - 1)  --> nLog(n) + n - 1
+
+    i think this is on the right track...      
+
+    see sheet
+4) 
+  4.1)
+     [ 1 6 7 ]
+     [ 3 9 5 ]
+     [ 0 3 4 ]
+
+  4.2)
+   a) 
+     [ 3 3 ]
+     [ 7 6 ]
+
+   b) 
+     [ 2  ]
+     [ 1  ]
+     [ 97 ]
+     [ 2  ]
+     [ 28 ]
+  
+  4.3)
+     this 3x2 matrix should be converted via its transpose to a 2x3 matrix:
+
+       [ 1 0 3 ]
+       [ 2 6 2 ]
+
+  4.4)
+   a)
+          [ -1  1  3 ]
+     1/10 [ -3 -2 19 ]
+          [ 4  1 -12 ]
+
+   b)
+
+     no inverse since you can't row reduce this martrix. Since this matrix isn't reducible it's not invertible i.e there isn't
+     a one-to-one relationship between elements in the domain and range.
+
+     more simply, since the first column of the matrix is all zeros the image of the matrix can be represented as a linear combination
+     of only the 2nd and 3rd column vectors. you can choose any three dimensional vector as input, yet, since you only need 2 column vectors
+     to describe the image of the matrix, the resultant transformation will be in 2 dimensions (plane). multiple three dimensional vectors will
+     therefore map to the same 2 dimensional vector, making it impossible to determine which particular three dimensional input vector resulted
+     in a particualr 2 dimensional vector in the matrix's image. 
+
+     so, for example, both input vectors: 
+
+		      [ 1 ]				      [ 4 ]
+		v_1 = [ 2 ]		and		v_2 = [ 2 ]
+		      [ 3 ]				      [ 3 ] 
+
+     should produce the same output:
+
+		      [ 10 ]
+		u_1 = [ 11 ]	
+		      [ 11 ]
+
+     hence if you were given u_1 you wouldn't be able to determine a unique inverse.
+
+  4.5)
+   a)
+     [ 3 1 ] [  3 ]  [ 7 ]
+     [ 2 3 ] [ -2 ]  [ 0 ]
+
+     so: 3 * [ 3 ] + -2 * [ 1 ]
+	     [ 2 ]	  [ 3 ]
+
+   b)
+     task a) is possible since (v_1 = [ 3 2 ]) and (v_2 = [ 1 3 ]) form a 2 dimensional basis, meaning any two dimensional
+     vector can be created through a linear combination of v_1 and v_2 - we know this immediately because v_1 and v_2 aren't collinear. 
+     expanding on this, since v_1 and v_2 are a basis of the space not only can we create [ 7 0 ] through a linear combination of 
+     these vectors, but we can create any vector [ x y ].
+
+   c)
+     A = [ 3 1 ]
+         [ 2 3 ]
+
+     b = [ 7 ]
+         [ 0 ]
+
+     Ax = b   ->   x = A^(-1)b; so, I can find the coefficients in the linear combination in problem a) by multiplying vector b
+                                by the inverse of A.     
+     
+5)
+  see sheet

@@ -1,0 +1,49 @@
+- flow
+
+	: chat.go
+	
+		- server.c
+		- client.c
+
+		: client.go
+
+			(1) calls ServerConnect to connect to server. this returns
+			    a chatConn object, which contains a pointer to an encoder,
+			    a pointer to a decoder, and a net.Conn
+
+- net.Listen
+
+	: opens up a server. this returns a "Listener" object that can:
+
+		.Accept() : wait for and return next connection to server
+
+		.Close() : close connection to server
+
+		.Addr() : return listener's address
+
+	: main in chat.go calls server.Start()
+
+		- this opens up a connection with whatsup.OpenListener()
+
+			- OpenListener() calls net.Listen, which returns the "Listener"
+			  object. 
+
+			- this returns (Listener object, random port, error)
+
+		- once it has a Listener object, it calls object.Accept(), which waits
+		  for a connection from a client. Once it gets one it returns a conn
+		  object (https://golang.org/pkg/net/#Conn) and handles it
+
+	: handleConnection()
+
+		- 
+
+- receiver argument
+
+	: func (purpose Purpose) String() string - this function you'd call purpose.String()
+
+- gob
+
+	: usually when you're sending messages over a network you're dealing with strings and bytes.
+	  using gobs allows you to encapsulate structures and packages and send them simply as a
+	  'gob' of information over the network.

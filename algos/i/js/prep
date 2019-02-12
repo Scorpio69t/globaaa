@@ -1,0 +1,73 @@
+-: LULD:
+
+	- If I had to quickly explain it: a mechanism that helps to control market volatility by calculating reference prices
+	  and price bands that define trades that are executable.
+
+	- One of the questions I had: there seem to be volatility you want to protect against, such as panicky trades or momentum in the
+	  market, where you see everyone selling off a particular security and you assume, trying to view the market from someone else's
+	  perspective, that you should sell too:
+
+		-: Kripke structures
+
+	  and normal fluctuations in the price of stock.
+
+	- let's say a market enters a limit state and a trading pause. during this trading pause if no trades are executed the previous
+	  reference price, before the pause, will be reinstated. in terms of mechanics, if there actually was a large fluctuation in the price
+	  of a stock one would imagine no trades occuring during the inital pause. if the previous reference price is reinstated, bids or offers
+	  will slip towards the previous price bands
+
+		-: slippage: if I'm willing to pay $95 for a stock I'd also be willing to pay $94 for a stock / if I'm willing to sell for
+			     $95 I'm also willing to sell for $100
+
+	  and another trading pause will occur, effectively locking the security until, say, the exchange can figure out what is going on
+
+	  if trades do occur during the trading pause, the average of these trades will generate the new agreed upon value for the security
+	  i.e. the reference price
+
+	- if you have a number of bids and offers, the average of the two can be thought of as the actual value of the security
+
+		-: let's say you have 3 bids and 3 offers:
+
+					bid				offer
+					$95				$120
+					$115				$116
+					$94				$116
+
+		    would the actual value simply be the average of these values? (95 + 94 + 115 + 120 + 116 + 116)/6 = 109.33
+
+		    if you're using some notion of a reference price, you might eliminate the bid of $115; this might be artificially increasing
+		    the value of the stock so you could eliminate it since it's (probably) outside the price bands.
+
+	- if you have 1 bid for $10 and 100 offers for $100, is the actual value of the stock closer to $100 or $10?
+
+		- intuition says it'd be closer to $100: (100*100 + 10)/101 = $99.11. However, if you only have a single person bidding for a
+		  security it's a buyer's market. If any of the 100 offers lowers their price they'll be more likely to actually execute their
+		  trade. This might enter into the realm of game theory at that point. The value of the security will actually be closer to $10.
+
+	- whenever you're given multiple bids and offers for securities, take their average to come up with an idea of the actual value of the stock.
+
+-: Trading Review
+
+	- two die rolls add up to 7. In terms of counting: 36 possibilities | {(1 + 6), (2 + 5), (3 + 4), (4 + 3), (5 + 2), (6 + 1)} = 1/6
+
+	- P(A || B) = P(A) + P(B) - P(A && B)		// overlap
+
+	- (12/52) = (3/13) * (3/13)
+
+	- (12/52) * (11/51)
+
+	- a couple things to think about: product of two even numbers = even, even * odd = even, odd * odd = odd. so you'd have to get odd on the first
+	  roll and odd on the second: (1/2) * (1/2) | (1/2)^3
+
+	- I don't think so. For example, let's say you know B*R = odd. in this case, you know both B and R have to be odd numbers s.t. (B + R) = 
+	  {1, 4, 6, 8, 10}. so you've constricted the solution space by half.
+
+	- (1/2) * 6 + (1/10) * 15 = 3 + 1.5 = 4.5 | 7.5
+
+	- if the random variables are not independent: P(Y = 1|X = 1) = 1	-> (1/2) * (1/2) = (1/4) | (1/2) * [(1/2) * (1/2) + (1/2)] = (1/2) * (3/4) = 3/8
+
+	- 
+
+-: Coding Review
+
+-: Glassdoor puzzles

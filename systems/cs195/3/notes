@@ -1,0 +1,43 @@
+- set
+
+	: a set is NOT a relation: (something -> something); it's simply a set of 
+	  objects. it seems like a relation, since if you define something:
+
+	  sig City {
+		  roads : set City
+	  }
+
+	  it'll be (City -> City) only because you have to access the set of Cities
+	  by determining which City has those roads.
+
+- check
+
+	: a check looks for an instance that doesn't satisfy the contraint.
+	  so, for example, if we set up an iff predicate then run check and
+	  it finds instances, that means it was able to find instances that
+	  violate the predicate. no instances for a check is a good thing
+
+- tic-tac-toe
+
+	: move[]	
+
+		1) no player currently in place [r][c] on the board
+		2) the new board (after a turn) is the same as the previous
+		   board with [r][c] also filled in with the correct player
+		3) we only move when it's the correct players' turn
+
+	: the reason ValidGame doesn't work is because once we get to the last board
+	  there is no move
+
+- linked list
+
+	: In linked list, we use states instead of a board to keep track of time. As
+	  we add things to the list, we are updating the current State of the linkedlist.
+	  
+	  In terms of start and end, those are (State -> lone Node) types since, for a particular
+	  linked list, you could have the same sequence of nodes connected to each other
+	  but the actual start and end of the lists might be different.
+
+	: I think we use seq here when representing the objects in the list since it doesn't
+	  make a ton of sense to use the cartesian product, as it does with something like a
+	  board.

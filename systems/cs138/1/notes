@@ -1,0 +1,85 @@
+- Napster
+
+	: In order to download a file using Napster, it looks like you'd make a request to some
+	  centralized server. This server would return a list of peers offering the file. You would
+	  then request the file from one of these peers, download it, and send a message back to the
+	  central server updating it that you now also own the file.
+
+	: Problem with this: if the central server goes down, you're kind of out of luck. This introduces
+	  a bottleneck
+
+	: Requests were for music. If you requested a song and couldn't get it, no big deal, you could
+	  wait. This menas there was no requirement for dependability or distribution of content among
+	  multiple nodes to prevent data loss due to clients disconnecting from the network. This 
+	  wouldn't work if the data requested was time sensitive.
+
+- Middleware
+
+	: If we have some distributed network, we have to:
+
+		- ensure load balancing (perhaps by distributing files randomly across the nodes)
+		- utilize network locality to decrease latency (place data close to nodes who use it most)
+		- provide resistence to data corruption through the use of replicas and backups across nodes
+
+- Gnutella
+
+	: totally distributed system
+
+	: could have a couple of hard coded peers, so that when new users join they know who to talk to 
+	  initially
+
+	: limits the hops to get to content -- only look in a set number of peers, which means finding content
+	  not as good as with Napster
+
+	: a big problem with this is it doesn't scale searches very well. Since you're looking in # of hops, if you're
+	  searching even 4-5 hops away looking for content, the number of computers you're requesting content from
+	  is going to grow exponentially. 
+
+	: possible answer to this - have computers store hash tables of locations of files. What's the location? In
+	  straw man modulo you simply take some hash and mod it by N, which gives you the peer that holds the file. 
+	  This is a problem if N, the number of connected peers, changes.
+
+	: how do we use a hash table, but still account for the fact peers can drop out and pop in? In Consistent
+	  Hashing, you hash servers placing them along some cirle (think of it like a clock, which essentially is time
+	  mod 12). You then hash files and place those files into the server along the circle that's closest. In this
+	  way, as peers enter the system they still get fully utilized and the system isn't really affected as peers
+	  drop out; files hashed would simply be placed in the next nearest server along the circle.
+ 
+- Chord
+
+	: we want to be able to search for something in our distributed system but 1) not keep around a centralized server
+	  and 2) not have to look through n nodes. We also 3) don't want to change our hash table, locating files in servers,
+	  whenever peers drop in and out of the system.
+
+	: chord is like consistent hashing, but with a couple difference. You keep around finger tables to help better locate things.
+	  With finger tables, you should be able to find things in log(n) time.
+
+	: let's walk through 'Finding an Object':
+
+		1) For a particular node n and an id, you want to find the predecessor of id so you can return its successor
+
+		2) To find the predecessor, you see if id is between n and n's successor. Let's assume our finger table (mod 64) is,
+		   starting at node 1 we're looking for 40:
+
+				1
+				17
+				32
+				32
+				58
+
+			.) see if 40 is between 1 and 17. It's not so call closest_preceding_finger()
+
+		3) in preceding_finger, we start at the largest index and see if the node is between n and id. it's not, so decrease
+		   i giving us node 32. Node 32 is between 1 and 40 so return it.
+
+		4) 40 is between 32 and 58, so return it. this is n1 that gets returned to find_successor. You then return this
+		   node's successor, which is 58, which is correct.
+
+	: problem with this: using this overlay network, let's say you're looking for object 60 from node 1. Depending on the finger table,
+	  we might have to jump to say node 32 and 58 before returning to 1. This could be expensive since the overlap doesn't keep track
+	  of geographic location. These other nodes might be in different countries, so although you're limiting the # of lookups, each 
+	  lookup might be very expensive.
+
+- Tapestry
+
+	

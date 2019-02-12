@@ -1,0 +1,96 @@
+-: using only a limited formulation, where we don't label the people, but instead have groups determined by
+   the number of blue/nonblue people there are in a world is not a kripke structure. the TA said it might
+   work for blue eyes, but if you consider the beliefs/possibilities between worlds, they aren't symmextric,
+   meaning there can't be an equivalence, which is important in determining what people know in their worlds:
+
+	-: in general, someone in a world knows something about themselves if that something is true in all 
+	   the other worlds they can see into -- i.e. they can't imagine a world that's different.
+
+-: consider the case where we have 2 people on an island, one of whom has blue eyes:
+
+		Alice: Not blue eyes
+		Bob: Blue eyes
+
+
+		    A, B				    A, B
+		    ___					     ___
+		   |   |				    |   |
+		   \   /				    \   /
+		--------------            A		--------------
+		|             |	    <----------->	|	     |
+		| Alice: Blue |				| Alice: NB  |	X
+		| Bob: Blue   |				| Bob: Blue  |
+		|_____________|				|____________|
+
+			^					^
+			|					|
+			|					|
+		     B	|				     B	|
+			|					|
+			V					V
+		--------------            A		--------------
+		|             |	    <----------->	|	     |
+		| Alice: Blue |				| Alice: NB  |
+		| Bob: NB     |				| Bob: NB    |
+		|_____________|				|____________|
+		     /  \				     /  \
+		    |    |				    |    |
+		     \__/				     \__/
+		     A, B				      A, B		
+
+-: notice how the edges represent knowledge between worlds. also notice how the edges are symmetric. nobody
+   knows what world they are actually in, since there are edges (possibilities) going to other worlds; so each
+   person in these worlds can see other, different worlds that make them doubt.
+	
+-: now let's assume the world with the X is the actual world. When the Guru says "I see someone with blue eyes"
+   we can parse the kripke structure to:
+
+		    A, B				    A, B
+		    ___					     ___
+		   |   |				    |   |
+		   \   /				    \   /
+		--------------            A		--------------
+		|             |	    <----------->	|	     |
+		| Alice: Blue |				| Alice: NB  |	X
+		| Bob: Blue   |				| Bob: Blue  |
+		|_____________|				|____________|
+
+			^					
+			|					
+			|					
+		     B	|				     
+			|					
+			V					
+		-------------- 
+		|             |	    
+		| Alice: Blue |	 Y			
+		| Bob: NB     |				
+		|_____________|				
+		     /  \				     
+		    |    |				    
+		     \__/				     
+		     A, B				      
+
+-: how do we parse the tree further, though? if we only have self loops, this represents the knowledge of someone. so
+   in X, Bob can only see the world where he has Blue eyes and Alice doesn't. likewise, in Y Alice can only see the world 
+   where she has Blue eyes and Bob doesn't.
+
+	-: self loop + actually true world means someone leaves? in X, Bob only sees the world where they have blue eyes
+	   and Alice does, in fact, have NB eyes, so Bob leaves since this world is true.
+
+-: let's say you're on the second day, however. on the second day we should know that Bob 'doesn't know" their eye color,
+   otherwise Bob would've left on day 1. likewise, Alice doesn't know her eye color either. the world with the 'X' is a world
+   where Bob does know his eye color, so we can remove this world. the world with the 'Y' is a world where Alice knows her
+   eye color, so we can remove this world as well. this only leaves:
+
+		    A, B	
+		    ___		
+		   |   |	
+		   \   /	
+		-------------- 
+		|             |
+		| Alice: Blue |	
+		| Bob: Blue   |				
+		|_____________|				
+
+  can we simply look at other worlds, check to see if they only have a self loop, then remove them?

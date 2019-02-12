@@ -1,0 +1,8 @@
+- merge groups 8 and 10 into x
+
+- 5th element in group 7 should be in first group; it users fingerprint() within a for loop,
+  so it looks as though it's n^2, but it's actually not
+
+- one can imagine as an instructor or TA running across a problem like this when grading 20 or 
+  30 problem sets and thinking "oh, that's weird", but not realizing it represents a non-trivial
+  subsets of students. Grouping and clustering them provides clarity into the data.

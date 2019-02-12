@@ -1,0 +1,12 @@
+- avoid higher order quantification
+
+	: pred higherOrder {
+		all subEdges: edges | subEdges = edges
+		-- all n1, n2: Node | n1 -> n2 in edges implies ...
+		#edges > 1
+
+		-- the comment means we are only looking for
+		-- a single instance that negates it; we aren't
+		-- trying to prove something over an entire set
+	}
+

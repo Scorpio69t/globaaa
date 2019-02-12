@@ -1,0 +1,14 @@
+
+	thread_switch(thread_t* next_thread) {
+
+	  // update current thread
+	  thread_t* oldCurrentThread = CurrentThread;
+	  CurrentThread = next_thread;
+	  
+	  /* if setjmp() returns from a longjmp(), it'll 
+	   * return a non-zero value, otherwise it'll return 0.
+	   * So perform the longjmp() only if you're not already 
+	   * returning from a longjmp() operation */
+	  if(!setjmp(oldCurrentThread->jmpbuf))
+	    longjmp(CurrentThread->jmpbuf, 1);
+	}

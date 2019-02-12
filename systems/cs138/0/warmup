@@ -1,0 +1,40 @@
+- defer statement:
+
+	func main() {
+		defer fmt.Println("world")
+
+		fmt.Println("hello")
+	}
+
+	: the defer keyword defers the execution of the function until the surrounding
+	  function returns. So above, we won't end up printing "world" until main returns.
+
+	> "hello"
+	> "world"
+
+	: these calls are pushed onto the stack s.t. they are executed in a lifo order.
+
+- PATH env variable
+
+	: print all env variables with "env"
+
+	: the PATH specifies locations for executable files. when you type 'cd', 'pwd', etc, 
+	  it checks the folders in PATH for the first executable that matches
+
+- go install
+
+	: I can run go install, but you have to run it on packages and not .go files. if I run 
+	  it on: 'github.com/brown-csci1380/whatsup', for example, it'll install an executable 
+	  in $GOPATH/src
+
+- flag package
+
+	: looking in chat.go, you have flags for server, client, port, addr, etc. when 
+	  calling something from the command line, use "-port=1234", for example, to specify a
+	  particular port for the client. A full call from the client might look like:
+
+		./whatsup -client -port=45710 -addr=cslab8a
+
+- goroutines
+
+	: to start a new thread, simply prefix the function with 'go'

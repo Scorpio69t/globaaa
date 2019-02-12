@@ -1,0 +1,37 @@
+-: process
+
+	: create a number of k-grams, where each k-gram is a substring of length k. For example:
+
+		Hi there! My name is Daven. ->	[Hithe; ither; there; here!; ... ]
+
+	: this creates a large number of k-grams; almost as many characters, c (c - k - 1)
+
+	: these k-grams are then hashed, and a subset are taken as the document's fingerprint
+
+		: this subset is generally 0 mod p -> so, if in the example you choose 4, this becomes
+		  all values s.t. v / 4 = 0
+
+	
+-: problem
+
+	: I think the problem is that for large portions of text, there's no guarantee (it's unbounded) that you'll find 
+	  hashes that fit your fingerprint (i.e. where they're 0 % p)
+
+-: solution
+
+	: determine windows and within those windows look for fingerprints.
+
+-: requirements
+
+	: 1) ignore whitespace and punctuation / 2) suppress noise (small tokens that'll match) / 3) position independence 
+	  (moving paragraphs around shouldn't matter)
+
+	: in order to accomplish -> 1) eliminate white space, tolower, alpha conversion / 2) long idioms / 3) 
+
+-: karp-rabin
+
+	: works by using a rolling hash function; essentially, you can eliminate previous terms from the hash function and 
+	  sequentially add new ones -> turns a linear operation to a constant time one
+
+	: this allows you to compare the hashes of substrings within some string 's' with some target string 't'
+

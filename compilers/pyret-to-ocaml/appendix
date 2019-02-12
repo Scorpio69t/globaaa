@@ -1,0 +1,43 @@
+BUILTINS:
+
+	Lowest level types:								^
+		I: number		F: number	B: boolean	S:string	|	less general
+											|
+	Unitype:									|
+		PN: number	PB: boolean	PS: string				|	more general
+
+OPERATORS (currently supported):
+
+	"op+" : 
+		(1) I + I -> I	(2) F + F -> F  (3) I + F -> F  (4) F + I -> F  (5) other -> TypeError
+
+	"op-" : 
+		(1) I - I -> I	(2) F - F -> F  (3) I - F -> F  (4) F - I -> F  (5) other -> TypeError
+
+	"op*" : 
+		(1) I * I -> I	(2) F * F -> F  (3) I * F -> F  (4) F * I -> F  (5) other -> TypeError
+
+	"op/" : 
+		(1) I / I -> I	(2) F / F -> F  (3) I / F -> F  (4) F / I -> F  (5) other -> TypeError
+
+	"op==" : 
+		(1) I == I -> B	 (2) F == F -> B  (3) I == F -> B  (4) F == I -> B  (5) B == B -> B  (6) other -> TypeError
+
+	"opand":
+		(1) B and B -> B  (2) other -> TypeError
+
+	"opor":
+		(1) B and B -> B  (2) other -> TypeError
+
+	"op<":
+                (1) I < I -> B  (2) F < F -> B  (3) I < F -> B  (4) F < I -> B  (5) S < S -> B  (6) other -> TypeError
+
+FUNCTIONS:
+
+	collect-vars(): Use to collect all instances of mutable variables in scope. Need to call whenever new scope could
+			be introduced: function calls, let expressions, etc.
+
+S-EXPS:
+	
+	s-id		s-num		s-frac		s-op		s-var		s-bool		s-assign	
+	s-let		s-fun		s-app		s-if-else	s-paren		

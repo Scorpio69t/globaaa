@@ -1,0 +1,46 @@
+There are block comments in all of the files, but just to summarize:
+
+	Lights Out: 	When you call any function, you automatically push the return address onto the
+			stack. So when test_exploit() calls getbuf(), it first increases the size of the 
+			stack by 8 and places the return address here. getbuf() then subtracts 0x38 = 56 bytes.
+		    	This means the return address to the calling function, in this case test_exploit(),
+			is at $rsp + 56; 
+
+		    	Instead of jumping back to test_exploit(), simply fill in the buffer to overwrite the
+			return address with the location of the function lights_off(), so it'll jump to lights_off()
+			instead of back to test_exploit().
+
+	Funding: 	Very similar to Lights Out; fill in the buffer on the stack with 56 bytes of 0x00
+		 	overwriting the return address with the location of funding(). Funding(), however, takes a
+		 	struct as a parameter. 
+
+			Parameters are pushed on the stack before the return address. Cal.id is located 16 bytes 
+			above (higher mem. adr.) the return address, while cal.funds is 32 bytes above the return address. 
+			Into these positions put my uid and change the value to 25 (less than 50 but not bad).
+
+	Dory: 		In this, I'm pushing very basic machine code onto the stack. Since the stack is static, from
+			running GDB (on my machine - it might be dif. elsewhere) it's clear the stack locations are as follows:
+
+				(1) in test_exploit() before pushing on return address: 	0x55683bb8
+				(2) after pushing on return address:				0x55683bb0
+				(3) after subtracting 0x38					0x55683b78
+
+			So I want to return to the top of the stack: 0x55683b78, so fill in the buffer overwriting the return address
+			with this value. Once you're in '_reserved' memory, since you've technically 'returned' from getbuf(), %rsp 
+			should point to: 0x55683bb8. In the machine code, (1) push on the memory location of where getbuf() should've 
+			returned to in test_exploit(): 0x4011df then (2) move my id into %eax. 
+
+			After this, I can simply 'ret' since %rsp points to the correct location and this 8 bytes of additional
+			space on the stack will be automatically popped off by the return statement.
+
+	Fish:		Very similar to Dory, the only difference is you can't be sure where the stack is. Because of this, overwrite
+			the return address with a reasonable guess about where the stack might be. 
+
+			Since you don't know the exact location of where the stack is, you want to put the machine code (which is very
+			similar to the machine code in Dory, except you push the return location of test_exploitn() onto the stack)
+			near the very bottom of the stack. Above this, instead of filling the buffer with 0x00 (which would cause a 
+			seg fault if the computer tried to run this) fill it with the nop instruction 0x90, which will create a 'slide'
+			towards the bottom of the stack.
+
+			Now, as long as the jump is into a location that's a part of this nop slide, you'll eventually execute the desired
+			machine code.

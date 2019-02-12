@@ -1,0 +1,77 @@
+
+- How do certificates work?
+
+  -
+
+	Let's say server A wants to send information to client B. Server A will encrypt a message
+	with its private key and send it to B. B will then use the server's public key to decrypt the message.
+
+	Key to this is there has to be some authetication of the public key and this comes in the form of 
+	provider who guarantee the authenticity of a certificate. These companies verify that the public
+	key being used by client B does, in fact, belong to server A. 
+
+	Without this verification, a malicious user could encrypt a message and pass it off to a client; if 
+	the client then uses an incorrect public key, it might mistakenly believe it is communicating with
+	a trusted source instead of some unknown third party.
+
+  - 
+
+	Something to keep in mind is the time it takes to user certain encrption methods. In general, RSA
+	encryption-decryption is going to take much longer than symmetric key encryption. For this reason, 
+	most data transmission wants to make use of symmetric key encryption. The question, though, is how
+	do two sources agree on a symmetric key without a third party becoming aware of it?
+
+		- key to this is a combination of RSA and symmetric key encryption:
+
+			1) use RSA to agree on some shared symmetric key (RSA Key Exchange)
+			2) use shared symmetric key to encrypt future messages
+
+-
+
+  (a)
+
+	A VPN is a virtual private network that can be used to connect to a private network across a shared, public network. 
+	In terms of this article, let's say you want to work remotely - you don't necessarily want to access company material
+	on a public network since this leaves communications susceptible to attacks, such as MitM attacks. Instead, you'd use
+	a VPN to connect to your company's intranet, and once you're on this private network work securely. 
+
+	Concretely, let's say you're using OpenSSH, a type of VPN. This'll establish a point-to-point connection from your client
+	to some private network. Furthermore, it'll make sure your communications to the private network are encrypted. Thus, you'll
+	have access to all the resources on your company's intranet and your communications will be encrypted. 
+
+  (b)   
+
+	As the paper suggests, using a VPN to connect to some company's intranet, and then once connected, allowing a user to work as 
+	if they were no longer accessing resources remotely relies on a 'perimeter security model': if you can gain access to the company's 
+	intranet, you're assumed to be a trusted user, while anyone outside the walls is deemed dangerous. The paper contends that this
+	is an outdated model.
+
+	Instead, BeyondCorp doesn't differentiate between some trusted company intranet vs. dangerous public internet. Instead, all access
+	to company resources is regulated through a combination of device and user credentials, which specifies who gets access to what. Only
+	"managed devices", managed through certificates, are allowed access to the company's network. Once you connect to the company's network,
+	users are identified in a User database and given shortlived tokens. With these two levels of authentication, the company can, with more
+	granularity, restrict who gets access to what; a valid device certificate is necessary to access the company's network, but after 
+	that the user's credentials specify what he or she can do on the network (and these can be easily changed depending on job role,
+	promotion, etc).
+		
+  (c)   
+
+	I think what happens when someone tries to access a google application via some unsecured WIFI, for example while using WIFI at a coffee
+	shop, is a public domain name for that application points to an access proxy through which the device's credentials and, later, the user's 
+	credentials are checked. If the device is a valid managed device, access is granted and then the user's permissions are specified via their
+	user credentials. What's key, here, is that the user isn't using a VPN to remotely connect to their company's intranet. Instead, everything
+	is on the internet, access is simply regulated with the device's and the user's credentials. No longer is there this idea of a perimeter beyond
+	which users are considered trusted. To simply gain access to the network depends on whether you have a trusted device, and then beyond that
+	your individual credentials are what determine your level of access. 
+
+  (d)
+
+	I think the big ways a VPN provides protection, even from an ISP, is through encryption and location masking. So, if you're using a VPN like
+	OpenSSH, since messages between a client and server are being sent in an encrypted way, it's not possible for an ISP to determine the content
+	of the payload of the messages. 
+
+	Furthermore, if you're accessing a website via a VPN, the IP address of the packets returned from the website will be that of the VPN provider.
+	The VPN then correctly handles routing it to the user, thus masking your IP and location. (* CHECK *)
+
+		(* QUESTION: How exactly does a VPN hide a user's IP address? Does the VPN route packets it gets to users who are connected to the
+			     VPN? Is encryption used to secure the IP address? *)

@@ -1,0 +1,11 @@
+Metadata Exfiltration:
+
+  attack:
+
+        Whenever a user tries to hand in an assignment, the autograder will use the 'tmp' folder. Since this folder is world readable, other users can
+        peak in and see when other students are submitting their homeworks. Furthermore, let's say I'm Bob and I see a file in the 'tmp' folder. If I
+        run 'getfacl' on the file, I'll be able to see its owner, thus, knowing who has submitted their homework.
+
+  fix:
+
+	The fix for this is pretty easy, just change the permissions of the 'tmp' folder to prevent users from executing it.

@@ -1,0 +1,313 @@
+1)
+
+	getcontext is going to save the context of the current thread; save context is going to restore the context.
+
+	/* this is not going to work. On the first pass through, I'll save the context of the old thread and then
+	 * switch to the new thread. When new thread switches back, though, it'll switch to where the context was
+	 * originally stored (1). Thus, it would switch back to old's context, but old would then immediately swap
+	 * to the new contexts. We need a way to differentiate at what stage a thread is in this function.
+	void thread_switch() {
+ 		thread_t NextThread, OldCurrent;
+ 		NextThread = dequeue(RunQueue);
+ 		OldCurrent = CurrentThread;
+ 		CurrentThread = NextThread;
+		getcontext(&OldCurrent->context)		(1)
+		setcontext(&NextThread->context))		(2)
+	}
+
+	/* now, when new thread switches back to the old thread, first will be updated to 0 (and on the old thread's
+	 * stack. First will evaluate to true, and thus the function will return without swapping again.
+	void thread_switch() {
+ 		thread_t NextThread, OldCurrent;
+ 		NextThread = dequeue(RunQueue);
+ 		OldCurrent = CurrentThread;
+ 		CurrentThread = NextThread;
+
+		/* a volatile variable will be saved on the stack - thus its value will persist due to 
+		 * swapping stacks in and out */
+		volatile flag = 1;
+
+		getcontext(&OldCurrent->context)		(1)
+
+		if(!first)
+			return;
+
+		first = 0;
+		setcontext(&NextThread->context))		(2)
+	}
+
+2)
+
+	Another thing to worry about is the order in which we're updating the reference to the current thread.
+
+	II-24: You immediately swap again (like above)
+
+	II-25: When you swap contexts, you're swapping into the nextThread -- its reference to CurrentThread is not 
+	       the same
+
+	II-26: This version finally works as it should
+
+3)
+
+	I thought the answer would be to save the parameter in a struct field for the thread -- which, I think, is analogous
+	to TLS.
+
+	void thread_switch(arg) {
+ 		thread_t NextThread, OldCurrent;
+ 		NextThread = dequeue(RunQueue);
+ 		OldCurrent = CurrentThread;
+ 		CurrentThread = NextThread;
+
+		&NextThread->field = arg;
+
+		/* a volatile variable will be saved on the stack - thus its value will persist due to 
+		 * swapping stacks in and out */
+		volatile flag = 1;
+
+		getcontext(&OldCurrent->context)		(1)
+
+		if(!first)
+			return;
+
+		first = 0;
+		setcontext(&NextThread->context))		(2)
+
+		/* setcontext is going to switch to wherever &NextThread saved its context;  To make use of arg there, 
+	 	 * use the field you saved it in (which is effectively TLS) */
+	}
+
+4)
+
+	The whole idea behind setuid programs is that they run at the permissions level of the owner of the program. This
+	is useful, cause let's say a user wants to update their password. Well, they don't have permissions to access the
+	password file, but, if they run a change_password program, the executable will take some input and run as root user
+	to effectively edit the password file. 
+
+	This is dangerous since if you run a setuid program from an untrusted user, because you're running the program with your
+	effective permissions, the program can access all files as you -- so the program could copy all your files and place them 
+	in the attacker's system.
+
+	A setuid program from root might look like this:
+
+		seteuid(0)	/* change effective permissions to root */
+
+		/* do something */
+
+	What's useful here, too, is that the program has access to the users uid. It could thus do this:
+
+                uid_t caller = getuid();        /* get the uid of the caller */
+
+                seteuid(caller);                /* change effective permissions back to caller's */
+
+		/* do something, such as try to open a file */
+
+                seteuid(0);                 /* change back to root */
+
+	So a malicious program from an untrusted user could do this:
+
+		/* you're getting the uid and euid of the calling process - the calling process has the ability to 	
+		 * do this and then seteuid to to either its uid, euid, or saved uid */
+		uid_t caller = getuid()		/* get the uid of the caller */
+		uid_t attacker = geteuid();	/* permissions of owner of file */
+
+		seteuid(caller);
+
+		/* copy a file owner by the caller into a buffer */
+
+		seteuid(attacker);
+
+		/* write out the file to a directory owned by the attacker */
+
+	Thus, an attacker can steal files owned by the caller.
+
+5)
+
+	If you didn't allow the program to change the effective uid, then it wouldn't be able to switch
+	back and forth between the euid of the owner of the program and the caller of the program. Key here, 
+	though, is you have to pass in a FD for the file, otherwise since the setuid program can't set its
+	permissions to that of the user calling the program, it won't be able to open the file.
+
+6)
+
+	In terms of having multiple cores, you should at least enough LWPs s.t. you can utilize all cores. So,
+	if you have 4 processors, you'd want at least 4 LWPs so that a processes is running, simultaneously, on
+	each processor.
+
+	i think the way this actually works is user threads run on top of LWPs. So when a user thread blocks, the
+	user thread should be added to a wait queue and the LWP added back to a pool of available kernel threads - 
+	if this is the case, how does the pipe work?
+
+		- The pipe is AT THE KERNEL LEVEL. Maybe a user thread makes a system call to write to a pipe - 
+		  the kernel thread (LWP) is then going to try to write to a fd that represents a pipe. If that
+		  pipe is full, though, the LWP will have to block until the pipe has room for it to write to.
+		  If there's only one LWP though, if the only LWP blocks it'll never come back, and thus there
+		  will be deadlock. 
+
+7)
+
+	The larger the concurrency factor the less important the striping; performance is better with a large
+	striping unit.
+
+	6.44: With 4 requests, and a large striping size, each disk seeks one time and then reads in a lot of
+	      data. If the striping unit was smaller, although a request could be handled in parallel, there
+	      would be 4 times as many seeks (and this would be the real bottleneck)
+
+8)
+
+	strict consistency: the idea that even if we have multiple clients accessing a file system, if a file is accessed
+			    then the file system returns the most recent write to that file. 
+	
+			    A system wouldn't be consistent if, for example, two clients A and B are accessing a file. A
+			    writes to the file, but when B opens the file he doesn't see A's changes. This could happen
+			    when clients are caching results locally before updating the file on server. To provide consistency
+			    there are multiple ways to handle this type of parallel access. 
+
+	NFS (fast, but not always strictly consistent):
+
+		What's the idea behind NFS? Standard NFS doesn't maintain any state server side i.e. no open file information
+		or locks are saved server side. Thus, if a client goes down then all of its open file information goes away
+		with it. Since no state is saved, there is nothing to be done in the case of a server or client crash.
+
+		In terms of caches, multiple files are allowed to open files read-only at the same time, but only one client can
+		open a file to write. Caches for read only files are updated periodically from the server. It's a little bit unclear
+		how the server manages multiple clients opening the same file to write - I think this is where the NLM comes into play.
+
+		NLM (network lock manager): This keeps track of locks held on files, but state is kept in volatile memory. Thus, if the
+		server crashes, it must reconfigure its locks (grace period). Big things to take away from NLM: (1) the server handles
+		crashes very conservatively; it essentially waits for a client to announce that it's rebooting. Once this happens, the
+		server releases all of the client's locks. This is potentially bad, since let's say client A holds a write lock for a
+		certain file. While it does, other files can't write to this file (or read from portions that are covered by the write 
+		lock). If client A goes down, but doesn't come up for awhile, its lock on the file is held, preventing other clients
+		from grabbing the lock for a substantial period of time.
+
+		The grace period is also potentially harmful - the classic sequence: 
+
+				1) Client A grabs lock on File A
+
+				2) Server goes down
+
+				3) A tries to reclaim its lock during the grace period, but due to network problems is unable to 	
+
+				4) Client B, after the grace period, grabs a write lock on file A and starts writing
+
+				5) Server goes down again
+
+				6) A now successfully reclaims its lock (since the server is in another grace period). It continues
+				   writing to file A, however this file is not consistent with the one it was editing previous to the
+				   first server crash
+	
+	CIFS (stictly consistent, but not always fast):
+
+		The key to maintaining consistency is effectively handling who's reading / writing to files and client side caches.
+		CIFS maintains server side state regarding open files. It also relies on the network to inform it of client side crashes -
+		if, after pinging a client, the client fails to respond, the server will assume the worst (that the client has crashed).
+		This is good, in that it prevents locks on files from persisting when a client goes down, but doesn't come up immediately.
+		It's bad, however, if, due to network latency, a client has not crashed, but simply can't respond in time to messages from
+		the server. In this case, the client's locks (and the open file information for a file) might be cleared even though a 
+		client is still using the file. 
+
+		The open file information server side is important when determining who can cache what information. If a file is open with
+		write permissions by a client, then that client is allowed to cache changes -- other clients won't be allowed to open the
+		file since the first client will hold an exclusive lock on the file.
+
+		If a file is open read-only, though, then other clients will also be allowed to open it read only (no caching will occur in
+		this case cause the file is read-only). 
+
+	DFS:
+
+		TOKENS
+
+9)
+
+	Let's say in both implementations you have 2 user threads. In the 2 level model, you might have a single kernel thread
+	that these user threads are multiplexed on. If this is the case, you might get deadlock from a situation like in (6)
+
+	In a one level model, however, one thread would switch to its kernel context and block while waiting to read (or write)
+	from a pipe, and the other user thread, accessing its own kernel context, would be able to read (or write) to the pipe, thus
+	freeing the original thread to resume execution.
+
+10)
+
+	If all kernel threads in a process are blocked, create a new one.
+
+11)
+
+	(750 * 512) bytes * /.004 = (9.6 * 10^7) 	/* this is twice as fast as Rhinopias I */
+
+12)
+
+	The problem with S5FS is a number of things:
+
+		1) It does nothing ot minimize seek times
+		2) the block of data it transfers is small (512 bytes)
+
+	Remember when implementing S5FS, the free list of blocks is maintained in the superblock. Inodes, then,
+	contain something like 28 direct blocks. It's unclear rn, but it seems, at least on weenix, that when a 
+	file is created its direct blocks are initialized, which would kind of lead one to believe that the direct
+	blocks, at least, are close to eachother on disk.
+
+	However, since you're dealing with a free list - there's no guarantee that when a file requests more blocks, 
+	the blocks returned from the free list will be close to the position of the file currently on disk. Therefore,
+	there are long seek delays to find the appropriate block to transfer.
+
+	Average speed of transfer on disk: 512 bytes / (average seek time + rotational latency) = 512 / (.006) vs 512 / (.007) : ~14% faster
+
+13) 
+
+	33% faster (you're simply writing to the end of the file)
+
+14)
+
+	I think the way mmap works is it maps in (from disk onto ram) a certain block of memory. You can then, by directly accessing this 
+	memory, change the file (the file system will handle writing dirty pages out to disk). Key here is that the file in memory is accessed
+	via virtual memory and I don't need to worry about system calls (such as read() or write()), which would slow down the program.
+
+15)
+
+	TLB: So I finally figured out what's up. I originally thought this buffer was holding complete translations from VM to RM, but what
+	     it actually does is hold page frame numbers. If there's a TLB hit, the page frame number will be in the buffer, and the correct
+	     translation can be easily found simply by indexing into the buffer by 'offset'. So, for example, let's say we have a 2-way
+	     forward mapped page table:
+
+			2^10 bytes (page directory) -> 2^10 bytes (page tables) -> 2^12 bytes (pages) -- so here we have 4k pages
+
+	     If the TLB is empty, to find a translation we're going to need to go through 2 memory accesses to bring into memory the appropriate
+	     page, which we can then index into. If, however, the page is already in the TLB, we can simply index into it without the need for
+	     any memory accesses (making it much faster)
+
+	     This is why, with larger pages (say 2MB instead of 4k), the TLB becomes even more powerful since it holds translations for even
+	     more memory. If there are 128 total slots (and 2MB pages), then the TLB holds room for 128 * 2(MB) = 256 MBs of memory that can simply
+	     be indexed into without the need for any memory accesses. 	
+16)
+
+	KEY: interrupts are processor specific
+
+	     pages tables are process specific - thus, if a process forks, the child process will get its own page table. This makes sense,
+	     since page tables map virtual memory addresses to real memory addresses, and addresses are likely to be specific to the process
+	     running i.e. two completely isolated processes are unlikely to be referencing the same memory. In fact, THEY CAN'T, this is the
+	     whole idea behind process isolation. Unless we share map memory, processes should not be able to reference each others' memory - 
+	     they'll all have their own page tables providing page translations.
+
+17)
+
+	I think what's key here is that when you chroot and change the permissions of the parent directory, all sub directories will
+	share the permissions of the parent.
+
+	So C creates a new root with a directory in it, making it executable by B. So, B can run programs in the new root but that's it.
+	A gives C a hardlink to its executble. Likewise, B gives C hardlinks to the input data and the output file. C puts all these files 
+	in the directory. 
+
+	Now, when B executes A's program in the new root, it can't look at A's code or copy the binary. Likewise, since A has no permissions
+	on the new folder, it can't inspect any of B's data.
+
+	In terms of A copying B's data, it's not just that A could look into one of B's files - it could copy the contents, in the program, to some
+	location that B doesn't know about that it could later access. This is why chroot is so important - A running won't be able to break out of root,
+	and the parent (and all its children) have no permissions given to A -- no files in the tree will be accessible by A.
+
+18)
+
+	VMs:
+
+		An important element in this problem is the idea of page faults notifying us about things in the system. It's like the security
+		problem related to passwords, where a page fault would notify us that a guess of ours was correct. In this problem, the controller's
+		registers to protected, so that when the VM tries to reference them, it creates a page fault that can be handled by the VMM.
