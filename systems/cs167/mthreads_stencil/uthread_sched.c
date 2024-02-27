@@ -30,12 +30,11 @@ static int is_masked();
 
 /* ---------- globals -- */
 
-
 pthread_mutex_t runq_mtx;
 static utqueue_t runq_table[UTH_MAXPRIO + 1]; /* priority runqueues */
+extern int lwp_cnt;
 
 /* ----------- public code -- */
-
 
 /*
  * uthread_yield
@@ -49,8 +48,7 @@ static utqueue_t runq_table[UTH_MAXPRIO + 1]; /* priority runqueues */
  * is right (ie when a call to uthread_switch() results in this thread
  * being swapped in), the function returns.
  */
-void
-uthread_yield()
+void uthread_yield()
 {
 
     // TODO: Make sure that the current thread is not put on the run queue
@@ -74,23 +72,20 @@ uthread_yield()
     uthread_nopreempt_off();
 }
 
-
 /*
  * uthread_block
  *
  * Put the current thread to sleep, pending an appropriate call to
  * uthread_wake().
  */
-void
-uthread_block()
+void uthread_block()
 {
     uthread_nopreempt_on();
     ut_curthr->ut_state = UT_WAIT;
-    //TODO: Call uthread_switch here
-    uthread_switch(NULL, 0, NULL);	/* assume has been put on queue elsewhere */
+    // TODO: Call uthread_switch here
+    uthread_switch(NULL, 0, NULL); /* assume has been put on queue elsewhere */
     uthread_nopreempt_off();
 }
-
 
 /*
  * uthread_wake
@@ -99,8 +94,7 @@ uthread_block()
  * thread may already be runnable or already on cpu, so make sure to only mess with it if
  * it is actually in a wait state.
  */
-void
-uthread_wake(uthread_t *uthr)
+void uthread_wake(uthread_t *uthr)
 {
 
     // TODO: Synchronize access to the run queue. This will ensure that
@@ -111,20 +105,23 @@ uthread_wake(uthread_t *uthr)
     assert(uthr->ut_state != UT_NO_STATE);
     uthread_nopreempt_on();
     pthread_mutex_lock(&runq_mtx);
-    if (uthr->ut_state == UT_WAIT) {
-       uthr->ut_state = UT_RUNNABLE;
+    if (uthr->ut_state == UT_WAIT)
+    {
+        uthr->ut_state = UT_RUNNABLE;
         uthread_runq_enqueue(uthr);
-        if ((uthr->ut_prio > ut_curthr->ut_prio) && !is_masked()) {
+        if ((uthr->ut_prio > ut_curthr->ut_prio) && !is_masked())
+        {
             // yield if its priority is better than caller's
             uthread_yield();
         }
         uthread_nopreempt_off();
-    } else {
+    }
+    else
+    {
         uthread_nopreempt_off();
     }
     pthread_mutex_unlock(&runq_mtx);
 }
-
 
 /*
  * uthread_setprio
@@ -134,8 +131,7 @@ uthread_wake(uthread_t *uthr)
  * change the list it's waiting on so the effect of this call is
  * immediate.
  */
-int
-uthread_setprio(uthread_id_t id, int prio)
+int uthread_setprio(uthread_id_t id, int prio)
 {
     // TODO: Since we're potentially modifying the run queue here, we
     // also need to synchronize the invoking uthreads.
@@ -149,21 +145,25 @@ uthread_setprio(uthread_id_t id, int prio)
     uthread_t *thr = &uthreads[id];
     uthread_nopreempt_on();
     if ((thr->ut_state == UT_NO_STATE) || (thr->ut_state == UT_TRANSITION) ||
-        (thr->ut_state == UT_ZOMBIE)) {
+        (thr->ut_state == UT_ZOMBIE))
+    {
         uthread_nopreempt_off();
         return 0;
     }
-    if (thr->ut_prio == prio) {
+    if (thr->ut_prio == prio)
+    {
         uthread_nopreempt_off();
         return 1;
     }
     int oldprio = thr->ut_prio;
     thr->ut_prio = prio;
     pthread_mutex_lock(&runq_mtx);
-    if (thr->ut_state == UT_RUNNABLE) {
+    if (thr->ut_state == UT_RUNNABLE)
+    {
         uthread_runq_requeue(thr, oldprio);
     }
-    if ((prio > ut_curthr->ut_prio) && (thr->ut_state == UT_RUNNABLE)) {
+    if ((prio > ut_curthr->ut_prio) && (thr->ut_state == UT_RUNNABLE))
+    {
         // yield if its priority is better than caller's
         uthread_yield();
     }
@@ -172,11 +172,10 @@ uthread_setprio(uthread_id_t id, int prio)
     return 1;
 }
 
-
-
 /* ----------- (mostly) private code -- */
 
-void uthread_startonrunq(uthread_id_t id, int prio) {
+void uthread_startonrunq(uthread_id_t id, int prio)
+{
     // TODO: Make sure no other threads can touch the runq mutex while we're
     // modifying it
 
@@ -190,20 +189,22 @@ void uthread_startonrunq(uthread_id_t id, int prio) {
     pthread_mutex_lock(&runq_mtx);
 
     thr->ut_prio = prio;
-    if (thr->ut_state == UT_TRANSITION) {
+    if (thr->ut_state == UT_TRANSITION)
+    {
         // newly created thread
         thr->ut_state = UT_RUNNABLE;
         uthread_runq_enqueue(thr);
         pthread_mutex_unlock(&runq_mtx);
         uthread_nopreempt_off();
-    } else {
+    }
+    else
+    {
         PANIC("new thread not in UT_TRANSITION state");
     }
 }
 
 static void lwp_park(void);
-static int runq_size;	/* number of threads on the runq */
-
+static int runq_size; /* number of threads on the runq */
 
 /*
  * uthread_switch()
@@ -215,7 +216,8 @@ static int runq_size;	/* number of threads on the runq */
  * content of LWP using setcontext.
  */
 
-void uthread_switch(utqueue_t *q, int saveonrq, pthread_mutex_t *m) {
+void uthread_switch(utqueue_t *q, int saveonrq, pthread_mutex_t *m)
+{
     // TODO:
     // 1. Lock runq_mtx and get the current uthread's context.
     //
@@ -239,8 +241,8 @@ void uthread_switch(utqueue_t *q, int saveonrq, pthread_mutex_t *m) {
     uthread_getcontext(&(ut_curthr->ut_ctx));
 
     // this allows you to edit 'first' on the stack even after registers have been saved
-    if(!first)
-      return;
+    if (!first)
+        return;
 
     first = 0;
 
@@ -253,19 +255,18 @@ void uthread_switch(utqueue_t *q, int saveonrq, pthread_mutex_t *m) {
     uthread_setcontext(&(curlwp->lwp_ctx));
 }
 
-
 /*
  * check whether queue is a run queue; move over to uthread_util.c later
  */
-bool is_runq(utqueue_t* queue) {
+bool is_runq(utqueue_t *queue)
+{
     int i;
-    for(i = 0; i < UTH_MAXPRIO; i++)
-      if (queue == &(runq_table[i]))
-        return true;
+    for (i = 0; i < UTH_MAXPRIO; i++)
+        if (queue == &(runq_table[i]))
+            return true;
 
     return false;
 }
-
 
 /*
  * lwp_switch()
@@ -278,7 +279,8 @@ bool is_runq(utqueue_t* queue) {
  * released.
  */
 
-void lwp_switch() {
+void lwp_switch()
+{
     // TODO:
     // 1. Save the context of this LWP in curlwp using getcontext
     //
@@ -314,18 +316,22 @@ void lwp_switch() {
     uthread_getcontext(&(curlwp->lwp_ctx));
 
     // place thread into a queue; run queue should still be locked from thread_switch()
-    if(curlwp->queue) {
-      if(is_runq(curlwp->queue)) {
-        ut_curthr->ut_state = UT_RUNNABLE;
-        uthread_runq_enqueue(ut_curthr);
-      }
-      else {
-        utqueue_enqueue(curlwp->queue, ut_curthr);
-      }
+    if (curlwp->queue)
+    {
+        if (is_runq(curlwp->queue))
+        {
+            ut_curthr->ut_state = UT_RUNNABLE;
+            uthread_runq_enqueue(ut_curthr);
+        }
+        else
+        {
+            utqueue_enqueue(curlwp->queue, ut_curthr);
+        }
     }
 
     // if you're to save the thread on the run queue but it's not already there
-    if(curlwp->saveonrq && !curlwp->queue) {
+    if (curlwp->saveonrq && !curlwp->queue)
+    {
         ut_curthr->ut_state = UT_RUNNABLE;
         uthread_runq_enqueue(ut_curthr);
     }
@@ -335,32 +341,36 @@ void lwp_switch() {
      * to be sure you've switched out of the thread's stack s.t. two kernel threads
      * don't start running the same thread at the same time.
      */
-    if(curlwp->pmut) {
-      pthread_mutex_unlock(curlwp->pmut);
+    if (curlwp->pmut)
+    {
+        pthread_mutex_unlock(curlwp->pmut);
     }
 
     // find a new thread to run
-    while(1) {
-      int i;
-      for(i = UTH_MAXPRIO; i >= 0; i--) {
-        if(utqueue_empty(&runq_table[i])) {
-	  continue;
+    while (1)
+    {
+        int i;
+        for (i = UTH_MAXPRIO; i >= 0; i--)
+        {
+            if (utqueue_empty(&runq_table[i]))
+            {
+                continue;
+            }
+            else
+            {
+                ut_curthr = utqueue_dequeue(&runq_table[i]);
+                list_link_init(&ut_curthr->ut_link);
+                runq_size--;
+                ut_curthr->ut_state = UT_ON_CPU;
+                pthread_mutex_unlock(&runq_mtx);
+                uthread_setcontext(&(ut_curthr->ut_ctx));
+            }
         }
-        else {
-	  ut_curthr = utqueue_dequeue(&runq_table[i]);
-	  list_link_init(&ut_curthr->ut_link);
-	  runq_size--;
-	  ut_curthr->ut_state = UT_ON_CPU;
-          pthread_mutex_unlock(&runq_mtx);
-	  uthread_setcontext(&(ut_curthr->ut_ctx));
-        }
-      }
 
-      // no runnable threads, block until one becomes available
-      lwp_park();
+        // no runnable threads, block until one becomes available
+        lwp_park();
     }
 }
-
 
 static void uthread_start_timer(void);
 /*
@@ -368,11 +378,11 @@ static void uthread_start_timer(void);
  *
  * Setup the scheduler. This is called once from uthread_init().
  */
-void
-uthread_sched_init(void)
+void uthread_sched_init(void)
 {
     int i;
-    for (i=0; i<=UTH_MAXPRIO; i++) {
+    for (i = 0; i <= UTH_MAXPRIO; i++)
+    {
         utqueue_init(&runq_table[i]);
     }
     uthread_start_timer();
@@ -382,10 +392,11 @@ static void clock_interrupt(int);
 sigset_t VTALRMmask;
 __thread int masked = 1;
 
-static inline int is_masked() {return masked;}
+static inline int is_masked() { return masked; }
 
 static void
-uthread_start_timer() {
+uthread_start_timer()
+{
     // start the time-slice timer.
     // It's process-wide, not per LWP and is delivered to randomly chosen LWP.
     // The posix signal mask is per LWP. The uthread signal mask is per uthread.
@@ -397,14 +408,16 @@ uthread_start_timer() {
     timerval.it_interval = interval;
     signal(SIGVTALRM, clock_interrupt);
     pthread_sigmask(SIG_BLOCK, &VTALRMmask, 0); // initially masked
-    setitimer(ITIMER_VIRTUAL, &timerval, 0); // off we go!
+    setitimer(ITIMER_VIRTUAL, &timerval, 0);    // off we go!
 }
 
 static void
-clock_interrupt(int sig) {
+clock_interrupt(int sig)
+{
     // handler for SIGVTALRM
     assert(!is_masked());
-    if (ut_curthr == 0 || ut_curthr->ut_state != UT_ON_CPU) {
+    if (ut_curthr == 0 || ut_curthr->ut_state != UT_ON_CPU)
+    {
         // don't want to deal with it now: either there's no running uthread to preempt on
         // this LWP, or the uthread is masking clock interrupts
         return;
@@ -414,7 +427,8 @@ clock_interrupt(int sig) {
     uthread_yield();
 }
 
-void uthread_nopreempt_on() {
+void uthread_nopreempt_on()
+{
     // mask clock interrupts for current thread; calls may be nested
     // must not refer to ut_curthr without clock interrupts masked
     pthread_sigmask(SIG_BLOCK, &VTALRMmask, 0);
@@ -424,12 +438,14 @@ void uthread_nopreempt_on() {
     assert(ut_curthr->ut_no_preempt_count > 0);
 }
 
-void uthread_nopreempt_off() {
+void uthread_nopreempt_off()
+{
     // unmask clock interrupts for current thread; since calls may be nested,
     // must keep track of whether this the "last" call to turn on clock interrupts
     assert(ut_curthr != NULL);
     assert(ut_curthr->ut_no_preempt_count > 0);
-    if (--ut_curthr->ut_no_preempt_count == 0) {
+    if (--ut_curthr->ut_no_preempt_count == 0)
+    {
         masked = 0;
         pthread_sigmask(SIG_UNBLOCK, &VTALRMmask, 0);
     }
@@ -445,7 +461,8 @@ static int lwp_parked_cnt;
  * This is where LWPs hang out when they have nothing to do.
  */
 
-static void lwp_park() {
+static void lwp_park()
+{
     // TODO: Block the lwp on the condition variable until
     // lwp_release is called. All bookkeeping for lwp_parked_cnt
     // is done here. Note that runq_mtx is locked on entry, and
@@ -460,8 +477,9 @@ static void lwp_park() {
     assert(lwp_parked_cnt != lwp_cnt);
 
     // block the LWP until there's something in the run queue
-    while(!runq_size) {
-      pthread_cond_wait(&lwp_park_cond, &runq_mtx);
+    while (!runq_size)
+    {
+        pthread_cond_wait(&lwp_park_cond, &runq_mtx);
     }
 
     lwp_parked_cnt--;
@@ -474,11 +492,13 @@ static void lwp_park() {
  * A uthread has become runnable. Wake up an LWP to deal with it.
  */
 
-static void lwp_release() {
+static void lwp_release()
+{
     pthread_cond_signal(&lwp_park_cond);
 }
 
-void uthread_runq_enqueue(uthread_t *thr) {
+void uthread_runq_enqueue(uthread_t *thr)
+{
     // TODO: Enqueue the uthread on its appropriate runq.
     // Remember to bump runq_size and call lwp_release if
     // runq_size was just zero (since now there's a thread to
@@ -495,11 +515,12 @@ void uthread_runq_enqueue(uthread_t *thr) {
 
     runq_size++;
 
-    if(runq_size == 1)
-      lwp_release();
+    if (runq_size == 1)
+        lwp_release();
 }
 
-static void uthread_runq_requeue(uthread_t *thr, int oldprio) {
+static void uthread_runq_requeue(uthread_t *thr, int oldprio)
+{
     // TODO: Remove thr from the run queue for oldprio priority
     // uthreads, and enqueue it on the run queue associated with
     // thr's current priority.
@@ -513,8 +534,9 @@ static void uthread_runq_requeue(uthread_t *thr, int oldprio) {
     /* make sure thread is on a queue; if a thread is UT_RUNNABLE but not
      * already on a queue, then this means it's recently been dequeued or
      * is about to be enqueued. In this case, don't do anything */
-    if(thr->ut_link.l_prev && thr->ut_link.l_next) {
-      utqueue_remove(&runq_table[oldprio], thr);
-      utqueue_enqueue(&runq_table[thr->ut_prio], thr);
+    if (thr->ut_link.l_prev && thr->ut_link.l_next)
+    {
+        utqueue_remove(&runq_table[oldprio], thr);
+        utqueue_enqueue(&runq_table[thr->ut_prio], thr);
     }
 }

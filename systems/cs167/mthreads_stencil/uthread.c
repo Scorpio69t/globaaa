@@ -24,21 +24,20 @@
 #include "uthread_mtx.h"
 #include "uthread_cond.h"
 
-
 /* ---------- globals -- */
 
-__thread uthread_t*    ut_curthr = 0;       /* per-LWP current running thread */
-__thread lwp_t*        curlwp;              /* per-LWP reference to the LWP context info */
-uthread_t   uthreads[UTH_MAX_UTHREADS];     /* threads on the system */
-extern sigset_t    VTALRMmask;              /* clock interrupt mask */
+__thread uthread_t *ut_curthr = 0;    /* per-LWP current running thread */
+__thread lwp_t *curlwp;               /* per-LWP reference to the LWP context info */
+uthread_t uthreads[UTH_MAX_UTHREADS]; /* threads on the system */
+extern sigset_t VTALRMmask;           /* clock interrupt mask */
 
-static utqueue_t        reap_queue;         /* dead threads */
-static uthread_id_t     reaper_thr_id;      /* reference to reaper thread */
-static uthread_mtx_t    reap_mtx;
-extern pthread_mutex_t  runq_mtx;
+static utqueue_t reap_queue;       /* dead threads */
+static uthread_id_t reaper_thr_id; /* reference to reaper thread */
+static uthread_mtx_t reap_mtx;
+extern pthread_mutex_t runq_mtx;
 
 pthread_mutexattr_t merrorattr;
-
+int lwp_cnt;
 
 /* ---------- prototypes -- */
 
@@ -55,7 +54,6 @@ static void reaper(long a0, char *a1[]);
 static void make_reapable(uthread_t *uth);
 static void uthread_start_lwp(void);
 
-
 /* ---------- public code -- */
 
 /*
@@ -64,11 +62,11 @@ static void uthread_start_lwp(void);
  * This initializes everything, then becomes the first uthread and invokes its first
  * function. It does not return -- when all uthreads are done, the reaper calls exit.
  */
-void
-uthread_start(uthread_func_t firstFunc, long argc, char *argv[])
+void uthread_start(uthread_func_t firstFunc, long argc, char *argv[])
 {
     int i;
-    for (i=0; i<UTH_MAX_UTHREADS; i++) {
+    for (i = 0; i < UTH_MAX_UTHREADS; i++)
+    {
         uthreads[i].ut_state = UT_NO_STATE;
         uthreads[i].ut_id = i;
     }
@@ -76,7 +74,8 @@ uthread_start(uthread_func_t firstFunc, long argc, char *argv[])
     pthread_mutexattr_init(&merrorattr);
     pthread_mutexattr_settype(&merrorattr, PTHREAD_MUTEX_ERRORCHECK);
 
-    if ((i = pthread_mutex_init(&runq_mtx, &merrorattr)) != 0) {
+    if ((i = pthread_mutex_init(&runq_mtx, &merrorattr)) != 0)
+    {
         fprintf(stderr, strerror(i));
         exit(1);
     }
@@ -86,8 +85,6 @@ uthread_start(uthread_func_t firstFunc, long argc, char *argv[])
     reaper_init();
     create_first_thr(firstFunc, argc, argv);
 }
-
-
 
 /*
  * uthread_create
@@ -100,26 +97,27 @@ uthread_start(uthread_func_t firstFunc, long argc, char *argv[])
  * newly-found id, make the thread runnable by calling uthread_startonrunq, and
  * return the aforementioned thread id in <uidp>.  Return 0 on success, -1 on error.
  */
-int
-uthread_create(uthread_id_t *uidp, uthread_func_t func,
-               long arg1, void *arg2, int prio)
+int uthread_create(uthread_id_t *uidp, uthread_func_t func,
+                   long arg1, void *arg2, int prio)
 {
     uthread_id_t tid = uthread_alloc();
     *uidp = tid;
-    if (tid == -1) {
+    if (tid == -1)
+    {
         return -1;
     }
 
     uthread_t *thr = &uthreads[tid];
     thr->ut_stack = alloc_stack();
-    if (thr->ut_stack == NULL) {
+    if (thr->ut_stack == NULL)
+    {
         *uidp = -1;
         return -1;
     }
 
     uthread_makecontext(&thr->ut_ctx, thr->ut_stack, UTH_STACK_SIZE, func, arg1, arg2);
     memset(&thr->ut_link, 0, sizeof(list_link_t));
-    thr->ut_prio = -1;  // illegal value, forcing it to be changed in uthread_setprio
+    thr->ut_prio = -1; // illegal value, forcing it to be changed in uthread_setprio
     thr->ut_errno = thr->ut_has_exited = thr->ut_exit = thr->ut_detached = 0;
     utqueue_init(&thr->ut_waiter);
     pthread_mutex_init(&thr->ut_pmut, &merrorattr);
@@ -131,8 +129,6 @@ uthread_create(uthread_id_t *uidp, uthread_func_t func,
 
     return 0;
 }
-
-
 
 /*
  * uthread_exit
@@ -146,8 +142,7 @@ uthread_create(uthread_id_t *uidp, uthread_func_t func,
  * If the thread is detached, it should be put onto the reaper's dead
  * thread queue and wakeup the reaper thread by calling make_reapable().
  */
-void
-uthread_exit(int status)
+void uthread_exit(int status)
 {
     // TODO:
     // 1. Lock reap_mtx to synchronize access to the reap queue. Note
@@ -163,31 +158,33 @@ uthread_exit(int status)
     ut_curthr->ut_has_exited = 1;
     ut_curthr->ut_exit = status;
 
-    if (ut_curthr->ut_detached) {
+    if (ut_curthr->ut_detached)
+    {
         uthread_mtx_lock(&reap_mtx);
-	/* (1): lock after reap_mtx - otherwise you'll try to unlock in another process,
-	 * which will throw a pthread error. */
+        /* (1): lock after reap_mtx - otherwise you'll try to unlock in another process,
+         * which will throw a pthread error. */
         pthread_mutex_lock(&ut_curthr->ut_pmut);
-        make_reapable(ut_curthr);	/* requires reap_mtx and ut_pmut locked */
-    } else {
+        make_reapable(ut_curthr); /* requires reap_mtx and ut_pmut locked */
+    }
+    else
+    {
         pthread_mutex_lock(&ut_curthr->ut_pmut);
         uthread_t *waiter = utqueue_dequeue(&ut_curthr->ut_waiter);
-        if (waiter != NULL) {
+        if (waiter != NULL)
+        {
             uthread_wake(waiter);
         }
 
         /* TODO: call uthread_switch here; I think queue value should be NULL
          * since I don't want to run this thread again. Make sure to unlock
-	 * the thread's ut_pmut mutex so that the thread can be reaped after it
-	 * switches off its stack.
-	 */
+         * the thread's ut_pmut mutex so that the thread can be reaped after it
+         * switches off its stack.
+         */
         uthread_switch(NULL, 0, &ut_curthr->ut_pmut);
     }
 
     PANIC("returned to a dead thread");
 }
-
-
 
 /*
  * uthread_join
@@ -210,8 +207,7 @@ uthread_exit(int status)
  * flag to true, and then wake the reaper so it can cleanup the thread by
  * calling make_reapable
  */
-int
-uthread_join(uthread_id_t uid, int *return_value)
+int uthread_join(uthread_id_t uid, int *return_value)
 {
     // TODO:
     // 1. Make sure the thread with thread id uid is modified in a
@@ -239,25 +235,30 @@ uthread_join(uthread_id_t uid, int *return_value)
 
     pthread_mutex_lock(&thr->ut_pmut);
 
-    if (!utqueue_empty(&thr->ut_waiter)) {
+    if (!utqueue_empty(&thr->ut_waiter))
+    {
         // some other thread is joining
         pthread_mutex_unlock(&thr->ut_pmut);
         uthread_nopreempt_off();
         return -1;
     }
-    if (thr->ut_detached) {
+    if (thr->ut_detached)
+    {
         pthread_mutex_unlock(&thr->ut_pmut);
         uthread_nopreempt_off();
         return -1;
     }
-    if (thr->ut_state != UT_ZOMBIE) {
+    if (thr->ut_state != UT_ZOMBIE)
+    {
         // target hasn't terminated yet. Atomically put caller on target's waiter q and
         // yield LWP
         ut_curthr->ut_state = UT_WAIT;
 
         // TODO: Call uthread_switch here.
-	uthread_switch(&thr->ut_waiter, 0, &thr->ut_pmut);
-    } else {
+        uthread_switch(&thr->ut_waiter, 0, &thr->ut_pmut);
+    }
+    else
+    {
         // target has already terminated.
         pthread_mutex_unlock(&thr->ut_pmut);
     }
@@ -266,7 +267,8 @@ uthread_join(uthread_id_t uid, int *return_value)
     // officially undefined
     assert(thr->ut_state == UT_ZOMBIE);
     uthread_nopreempt_off();
-    if (return_value) {
+    if (return_value)
+    {
         *return_value = thr->ut_exit;
     }
 
@@ -275,8 +277,6 @@ uthread_join(uthread_id_t uid, int *return_value)
     make_reapable(thr);
     return 0;
 }
-
-
 
 /*
  * uthread_detach
@@ -294,8 +294,7 @@ uthread_join(uthread_id_t uid, int *return_value)
  * pthread_detach (basically just invalid threads, etc).
  *
  */
-int
-uthread_detach(uthread_id_t uid)
+int uthread_detach(uthread_id_t uid)
 {
     // TODO: Something has to be done to ensure that the reaper
     // doesn't destroy the stack we're executing on too early.
@@ -308,16 +307,15 @@ uthread_detach(uthread_id_t uid)
     uthread_t *thr = &uthreads[uid];
     uthread_nopreempt_on();
     thr->ut_detached = 1;
-    if (thr->ut_state == UT_ZOMBIE) {
-	uthread_mtx_lock(&reap_mtx);
-	pthread_mutex_lock(&thr->ut_pmut);
+    if (thr->ut_state == UT_ZOMBIE)
+    {
+        uthread_mtx_lock(&reap_mtx);
+        pthread_mutex_lock(&thr->ut_pmut);
         make_reapable(thr);
     }
     uthread_nopreempt_off();
     return 0;
 }
-
-
 
 /*
  * uthread_self
@@ -334,12 +332,7 @@ uthread_self(void)
     return id;
 }
 
-
-
-
 /* ------------- private code -- */
-
-
 
 /*
  * uthread_alloc
@@ -351,21 +344,25 @@ uthread_alloc(void)
 {
     static uthread_id_t PrevID = -1;
     int i;
-    int start = PrevID+1;
+    int start = PrevID + 1;
     if (start >= UTH_MAX_UTHREADS)
         start = 0;
     int end = UTH_MAX_UTHREADS;
     uthread_nopreempt_on();
-    while (1) {
-        for (i=start; i<end; i++) {
-            if (uthreads[i].ut_state == UT_NO_STATE) {
+    while (1)
+    {
+        for (i = start; i < end; i++)
+        {
+            if (uthreads[i].ut_state == UT_NO_STATE)
+            {
                 uthreads[i].ut_state = UT_TRANSITION;
                 PrevID = i;
                 uthread_nopreempt_off();
-                return(PrevID);
+                return (PrevID);
             }
         }
-        if (start > 0) {
+        if (start > 0)
+        {
             end = start;
             start = 0;
             continue;
@@ -394,7 +391,6 @@ uthread_destroy(uthread_t *uth)
     uth->ut_state = UT_NO_STATE;
 }
 
-
 static uthread_cond_t reap_cond;
 
 /*
@@ -408,7 +404,6 @@ reaper_init(void)
     uthread_mtx_init(&reap_mtx);
     uthread_cond_init(&reap_cond);
 }
-
 
 /*
  * reaper
@@ -427,24 +422,26 @@ reaper(long a0, char *a1[])
     uthread_nopreempt_on();
     uthread_mtx_lock(&reap_mtx); // get exclusive access to reap queue
 
-    while(1) {
+    while (1)
+    {
         uthread_t *thread;
         int th;
 
-        while(utqueue_empty(&reap_queue)) {
+        while (utqueue_empty(&reap_queue))
+        {
             // wait for a thread to join the reap queue
             uthread_cond_wait(&reap_cond, &reap_mtx);
         }
 
-        while (!utqueue_empty(&reap_queue)) {
+        while (!utqueue_empty(&reap_queue))
+        {
             // deal with all threads on reap queue
             thread = utqueue_dequeue(&reap_queue);
 
-
             assert(thread->ut_state == UT_ZOMBIE);
-            pthread_mutex_lock(&thread->ut_pmut); // wait for thread to get off its stack: pmut is
-                                                  // unlocked when the thread has switched to the LWP's stack.
-            pthread_mutex_unlock(&thread->ut_pmut);  // safe to unlock it -- the thread is effectively gone.
+            pthread_mutex_lock(&thread->ut_pmut);   // wait for thread to get off its stack: pmut is
+                                                    // unlocked when the thread has switched to the LWP's stack.
+            pthread_mutex_unlock(&thread->ut_pmut); // safe to unlock it -- the thread is effectively gone.
             uthread_destroy(thread);
         }
 
@@ -472,7 +469,6 @@ void lwp_switch(void);
 extern pthread_mutex_t runq_mtx;
 void uthread_runq_enqueue(uthread_t *thr);
 
-
 /*
  * Turns the main context (the 'main' routine that initialized
  * this process) into a regular uthread that can be switched
@@ -499,7 +495,8 @@ create_first_thr(uthread_func_t firstFunc, long argc, char *argv[])
     pthread_mutex_init(&ut_curthr->ut_pmut, &merrorattr);
     ut_curthr->ut_no_preempt_count = 1; // thread created with clock interrupts masked
     ut_curthr->ut_stack = alloc_stack();
-    if (ut_curthr->ut_stack == NULL) {
+    if (ut_curthr->ut_stack == NULL)
+    {
         PANIC("Could not create stack for first thread.");
     }
 
@@ -513,7 +510,6 @@ create_first_thr(uthread_func_t firstFunc, long argc, char *argv[])
 
     // first thread is now on run q; next step is to set up the reaper thread
 
-
     reaper_thr_id = uthread_alloc();
     ut_curthr = &uthreads[reaper_thr_id];
     memset(&ut_curthr->ut_link, 0, sizeof(list_link_t));
@@ -525,7 +521,8 @@ create_first_thr(uthread_func_t firstFunc, long argc, char *argv[])
     pthread_mutex_init(&ut_curthr->ut_pmut, &merrorattr);
     ut_curthr->ut_no_preempt_count = 1; // thread created with clock interrupts masked
     ut_curthr->ut_stack = alloc_stack();
-    if (ut_curthr->ut_stack == NULL) {
+    if (ut_curthr->ut_stack == NULL)
+    {
         PANIC("Could not create stack for reaper thread.");
     }
 
@@ -539,7 +536,7 @@ create_first_thr(uthread_func_t firstFunc, long argc, char *argv[])
 
     // reaper thread is now on run q; next step is to set up the initial LWP
 
-    pthread_mutex_lock(&runq_mtx);  // lock runq so that no LWPs do anything till we're ready
+    pthread_mutex_lock(&runq_mtx); // lock runq so that no LWPs do anything till we're ready
 
     // set up additional LWPs: all inherit clock interrupt mask
     uthread_start_lwp();
@@ -585,19 +582,21 @@ make_reapable(uthread_t *uth)
     uthread_nopreempt_on();
 
     /* calling make_reapable on different thread */
-    if(uth != ut_curthr) {
-      utqueue_enqueue(&reap_queue, uth);
-      uthread_cond_signal(&reap_cond);
-      uthread_mtx_unlock(&reap_mtx);
-      pthread_mutex_unlock(&uth->ut_pmut);
+    if (uth != ut_curthr)
+    {
+        utqueue_enqueue(&reap_queue, uth);
+        uthread_cond_signal(&reap_cond);
+        uthread_mtx_unlock(&reap_mtx);
+        pthread_mutex_unlock(&uth->ut_pmut);
     }
-    else {
-      utqueue_enqueue(&reap_queue, uth);
-      uthread_cond_signal(&reap_cond);
-      uthread_mtx_unlock(&reap_mtx);
-      uthread_switch(NULL, 0, &uth->ut_pmut);	/* switch out of current, detached thread */
+    else
+    {
+        utqueue_enqueue(&reap_queue, uth);
+        uthread_cond_signal(&reap_cond);
+        uthread_mtx_unlock(&reap_mtx);
+        uthread_switch(NULL, 0, &uth->ut_pmut); /* switch out of current, detached thread */
 
-      PANIC("returned to a dead thread");
+        PANIC("returned to a dead thread");
     }
 
     uthread_nopreempt_off();
@@ -629,7 +628,8 @@ free_stack(char *stack)
  */
 
 static void *
-lwp_start(void *dummy) {
+lwp_start(void *dummy)
+{
     ut_curthr = NULL;
     curlwp = (lwp_t *)malloc(sizeof(lwp_t));
     memset(curlwp, 0, sizeof(lwp_t));
@@ -649,7 +649,8 @@ lwp_start(void *dummy) {
  */
 
 static void
-uthread_start_lwp() {
+uthread_start_lwp()
+{
     pthread_t ptid;
     pthread_create(&ptid, 0, lwp_start, 0);
     pthread_detach(ptid);
